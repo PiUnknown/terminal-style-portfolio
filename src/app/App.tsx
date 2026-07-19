@@ -948,10 +948,30 @@ function BlogPostView({ post, onBack }: { post: BlogPost; onBack: () => void }) 
 function ContactSection() {
   const [sent, setSent] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setSent(true);
+    setLoading(true);
+    try {
+      const res = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_key: "69aa8a53-2d18-4282-9fde-f04edec7d5cb",
+          name: form.name,
+          email: form.email,
+          message: form.message,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) setSent(true);
+      else alert("Something went wrong. Try emailing directly.");
+    } catch {
+      alert("Network error. Try emailing directly.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (sent) {
@@ -1017,7 +1037,8 @@ function ContactSection() {
             type="submit"
             className="text-sm text-muted-foreground hover:text-primary transition-colors"
           >
-            <span className="text-primary mr-1">$</span>./send.sh <span className="text-muted-foreground">↵</span>
+            <span className="text-primary mr-1">$</span>
+            {loading ? "sending..." : <>./send.sh <span className="text-muted-foreground">↵</span></>}
           </button>
         </div>
       </form>
