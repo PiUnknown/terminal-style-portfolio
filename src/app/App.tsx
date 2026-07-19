@@ -18,9 +18,11 @@ interface Project {
   name: string;
   lang: string;
   desc: string;
-  stars: number;
-  status: "active" | "archived" | "wip";
+  status: "active" | "archived" | "wip" | "research";
   url: string;
+  hostedUrl: string;
+  stack: string[];
+  architecture: string;
 }
 
 // ── Data ─────────────────────────────────────────────────────────────────────
@@ -81,52 +83,141 @@ const BLOG_POSTS: BlogPost[] = [
 
 const PROJECTS: Project[] = [
   {
-    name: "malloc-from-scratch",
-    lang: "C",
-    desc: "Slab memory allocator with coalescing free list. Built for OS coursework.",
-    stars: 47,
-    status: "active",
-    url: "#",
-  },
-  {
-    name: "shell.rs",
-    lang: "Rust",
-    desc: "POSIX-ish shell with job control and pipeline support.",
-    stars: 83,
-    status: "active",
-    url: "#",
-  },
-  {
-    name: "gitvis",
-    lang: "TypeScript",
-    desc: "Interactive DAG visualizer for git commit history.",
-    stars: 122,
-    status: "active",
-    url: "#",
-  },
-  {
-    name: "brainfuck-jit",
-    lang: "C++",
-    desc: "JIT compiler for Brainfuck targeting x86-64 via LLVM IR.",
-    stars: 31,
-    status: "archived",
-    url: "#",
-  },
-  {
-    name: "netscanner",
+    name: "project-alloy",
     lang: "Python",
-    desc: "Async network port scanner with banner grabbing.",
-    stars: 19,
+    desc: "Data curation and continued pretraining pipeline for language models.",
+    status: "research",
+    url: "https://github.com/PiUnknown/Project-Alloy",
+    hostedUrl: "",
+    stack: [
+      "Python",
+      "PyTorch",
+      "Transformers",
+      "Tokenizers",
+      "Datasets",
+    ],
+    architecture:
+      "Research-focused pipeline for document ingestion, cleaning, deduplication, tokenizer preparation, dataset packing, and continued language model pretraining.",
+  },
+
+  {
+    name: "queryforge",
+    lang: "Python",
+    desc: "Production-ready RAG system for querying and synthesizing research papers.",
+    status: "active",
+    url: "https://github.com/PiUnknown/QueryForge",
+    hostedUrl: "",
+    stack: [
+      "Python",
+      "LangChain",
+      "ChromaDB",
+      "Sentence-Transformers",
+      "Ollama",
+      "Streamlit",
+    ],
+    architecture:
+      "Modular RAG pipeline with PDF ingestion, semantic chunking, dense retrieval, local LLM inference, and an evaluation framework measuring Precision@K, Recall, MRR, and F1.",
+  },
+
+  {
+    name: "support-triage-agent",
+    lang: "Python",
+    desc: "Grounded multi-domain support agent built for adversarial support tickets.",
+    status: "active",
+    url: "https://github.com/PiUnknown/support-triage-agent",
+    hostedUrl: "",
+    stack: [
+      "Python",
+      "FAISS",
+      "Sentence-Transformers",
+      "Groq",
+      "Pandas",
+    ],
+    architecture:
+      "Deterministic seven-stage pipeline performing safety checks, retrieval, classification, escalation, and grounded response generation while resisting prompt injection and PII extraction.",
+  },
+
+  {
+    name: "TerraGraph",
+    lang: "Python",
+    desc: "AI biodiversity intelligence system for grounded environmental recommendations.",
     status: "wip",
-    url: "#",
+    url: "https://github.com/PiUnknown/TerraGraph",
+    hostedUrl: "",
+    stack: [
+      "FastAPI",
+      "ChromaDB",
+      "Sentence-Transformers",
+      "Groq",
+      "Pydantic",
+      "Streamlit",
+    ],
+    architecture:
+      "Hybrid reasoning architecture combining deterministic ecological relationship graphs with semantic retrieval and LLM synthesis to generate evidence-backed biodiversity recommendations.",
+  },
+
+  {
+    name: "IssueRouter",
+    lang: "Python",
+    desc: "AI-powered civic grievance triage system for routing citizen complaints.",
+    status: "active",
+    url: "https://github.com/PiUnknown/IssueRouter",
+    hostedUrl: "",
+    stack: [
+      "FastAPI",
+      "BART",
+      "spaCy",
+      "Sentence-Transformers",
+      "Groq",
+      "React",
+    ],
+    architecture:
+      "Streams complaints from X, performs zero-shot classification, entity extraction, semantic clustering, urgency scoring, and LLM summarization before generating ranked action briefs for government officers.",
+  },
+
+  {
+    name: "digital-persona",
+    lang: "Python",
+    desc: "RAG chatbot that lets users explore LinkedIn profiles through natural conversation.",
+    status: "active",
+    url: "https://github.com/PiUnknown/Digital-Persona",
+    hostedUrl: "",
+    stack: [
+      "LangChain",
+      "FAISS",
+      "Apify",
+      "Sentence-Transformers",
+      "Groq",
+      "Streamlit",
+    ],
+    architecture:
+      "Scrapes LinkedIn profiles, builds a FAISS vector index, retrieves relevant profile chunks, and generates grounded responses using a retrieval-augmented generation pipeline.",
+  },
+
+  {
+    name: "SentioTrade",
+    lang: "Python",
+    desc: "Real-time stock sentiment analysis system powered by FinBERT.",
+    status: "active",
+    url: "https://github.com/PiUnknown/SentioTrade",
+    hostedUrl: "",
+    stack: [
+      "FastAPI",
+      "FinBERT",
+      "PyTorch",
+      "PRAW",
+      "Docker",
+    ],
+    architecture:
+      "End-to-end ML pipeline that scrapes Reddit discussions, performs financial-domain sentiment analysis using FinBERT, aggregates confidence-weighted predictions, and serves live results through a FastAPI backend.",
   },
 ];
 
 const SKILLS = {
-  languages: ["C", "C++", "Rust", "Python", "TypeScript", "Go", "x86-64 ASM"],
-  systems: ["Linux", "POSIX", "pthreads", "mmap", "epoll", "Docker"],
-  cs_core: ["OS Design", "Compilers", "Networking", "Algorithms", "Databases"],
-  tools: ["git", "gdb", "valgrind", "perf", "LLVM", "Neovim"],
+  languages: ["Python", "C", "C++", "SQL", "HTML", "CSS"],
+  ml_ai: ["Scikit-learn", "TensorFlow", "PyTorch", "Pandas", "Numpy", "Matplotlib", "Seaborn", "YOLOv8", "Hugging Face", "Sentence-Transformers", "spaCy", "FinBERT", "BART"],
+  llm_stack: ["LangChain", "ChromaDB", "FAISS", "Sentence-Transformers", "Hugging Face", "Groq", "Ollama"],
+  tools: ["Git", "GitHub", "Docker", "AWS EC2", "Streamlit", "FastAPI"],
 };
 
 type ThemeId = "phosphor" | "amber" | "ice" | "ghost";
@@ -483,9 +574,52 @@ function AboutSection() {
           compiler as a weekend project.
         </p>
         <p>
-          Outside of code I run long distances, drink too much coffee, and maintain a Neovim config
-          that is definitely not worth the time I have spent on it.
+          Outside of code I try to hit gym at least 5 times a week, drink too much diet coke, and write my thoughts on paper.
         </p>
+      </div>
+
+      <div className="text-muted-foreground text-sm">
+        <Prompt path="~/about" />
+        cat experience.txt
+      </div>
+
+      <div className="border border-border p-4 space-y-4 text-sm">
+        {[
+          {
+            role: "Summer Intern",
+            company: "IIT Ropar",
+            period: "July 2026 – Present",
+            desc: [
+
+            ],
+          },
+          {
+            role: "Data Science Intern",
+            company: "Indian Navy (WESEE)",
+            period: "July 2025 - Aug 2025",
+            desc: [
+              "Contributed to Trident Netra, a naval AI surveillance system for geospatial intelligence.",
+              "Developed data pipelines and preprocessing scripts for satellite imagery classification.",
+              "Project showcased at India AI Impact Summit 2026 (Bharat Mandapam, February 2026).",
+            ],
+          },
+        ].map((e, i) => (
+          <div key={i} className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1">
+            <div>
+              <div className="text-primary">{e.role}</div>
+              <div className="text-muted-foreground">{e.company}</div>
+              <ul className="mt-1 space-y-0.5">
+                {e.desc.map((point, j) => (
+                  <li key={j} className="text-muted-foreground text-xs flex gap-2">
+                    <span className="text-primary shrink-0">·</span>
+                    <span>{point}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="text-muted-foreground text-xs shrink-0">{e.period}</div>
+          </div>
+        ))}
       </div>
 
       <div className="text-muted-foreground text-sm">
@@ -522,12 +656,87 @@ function AboutSection() {
   );
 }
 
-function ProjectsSection() {
+function ProjectsSection({ openProject, setOpenProject }: {
+  openProject: string | null;
+  setOpenProject: (id: string | null) => void;
+}) {
+
   const statusColor: Record<Project["status"], string> = {
+    wip: "#ffcc00",
+    research: "#cc88ff",
     active: "#00ff41",
     archived: "#3a7a3a",
-    wip: "#ffcc00",
   };
+
+  const project = openProject ? PROJECTS.find((p) => p.name === openProject) ?? null : null;
+
+  if (project) {
+    return (
+      <div className="space-y-5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+        <div className="text-muted-foreground text-sm">
+          <Prompt path="~/projects" />
+          cat ./{project.name}/README.md
+        </div>
+
+        <div className="border border-border p-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-primary text-lg font-bold">{project.name}</span>
+            <span
+              className="text-xs px-2 py-0.5 border"
+              style={{ color: statusColor[project.status], borderColor: statusColor[project.status] + "44" }}
+            >
+              {project.status}
+            </span>
+          </div>
+
+          <p className="text-sm text-muted-foreground">{project.desc}</p>
+
+          <div>
+            <div className="text-xs text-muted-foreground mb-2">-- tech stack</div>
+            <div className="flex flex-wrap gap-2">
+              {project.stack.map((t) => (
+                <span key={t} className="text-xs border border-border px-2 py-0.5 text-foreground">{t}</span>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <div className="text-xs text-muted-foreground mb-2">-- architecture</div>
+            <p className="text-sm text-muted-foreground leading-relaxed">{project.architecture}</p>
+          </div>
+
+          <div className="flex gap-4 pt-2">
+            <a
+              href={project.url}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs border border-border px-3 py-1 hover:border-primary hover:text-primary transition-colors"
+            >
+              ⌥ github
+            </a>
+            {project.hostedUrl && (
+              <a
+                href={project.hostedUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs border border-border px-3 py-1 hover:border-primary hover:text-primary transition-colors"
+              >
+                ↗ live demo
+              </a>
+            )}
+          </div>
+        </div>
+
+        <button
+          onClick={() => setOpenProject(null)}
+          className="text-sm text-muted-foreground hover:text-primary transition-colors"
+        >
+          <Prompt path="~/projects" />
+          cd .. # ← go back
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
@@ -537,30 +746,30 @@ function ProjectsSection() {
       </div>
 
       <div className="space-y-3">
-        {PROJECTS.map((p) => (
-          <a
-            key={p.name}
-            href={p.url}
-            className="block border border-border p-4 hover:border-primary hover:bg-secondary transition-colors group"
-          >
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-primary group-hover:underline font-semibold">{p.name}</span>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span>★ {p.stars}</span>
+        {[...PROJECTS]
+          .sort((a, b) => {
+            const ORDER = { wip: 0, research: 1, active: 2, archived: 3 };
+            return ORDER[a.status] - ORDER[b.status];
+          })
+          .map((p) => (
+            <button
+              key={p.name}
+              onClick={() => setOpenProject(p.name)}
+              className="w-full text-left border border-border p-4 hover:border-primary hover:bg-secondary transition-colors group"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-primary group-hover:underline font-semibold">{p.name}</span>
                 <span
-                  className="px-2 py-0.5 border text-xs"
+                  className="text-xs px-2 py-0.5 border"
                   style={{ color: statusColor[p.status], borderColor: statusColor[p.status] + "44" }}
                 >
                   {p.status}
                 </span>
               </div>
-            </div>
-            <div className="text-xs text-muted-foreground mb-2">{p.desc}</div>
-            <div className="text-xs" style={{ color: "#6699ff" }}>
-              {p.lang}
-            </div>
-          </a>
-        ))}
+              <div className="text-xs text-muted-foreground mb-2">{p.desc}</div>
+              <div className="text-xs" style={{ color: "#6699ff" }}>{p.lang}</div>
+            </button>
+          ))}
       </div>
     </div>
   );
@@ -598,27 +807,34 @@ function SkillsSection() {
 
       <div className="text-muted-foreground text-sm">
         <Prompt path="~/skills" />
-        ./benchmark --lang=C
+        cat ./roadmap/ai-engineer.txt
       </div>
-      <div className="border border-border p-4 space-y-3 text-xs">
+      <div className="border border-border p-4 space-y-1 text-xs">
         {[
-          { lang: "C / C++", level: 88 },
-          { lang: "Rust", level: 72 },
-          { lang: "Python", level: 90 },
-          { lang: "TypeScript", level: 75 },
-          { lang: "Go", level: 58 },
-        ].map(({ lang, level }) => (
-          <div key={lang} className="flex items-center gap-3">
-            <span className="w-24 shrink-0 text-muted-foreground">{lang}</span>
-            <div className="flex-1 h-1 bg-secondary relative overflow-hidden">
-              <div
-                className="h-full bg-primary transition-all duration-700"
-                style={{ width: `${level}%` }}
-              />
+          { label: "Python", status: "done" },
+          { label: "Machine Learning", status: "done" },
+          { label: "Deep Learning", status: "progress" },
+          { label: "LLM Applications", status: "done" },
+          { label: "RAG", status: "done" },
+          { label: "AI Agents", status: "done" },
+          { label: "LLM Architecture", status: "progress" },
+          { label: "AI Systems", status: "progress" },
+          { label: "Distributed Training", status: "planned" },
+          { label: "Model Serving", status: "planned" },
+          { label: "CUDA", status: "planned" },
+        ].sort((a, b) => {
+          const ORDER: Record<string, number> = { done: 0, progress: 1, planned: 2 };
+          return ORDER[a.status] - ORDER[b.status];
+        }).map(({ label, status }) => {
+          const icon = status === "done" ? "✓" : status === "progress" ? "◐" : "○";
+          const color = status === "done" ? "#00ff41" : status === "progress" ? "#ffcc00" : "#3a7a3a";
+          return (
+            <div key={label} className="flex items-center gap-3">
+              <span className="w-4 shrink-0 text-center" style={{ color }}>{icon}</span>
+              <span style={{ color }}>{label}</span>
             </div>
-            <span className="text-muted-foreground w-8 text-right">{level}%</span>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -825,6 +1041,7 @@ export default function App() {
   const [theme, setTheme] = useState<ThemeId>("phosphor");
   const [section, setSection] = useState<Section>("home");
   const [openPost, setOpenPost] = useState<string | null>(null);
+  const [openProject, setOpenProject] = useState<string | null>(null);
   const [cmdInput, setCmdInput] = useState("");
   const [cmdHistory, setCmdHistory] = useState<string[]>([]);
   const [historyIdx, setHistoryIdx] = useState(-1);
@@ -862,6 +1079,7 @@ export default function App() {
   const navigate = useCallback((s: Section) => {
     setSection(s);
     setOpenPost(null);
+    setOpenProject(null);
     setInlineLog([]);
   }, []);
 
@@ -975,12 +1193,13 @@ export default function App() {
         style={{ background: "rgba(10,15,10,0.96)", backdropFilter: "blur(4px)" }}
       >
         <div className="flex items-center gap-3">
-          <span
-            className="text-xl font-bold"
+          <button
+            onClick={(e) => { e.stopPropagation(); navigate("home"); }}
+            className="text-xl font-bold hover:opacity-80 transition-opacity"
             style={{ fontFamily: "'VT323', monospace", color: "#00ff41", letterSpacing: "0.1em" }}
           >
             Om.dev
-          </span>
+          </button>
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground text-xs hidden sm:inline">v0.1.5 ·</span>
             {(Object.keys(THEMES) as ThemeId[]).map((id) => (
@@ -1021,7 +1240,7 @@ export default function App() {
       </header>
 
       {/* Terminal body */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-6 pb-20">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-6 pb-28">
         {/* Boot message */}
         <div className="text-muted-foreground text-xs mb-6 space-y-0.5">
           <div style={{ color: "#3a7a3a" }}>
@@ -1035,7 +1254,12 @@ export default function App() {
         {/* Section content */}
         {section === "home" && <HomeSection />}
         {section === "about" && <AboutSection />}
-        {section === "projects" && <ProjectsSection />}
+        {section === "projects" && (
+          <ProjectsSection
+            openProject={openProject}
+            setOpenProject={setOpenProject}
+          />
+        )}
         {section === "skills" && <SkillsSection />}
         {section === "blog" &&
           (post ? (
@@ -1048,8 +1272,14 @@ export default function App() {
         {/* Inline log — appears below section content, above the input */}
         <InlineLog lines={inlineLog} path={currentPath} />
 
-        {/* Command input row with palette anchored above it */}
-        <div className="mt-6 relative" ref={inputWrapRef}>
+        <div ref={bottomRef} />
+      </main>
+
+      <div
+        className="fixed left-0 right-0 z-40 border-t border-border px-4 py-2"
+        style={{ bottom: "28px", background: "rgba(10,15,10,0.97)", backdropFilter: "blur(4px)" }}
+      >
+        <div className="max-w-5xl mx-auto relative" ref={inputWrapRef}>
           {paletteOpen && filteredCmds.length > 0 && (
             <SlashPalette
               query={paletteQuery}
@@ -1058,16 +1288,12 @@ export default function App() {
               onHover={setPaletteIdx}
             />
           )}
-
           <div className="flex items-center gap-2">
             <Prompt path={currentPath} />
             <input
               ref={inputRef}
               value={cmdInput}
-              onChange={(e) => {
-                setCmdInput(e.target.value);
-                setHistoryIdx(-1);
-              }}
+              onChange={(e) => { setCmdInput(e.target.value); setHistoryIdx(-1); }}
               onKeyDown={handleKey}
               onClick={(e) => e.stopPropagation()}
               placeholder="type / for commands..."
@@ -1078,9 +1304,7 @@ export default function App() {
             />
           </div>
         </div>
-
-        <div ref={bottomRef} />
-      </main>
+      </div>
 
       <StatusBar section={section} />
     </div>
