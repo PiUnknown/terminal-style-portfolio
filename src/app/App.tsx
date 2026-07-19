@@ -1022,13 +1022,13 @@ function ContactSection() {
 
       <div className="border border-border p-3 space-y-1 text-xs text-muted-foreground">
         <div>
-          email &nbsp;&nbsp;:: <span className="text-foreground">aarav@cs.edu</span>
+          email &nbsp;&nbsp;:: <span className="text-foreground">reachomjha@gmail.com</span>
         </div>
         <div>
-          github &nbsp;:: <span className="text-foreground">github.com/aarav</span>
+          github &nbsp;:: <span className="text-foreground">github.com/PiUnknown</span>
         </div>
         <div>
-          discord :: <span className="text-foreground">aarav#0001</span>
+          X &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:: <span className="text-foreground">@piunknown043</span>
         </div>
       </div>
     </div>
