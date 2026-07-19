@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics } from "@vercel/analytics/react";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -1308,6 +1309,8 @@ export default function App() {
       </div>
 
       <StatusBar section={section} />
+      <SpeedInsights />
+      <Analytics />
       <SpeedInsights />
     </div>
   );
