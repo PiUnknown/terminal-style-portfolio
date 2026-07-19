@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { Analytics } from '@vercel/analytics/react';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -1307,6 +1308,7 @@ export default function App() {
       </div>
 
       <StatusBar section={section} />
+      <Analytics />
     </div>
   );
 }
