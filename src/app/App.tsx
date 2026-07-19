@@ -1028,7 +1028,7 @@ function ContactSection() {
           github &nbsp;:: <span className="text-foreground">github.com/PiUnknown</span>
         </div>
         <div>
-          X :: <span className="text-foreground">piunknown043</span>
+          X &nbsp;:: <span className="text-foreground">piunknown043</span>
         </div>
       </div>
     </div>
