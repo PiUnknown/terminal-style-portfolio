@@ -129,6 +129,27 @@ const SKILLS = {
   tools: ["git", "gdb", "valgrind", "perf", "LLVM", "Neovim"],
 };
 
+type ThemeId = "phosphor" | "amber" | "ice" | "ghost";
+
+const THEMES: Record<ThemeId, { label: string; dot: string; vars: Record<string, string> }> = {
+  phosphor: {
+    label: "phosphor", dot: "#00ff41",
+    vars: { "--background": "#0a0f0a", "--foreground": "#00ff41", "--primary": "#00ff41", "--primary-foreground": "#0a0f0a", "--card": "#0d1a0d", "--card-foreground": "#00ff41", "--secondary": "#0f2010", "--secondary-foreground": "#00cc33", "--muted": "#0f1a0f", "--muted-foreground": "#3a7a3a", "--accent": "#00cc33", "--border": "rgba(0,255,65,0.15)", "--ring": "rgba(0,255,65,0.4)" },
+  },
+  amber: {
+    label: "amber", dot: "#ffb000",
+    vars: { "--background": "#0f0900", "--foreground": "#ffb000", "--primary": "#ffb000", "--primary-foreground": "#0f0900", "--card": "#1a1000", "--card-foreground": "#ffb000", "--secondary": "#1f1400", "--secondary-foreground": "#cc8c00", "--muted": "#150c00", "--muted-foreground": "#7a5500", "--accent": "#cc8c00", "--border": "rgba(255,176,0,0.15)", "--ring": "rgba(255,176,0,0.4)" },
+  },
+  ice: {
+    label: "ice", dot: "#00d4ff",
+    vars: { "--background": "#000d0f", "--foreground": "#00d4ff", "--primary": "#00d4ff", "--primary-foreground": "#000d0f", "--card": "#001a1f", "--card-foreground": "#00d4ff", "--secondary": "#001f25", "--secondary-foreground": "#00aacc", "--muted": "#00151a", "--muted-foreground": "#006a80", "--accent": "#00aacc", "--border": "rgba(0,212,255,0.15)", "--ring": "rgba(0,212,255,0.4)" },
+  },
+  ghost: {
+    label: "ghost", dot: "#cccccc",
+    vars: { "--background": "#0a0a0a", "--foreground": "#cccccc", "--primary": "#cccccc", "--primary-foreground": "#0a0a0a", "--card": "#111111", "--card-foreground": "#cccccc", "--secondary": "#1a1a1a", "--secondary-foreground": "#999999", "--muted": "#141414", "--muted-foreground": "#555555", "--accent": "#999999", "--border": "rgba(204,204,204,0.15)", "--ring": "rgba(204,204,204,0.4)" },
+  },
+};
+
 // ── Commands ──────────────────────────────────────────────────────────────────
 
 const COMMANDS: Record<string, { desc: string; action?: string }> = {
@@ -421,15 +442,15 @@ function HomeSection() {
           <div className="mt-2 border border-border p-3 space-y-1">
             <div>
               <span className="text-muted-foreground">currently &nbsp;::</span>{" "}
-              <span className="text-primary">Junior @ State University, CS</span>
+              <span className="text-primary">B.Tech IT @ GGSIPU (3rd Year)</span>
             </div>
             <div>
               <span className="text-muted-foreground">learning &nbsp; ::</span>{" "}
-              <span style={{ color: "#33ff66" }}>Rust async runtime internals</span>
+              <span style={{ color: "#33ff66" }}>Transformers, attention & model training</span>
             </div>
             <div>
               <span className="text-muted-foreground">open for &nbsp; ::</span>{" "}
-              <span style={{ color: "#66ff88" }}>Summer 2027 internships</span>
+              <span style={{ color: "#66ff88" }}>Remote Internships</span>
             </div>
             <div>
               <span className="text-muted-foreground">location &nbsp; ::</span>{" "}
@@ -452,8 +473,8 @@ function AboutSection() {
 
       <div className="border border-border p-4 space-y-4 text-sm leading-relaxed">
         <p>
-          Hey. I am <span className="text-primary">Om</span>, a CS junior at State
-          University focused on systems programming, compilers, and the thin line between software
+          Hey. I am <span className="text-primary">Om</span>, a 3rd year UG at GGSIPU
+          focused on Artificial Intelligence, LLMs, and the thin line between software
           and hardware.
         </p>
         <p className="text-muted-foreground">
@@ -475,10 +496,10 @@ function AboutSection() {
       <div className="border border-border p-4 space-y-3 text-sm">
         {[
           {
-            degree: "B.S. Computer Science",
-            school: "State University",
+            degree: "B.Tech Information Technology",
+            school: "ADGIPS, GGSIPU",
             period: "2024 – 2028",
-            note: "GPA: 3.81 · Dean's List",
+            note: "CGPA: 7.95",
           },
           {
             degree: "Relevant Coursework",
@@ -801,6 +822,7 @@ function ContactSection() {
 // ── Main App ──────────────────────────────────────────────────────────────────
 
 export default function App() {
+  const [theme, setTheme] = useState<ThemeId>("phosphor");
   const [section, setSection] = useState<Section>("home");
   const [openPost, setOpenPost] = useState<string | null>(null);
   const [cmdInput, setCmdInput] = useState("");
@@ -942,7 +964,7 @@ export default function App() {
   return (
     <div
       className="min-h-screen bg-background text-foreground flex flex-col"
-      style={{ fontFamily: "'JetBrains Mono', monospace" }}
+      style={{ fontFamily: "'JetBrains Mono', monospace", ...THEMES[theme].vars }}
       onClick={() => inputRef.current?.focus()}
     >
       <ScanlineOverlay />
@@ -957,11 +979,26 @@ export default function App() {
             className="text-xl font-bold"
             style={{ fontFamily: "'VT323', monospace", color: "#00ff41", letterSpacing: "0.1em" }}
           >
-            Pi.dev
+            Om.dev
           </span>
-          <span className="text-muted-foreground text-xs hidden sm:inline">
-            v0.1.0 · phosphor edition
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground text-xs hidden sm:inline">v0.1.5 ·</span>
+            {(Object.keys(THEMES) as ThemeId[]).map((id) => (
+              <button
+                key={id}
+                onClick={(e) => { e.stopPropagation(); setTheme(id); }}
+                title={THEMES[id].label}
+                className="flex items-center gap-1 text-xs transition-colors px-1"
+                style={{ color: theme === id ? THEMES[id].dot : "#3a5a3a" }}
+              >
+                <span
+                  className="inline-block w-2 h-2 rounded-full"
+                  style={{ background: THEMES[id].dot, opacity: theme === id ? 1 : 0.35 }}
+                />
+                <span className="hidden sm:inline">{THEMES[id].label}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         <nav className="flex gap-1">
