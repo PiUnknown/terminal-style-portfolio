@@ -1311,7 +1311,6 @@ export default function App() {
       <StatusBar section={section} />
       <SpeedInsights />
       <Analytics />
-      <SpeedInsights />
     </div>
   );
 }
