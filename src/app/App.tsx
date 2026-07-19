@@ -143,7 +143,7 @@ const PROJECTS: Project[] = [
     desc: "AI biodiversity intelligence system for grounded environmental recommendations.",
     status: "wip",
     url: "https://github.com/PiUnknown/TerraGraph",
-    hostedUrl: "",
+    hostedUrl: "https://terragraph-x7oxucctkmfigypnt429be.streamlit.app/",
     stack: [
       "FastAPI",
       "ChromaDB",
@@ -181,7 +181,7 @@ const PROJECTS: Project[] = [
     desc: "RAG chatbot that lets users explore LinkedIn profiles through natural conversation.",
     status: "active",
     url: "https://github.com/PiUnknown/Digital-Persona",
-    hostedUrl: "",
+    hostedUrl: "https://digital-persona-f5el2cmczdp8k53cszh38k.streamlit.app/",
     stack: [
       "LangChain",
       "FAISS",
