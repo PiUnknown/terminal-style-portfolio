@@ -508,7 +508,7 @@ function HomeSection() {
           <div className="grid grid-cols-2 gap-2 mt-2 sm:grid-cols-4">
             {[
               { label: "github.com/PiUnknown", icon: "⌥", url: "https://github.com/PiUnknown" },
-              { label: "linkedin/omjha043", icon: "⌘", url: "https://linkedin.com/in/omjha043" },
+              { label: "linkedin/omkumarjha043", icon: "⌘", url: "https://linkedin.com/in/omkumarjha043" },
               { label: "reachomjha@gmail.com", icon: "✉", url: "mailto:reachomjha@gmail.com" },
               { label: "resume.pdf", icon: "↓", url: "/resume.pdf" },
             ].map((link) => (
