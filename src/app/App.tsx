@@ -342,10 +342,10 @@ function InlineLog({ lines, path }: { lines: string[]; path: string }) {
 // ── Sections ──────────────────────────────────────────────────────────────────
 
 function HomeSection() {
-  const line1 = useTypewriter("Aarav Shah", 60);
-  const line2 = useTypewriter("CS Undergraduate · Systems & Compilers", 40, [line1.done]);
+  const line1 = useTypewriter("Om Kumar Jha", 60);
+  const line2 = useTypewriter("Engineering Intelligence into Software • Student", 40, [line1.done]);
   const line3 = useTypewriter(
-    "Building things close to the metal. Curious about how everything works.",
+    "Learning by building. Exploring machine learning, LLMs, and the systems that make them work.",
     30,
     [line2.done]
   );
@@ -353,8 +353,9 @@ function HomeSection() {
   return (
     <div className="space-y-6 pt-2">
       <div className="border border-border p-4" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-        <div className="text-muted-foreground text-xs mb-4">
-          ┌─ whoami ──────────────────────────────────────────────────
+        <div className="flex items-center gap-2 text-muted-foreground text-xs mb-4">
+          <span>┌─ whoami</span>
+          <div className="flex-1 h-px bg-border" />
         </div>
         <div
           className="text-4xl font-bold mb-2"
@@ -371,7 +372,7 @@ function HomeSection() {
             </>
           )}
         </div>
-        <div className="text-sm text-muted-foreground leading-relaxed max-w-xl">
+        <div className="text-sm text-muted-foreground leading-relaxed">
           {line2.done && (
             <>
               {line3.displayed}
@@ -379,8 +380,9 @@ function HomeSection() {
             </>
           )}
         </div>
-        <div className="text-muted-foreground text-xs mt-4">
-          └────────────────────────────────────────────────────────────
+        <div className="flex items-center gap-2 text-muted-foreground text-xs mt-4">
+          <span>└</span>
+          <div className="flex-1 h-px bg-border" />
         </div>
       </div>
 
@@ -391,14 +393,16 @@ function HomeSection() {
           </div>
           <div className="grid grid-cols-2 gap-2 mt-2 sm:grid-cols-4">
             {[
-              { label: "github.com/aarav", icon: "⌥" },
-              { label: "linkedin/aaravshah", icon: "⌘" },
-              { label: "aarav@cs.edu", icon: "✉" },
-              { label: "resume.pdf", icon: "↓" },
+              { label: "github.com/PiUnknown", icon: "⌥", url: "https://github.com/PiUnknown" },
+              { label: "linkedin/omjha043", icon: "⌘", url: "https://linkedin.com/in/omjha043" },
+              { label: "reachomjha@gmail.com", icon: "✉", url: "mailto:reachomjha@gmail.com" },
+              { label: "resume.pdf", icon: "↓", url: "/resume.pdf" },
             ].map((link) => (
               <a
                 key={link.label}
-                href="#"
+                href={link.url}
+                target={link.url.startsWith("mailto") || link.url.startsWith("/") ? undefined : "_blank"}
+                rel="noreferrer"
                 className="border border-border px-3 py-2 text-xs hover:border-primary hover:bg-secondary transition-colors group"
               >
                 <span className="text-muted-foreground mr-1">{link.icon}</span>
@@ -429,7 +433,7 @@ function HomeSection() {
             </div>
             <div>
               <span className="text-muted-foreground">location &nbsp; ::</span>{" "}
-              <span className="text-foreground">New York, NY</span>
+              <span className="text-foreground">Delhi, IN</span>
             </div>
           </div>
         </div>
@@ -448,7 +452,7 @@ function AboutSection() {
 
       <div className="border border-border p-4 space-y-4 text-sm leading-relaxed">
         <p>
-          Hey. I am <span className="text-primary">Aarav Shah</span>, a CS junior at State
+          Hey. I am <span className="text-primary">Om</span>, a CS junior at State
           University focused on systems programming, compilers, and the thin line between software
           and hardware.
         </p>
@@ -815,9 +819,9 @@ export default function App() {
 
   const filteredCmds = isPaletteMode
     ? Object.entries(COMMANDS).filter(([k, v]) => {
-        const q = paletteQuery.toLowerCase();
-        return k.startsWith(q) || v.desc.toLowerCase().includes(q);
-      })
+      const q = paletteQuery.toLowerCase();
+      return k.startsWith(q) || v.desc.toLowerCase().includes(q);
+    })
     : [];
 
   useEffect(() => {
@@ -953,10 +957,10 @@ export default function App() {
             className="text-xl font-bold"
             style={{ fontFamily: "'VT323', monospace", color: "#00ff41", letterSpacing: "0.1em" }}
           >
-            AARAV.SH
+            Pi.dev
           </span>
           <span className="text-muted-foreground text-xs hidden sm:inline">
-            v2.1.0 · phosphor edition
+            v0.1.0 · phosphor edition
           </span>
         </div>
 
@@ -968,11 +972,10 @@ export default function App() {
                 e.stopPropagation();
                 navigate(s);
               }}
-              className={`px-2 py-1 text-xs transition-colors ${
-                section === s
-                  ? "text-primary border border-primary bg-secondary"
-                  : "text-muted-foreground hover:text-primary border border-transparent"
-              }`}
+              className={`px-2 py-1 text-xs transition-colors ${section === s
+                ? "text-primary border border-primary bg-secondary"
+                : "text-muted-foreground hover:text-primary border border-transparent"
+                }`}
             >
               {s}
             </button>
@@ -981,11 +984,11 @@ export default function App() {
       </header>
 
       {/* Terminal body */}
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-6 pb-20">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-6 pb-20">
         {/* Boot message */}
         <div className="text-muted-foreground text-xs mb-6 space-y-0.5">
           <div style={{ color: "#3a7a3a" }}>
-            aarav.sh v2.1.0 (phosphor) #1 SMP {new Date().toDateString()}
+            Om.dev v2.1.0 (phosphor) #1 SMP {new Date().toDateString()}
           </div>
           <div style={{ color: "#3a7a3a" }}>
             Type <span className="text-primary">/</span> to open the command palette, or use the nav above.
