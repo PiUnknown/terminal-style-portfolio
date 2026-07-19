@@ -977,7 +977,7 @@ function ContactSection() {
         ./send-message.sh --interactive
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-5" onClick={(e) => e.stopPropagation()}>
         {[
           { label: "name", key: "name", type: "text", placeholder: "your name" },
           { label: "email", key: "email", type: "email", placeholder: "you@example.com" },
