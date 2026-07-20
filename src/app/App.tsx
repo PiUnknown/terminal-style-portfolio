@@ -313,15 +313,7 @@ function Prompt({ user = "visitor", path = "~" }: { user?: string; path?: string
 }
 
 function ScanlineOverlay() {
-  return (
-    <div
-      className="pointer-events-none fixed inset-0 z-50"
-      style={{
-        background:
-          "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px)",
-      }}
-    />
-  );
+  return <div className="scanline" />;
 }
 
 function StatusBar({ section }: { section: Section }) {
@@ -1097,7 +1089,7 @@ export default function App() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [section, inlineLog]);
+  }, [inlineLog]);
 
   const navigate = useCallback((s: Section) => {
     setSection(s);
@@ -1276,7 +1268,7 @@ export default function App() {
         </div>
 
         {/* Section content */}
-        {section === "home" && <HomeSection />}
+        {section === "home" && <HomeSection key="home" />}
         {section === "about" && <AboutSection />}
         {section === "projects" && (
           <ProjectsSection
