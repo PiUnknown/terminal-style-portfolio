@@ -1104,6 +1104,7 @@ export default function App() {
     setOpenPost(null);
     setOpenProject(null);
     setInlineLog([]);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   const currentPath = section === "home" ? "~" : `~/${section}`;
