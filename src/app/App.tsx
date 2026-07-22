@@ -567,7 +567,7 @@ function AboutSection() {
         </p>
         <p>
           Moving fast forward to today.<br />
-          I design agentic LLM pipelines, train and fine-tune models, optimize local RAG systems, and build resource-constrained projects. I'm an AI/ML generalist, but if you want to know my usual tech stack, check my GitHub.
+          I design agentic LLM pipelines, train and fine-tune models, optimize local RAG systems, and build resource-constrained projects. I'm an AI generalist, but if you want to know my usual tech stack, check my GitHub.
         </p>
         <p className="text-muted-foreground">
           Currently: AI Summer Intern at IIT Ropar<br />
