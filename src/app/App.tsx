@@ -222,6 +222,8 @@ const SKILLS = {
   tools: ["Git", "GitHub", "Docker", "AWS EC2", "Streamlit", "FastAPI"],
 };
 
+const VERSION = "v0.1.5";
+
 type ThemeId = "phosphor" | "amber" | "ice" | "ghost";
 
 const THEMES: Record<ThemeId, { label: string; dot: string; vars: Record<string, string> }> = {
@@ -558,17 +560,25 @@ function AboutSection() {
 
       <div className="border border-border p-4 space-y-4 text-sm leading-relaxed">
         <p>
-          Hey. I am <span className="text-primary">Om</span>, a 3rd year UG at GGSIPU
-          focused on Artificial Intelligence, LLMs, and the thin line between software
-          and hardware.
+          Hey, I am <span className="text-primary">Om</span>, a 3rd year CS Undergrad at GGSIPU and most of my time goes into building, breaking, and rebuilding systems capable of harnessing intelligence. I'm the kind of person who learns by doing... then doing it again the right way.
         </p>
         <p className="text-muted-foreground">
-          I got into CS because I wanted to understand how computers actually work — not just call
-          APIs. That itch led me from Python scripts to C, then to Rust, then to writing a JIT
-          compiler as a weekend project.
+          Talking about where it all started, I was 8 when my father brought home a new laptop for work. Like every kid, I just wanted to play games on it. Neither of us knew how to install any, so an uncle of mine, who was an engineer, set everything up. Watching him somehow make the machine do whatever he wanted felt almost like magic. I didn't know it then, but that moment completely changed how I looked at technology. Over the next few years I spent countless hours experimenting on that laptop, from installing pirated games to accidentally resetting my father's system. Somewhere along the way I realized I simply loved machines. I could spend hours behind one, doing just about anything.
         </p>
         <p>
-          Outside of code I try to hit gym at least 5 times a week, drink too much diet coke, and write my thoughts on paper.
+          Moving fast forward to today.<br />
+          I design agentic LLM pipelines, train and fine-tune models, optimize local RAG systems, and build resource-constrained projects. I'm an AI/ML generalist, but if you want to know my usual tech stack, check my GitHub.
+        </p>
+        <p className="text-muted-foreground">
+          Currently: AI Summer Intern at IIT Ropar<br />
+          Previously: 2-month Data Science internship at Indian Navy (WESEE), HPAIR 2025 Tokyo delegate.
+        </p>
+        <p>
+          Outside of code I try to hit gym 5 times a week, drink too much diet coke, and write my thoughts out on a paper.
+        </p>
+        <p className="text-muted-foreground">
+          I love working with people who are obsessed with what they're creating.<br />
+          If that sounds like you, let's talk.
         </p>
       </div>
 
@@ -1217,7 +1227,7 @@ export default function App() {
             Om.dev
           </button>
           <div className="flex items-center gap-2">
-            <span className="text-muted-foreground text-xs hidden sm:inline">v0.1.5 ·</span>
+            <span className="text-muted-foreground text-xs hidden sm:inline">{VERSION} ·</span>
             {(Object.keys(THEMES) as ThemeId[]).map((id) => (
               <button
                 key={id}
@@ -1260,7 +1270,7 @@ export default function App() {
         {/* Boot message */}
         <div className="text-muted-foreground text-xs mb-6 space-y-0.5">
           <div style={{ color: "#3a7a3a" }}>
-            Om.dev v2.1.0 ({THEMES[theme].label}) #1 SMP {new Date().toDateString()}
+            Om.dev {VERSION} ({THEMES[theme].label}) #1 SMP {new Date().toDateString()}
           </div>
           <div style={{ color: "#3a7a3a" }}>
             Type <span className="text-primary">/</span> to open the command palette, or use the nav above.
