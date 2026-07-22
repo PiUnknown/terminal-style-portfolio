@@ -1260,7 +1260,7 @@ export default function App() {
         {/* Boot message */}
         <div className="text-muted-foreground text-xs mb-6 space-y-0.5">
           <div style={{ color: "#3a7a3a" }}>
-            Om.dev v2.1.0 (phosphor) #1 SMP {new Date().toDateString()}
+            Om.dev v2.1.0 ({THEMES[theme].label}) #1 SMP {new Date().toDateString()}
           </div>
           <div style={{ color: "#3a7a3a" }}>
             Type <span className="text-primary">/</span> to open the command palette, or use the nav above.
