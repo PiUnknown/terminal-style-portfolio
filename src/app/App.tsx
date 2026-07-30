@@ -327,12 +327,14 @@ function StatusBar({ section }: { section: Section }) {
   const fmt = time.toLocaleTimeString("en-US", { hour12: false });
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-1 text-xs border-t border-border select-none"
-      style={{ background: "rgba(0,255,65,0.08)", fontFamily: "'JetBrains Mono', monospace" }}
+      className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-between px-3 sm:px-4 py-1 text-xs border-t border-border select-none"
+      style={{ background: "rgba(0,255,65,0.08)", fontFamily: "'JetBrains Mono', monospace", paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <span className="text-muted-foreground">
-        <span className="text-primary">INSERT</span> — type{" "}
-        <span className="text-primary">/</span> to open command palette
+        <span className="text-primary hidden sm:inline">INSERT</span>
+        <span className="hidden sm:inline"> — </span>
+        type <span className="text-primary">/</span>
+        <span className="hidden sm:inline"> to open command palette</span>
       </span>
       <span className="text-muted-foreground">
         <span className="text-primary">[{section}]</span> &nbsp;{fmt}
@@ -460,19 +462,19 @@ function HomeSection() {
 
   return (
     <div className="space-y-6 pt-2">
-      <div className="border border-border p-4" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+      <div className="border border-border p-3 sm:p-4" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
         <div className="flex items-center gap-2 text-muted-foreground text-xs mb-4">
           <span>┌─ whoami</span>
           <div className="flex-1 h-px bg-border" />
         </div>
         <div
-          className="text-4xl font-bold mb-2"
+          className="text-2xl sm:text-4xl font-bold mb-2"
           style={{ fontFamily: "'VT323', monospace", color: "#00ff41", letterSpacing: "0.05em" }}
         >
           {line1.displayed}
           {line1.done ? null : <Cursor />}
         </div>
-        <div className="text-lg mb-3" style={{ color: "#33ff66" }}>
+        <div className="text-base sm:text-lg mb-3" style={{ color: "#33ff66" }}>
           {line1.done && (
             <>
               {line2.displayed}
@@ -558,7 +560,7 @@ function AboutSection() {
         cat about.txt
       </div>
 
-      <div className="border border-border p-4 space-y-4 text-sm leading-relaxed">
+      <div className="border border-border p-3 sm:p-4 space-y-4 text-sm leading-relaxed">
         <p>
           Hey, I am <span className="text-primary">Om</span>, a 3rd year CS Undergrad at GGSIPU and most of my time goes into building, breaking, and rebuilding systems capable of harnessing intelligence. I'm the kind of person who learns by doing... then doing it again the right way.
         </p>
@@ -587,7 +589,7 @@ function AboutSection() {
         cat experience.txt
       </div>
 
-      <div className="border border-border p-4 space-y-4 text-sm">
+      <div className="border border-border p-3 sm:p-4 space-y-4 text-sm">
         {[
           {
             role: "Summer Intern",
@@ -631,7 +633,7 @@ function AboutSection() {
         cat education.txt
       </div>
 
-      <div className="border border-border p-4 space-y-3 text-sm">
+      <div className="border border-border p-3 sm:p-4 space-y-3 text-sm">
         {[
           {
             degree: "B.Tech Information Technology",
@@ -682,7 +684,7 @@ function ProjectsSection({ openProject, setOpenProject }: {
           cat ./{project.name}/README.md
         </div>
 
-        <div className="border border-border p-4 space-y-4">
+        <div className="border border-border p-3 sm:p-4 space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-primary text-lg font-bold">{project.name}</span>
             <span
@@ -759,7 +761,7 @@ function ProjectsSection({ openProject, setOpenProject }: {
             <button
               key={p.name}
               onClick={() => setOpenProject(p.name)}
-              className="w-full text-left border border-border p-4 hover:border-primary hover:bg-secondary transition-colors group"
+              className="w-full text-left border border-border p-3 sm:p-4 hover:border-primary hover:bg-secondary transition-colors group"
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-primary group-hover:underline font-semibold">{p.name}</span>
@@ -787,7 +789,7 @@ function SkillsSection() {
         cat skills.json | jq .
       </div>
 
-      <div className="border border-border p-4 text-sm space-y-4">
+      <div className="border border-border p-3 sm:p-4 text-sm space-y-4">
         {Object.entries(SKILLS).map(([category, items]) => (
           <div key={category}>
             <div className="text-muted-foreground text-xs mb-2">
@@ -813,7 +815,7 @@ function SkillsSection() {
         <Prompt path="~/skills" />
         cat ./roadmap/ai-engineer.txt
       </div>
-      <div className="border border-border p-4 space-y-1 text-xs">
+      <div className="border border-border p-3 sm:p-4 space-y-1 text-xs">
         {[
           { label: "Python", status: "done" },
           { label: "Machine Learning", status: "done" },
@@ -857,7 +859,7 @@ function BlogListSection({ onOpen }: { onOpen: (id: string) => void }) {
           <button
             key={post.id}
             onClick={() => onOpen(post.id)}
-            className="w-full text-left border border-border p-4 hover:border-primary hover:bg-secondary transition-colors group"
+            className="w-full text-left border border-border p-3 sm:p-4 hover:border-primary hover:bg-secondary transition-colors group"
           >
             <div className="flex items-start justify-between gap-2 mb-1">
               <span className="text-primary group-hover:underline font-semibold text-sm leading-snug">
@@ -893,7 +895,7 @@ function BlogPostView({ post, onBack }: { post: BlogPost; onBack: () => void }) 
         cat ./posts/{post.id}.md
       </div>
 
-      <div className="border border-border p-4 space-y-4">
+      <div className="border border-border p-3 sm:p-4 space-y-4">
         <div
           className="text-2xl font-bold"
           style={{ fontFamily: "'VT323', monospace", color: "#00ff41", letterSpacing: "0.03em" }}
@@ -983,7 +985,7 @@ function ContactSection() {
           <Prompt path="~/contact" />
           ./send-message.sh
         </div>
-        <div className="border border-border p-4 space-y-2 text-sm">
+        <div className="border border-border p-3 sm:p-4 space-y-2 text-sm">
           <div className="text-primary">✓ message queued successfully</div>
           <div className="text-muted-foreground">status: 200 OK</div>
           <div className="text-muted-foreground">
@@ -1006,35 +1008,35 @@ function ContactSection() {
           { label: "name", key: "name", type: "text", placeholder: "your name" },
           { label: "email", key: "email", type: "email", placeholder: "you@example.com" },
         ].map(({ label, key, type, placeholder }) => (
-          <div key={key} className="flex items-baseline gap-3">
-            <span className="text-primary text-xs shrink-0 w-20 text-right select-none">--{label}</span>
+          <div key={key} className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
+            <span className="text-primary text-xs sm:shrink-0 sm:w-20 sm:text-right select-none">--{label}</span>
             <input
               type={type}
               required
               placeholder={placeholder}
               value={form[key as keyof typeof form]}
               onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-              className="flex-1 bg-transparent border-b border-border text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors pb-1"
+              className="w-full sm:flex-1 bg-transparent border-b border-border text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors pb-1"
               style={{ fontFamily: "'JetBrains Mono', monospace" }}
             />
           </div>
         ))}
 
-        <div className="flex items-start gap-3">
-          <span className="text-primary text-xs shrink-0 w-20 text-right select-none pt-1">--message</span>
+        <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-3">
+          <span className="text-primary text-xs sm:shrink-0 sm:w-20 sm:text-right select-none sm:pt-1">--message</span>
           <textarea
             required
             rows={4}
             placeholder="what's on your mind?"
             value={form.message}
             onChange={(e) => setForm({ ...form, message: e.target.value })}
-            className="flex-1 bg-transparent border-b border-border text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors resize-none pb-1"
+            className="w-full sm:flex-1 bg-transparent border-b border-border text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors resize-none pb-1"
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           />
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="w-20 shrink-0" />
+          <span className="hidden sm:block w-20 shrink-0" />
           <button
             type="submit"
             className="text-sm text-muted-foreground hover:text-primary transition-colors"
@@ -1073,6 +1075,7 @@ export default function App() {
   const [inlineLog, setInlineLog] = useState<string[]>([]);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [paletteIdx, setPaletteIdx] = useState(0);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputWrapRef = useRef<HTMLDivElement>(null);
@@ -1215,58 +1218,88 @@ export default function App() {
 
       {/* Header */}
       <header
-        className="sticky top-0 z-30 border-b border-border px-4 py-2 flex items-center justify-between"
+        className="sticky top-0 z-30 border-b border-border px-4 py-2"
         style={{ background: "rgba(10,15,10,0.96)", backdropFilter: "blur(4px)" }}
       >
-        <div className="flex items-center gap-3">
-          <button
-            onClick={(e) => { e.stopPropagation(); navigate("home"); }}
-            className="text-xl font-bold hover:opacity-80 transition-opacity"
-            style={{ fontFamily: "'VT323', monospace", color: "#00ff41", letterSpacing: "0.1em" }}
-          >
-            Om.dev
-          </button>
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground text-xs hidden sm:inline">{VERSION} ·</span>
-            {(Object.keys(THEMES) as ThemeId[]).map((id) => (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={(e) => { e.stopPropagation(); navigate("home"); }}
+              className="text-xl font-bold hover:opacity-80 transition-opacity"
+              style={{ fontFamily: "'VT323', monospace", color: "#00ff41", letterSpacing: "0.1em" }}
+            >
+              Om.dev
+            </button>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground text-xs hidden sm:inline">{VERSION} ·</span>
+              {(Object.keys(THEMES) as ThemeId[]).map((id) => (
+                <button
+                  key={id}
+                  onClick={(e) => { e.stopPropagation(); setTheme(id); }}
+                  title={THEMES[id].label}
+                  className="flex items-center gap-1 text-xs transition-colors px-1"
+                  style={{ color: theme === id ? THEMES[id].dot : "#3a5a3a" }}
+                >
+                  <span
+                    className="inline-block w-2 h-2 rounded-full"
+                    style={{ background: THEMES[id].dot, opacity: theme === id ? 1 : 0.35 }}
+                  />
+                  <span className="hidden sm:inline">{THEMES[id].label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <nav className="hidden sm:flex gap-1">
+            {(["home", "about", "projects", "skills", "blog", "contact"] as Section[]).map((s) => (
               <button
-                key={id}
-                onClick={(e) => { e.stopPropagation(); setTheme(id); }}
-                title={THEMES[id].label}
-                className="flex items-center gap-1 text-xs transition-colors px-1"
-                style={{ color: theme === id ? THEMES[id].dot : "#3a5a3a" }}
+                key={s}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(s);
+                }}
+                className={`px-2 py-1 text-xs transition-colors ${section === s
+                  ? "text-primary border border-primary bg-secondary"
+                  : "text-muted-foreground hover:text-primary border border-transparent"
+                  }`}
               >
-                <span
-                  className="inline-block w-2 h-2 rounded-full"
-                  style={{ background: THEMES[id].dot, opacity: theme === id ? 1 : 0.35 }}
-                />
-                <span className="hidden sm:inline">{THEMES[id].label}</span>
+                {s}
               </button>
             ))}
-          </div>
+          </nav>
+
+          <button
+            className="sm:hidden text-muted-foreground hover:text-primary transition-colors px-2 py-1 text-lg"
+            onClick={(e) => { e.stopPropagation(); setMobileNavOpen((v) => !v); }}
+          >
+            {mobileNavOpen ? "✕" : "☰"}
+          </button>
         </div>
 
-        <nav className="flex gap-1">
-          {(["home", "about", "projects", "skills", "blog", "contact"] as Section[]).map((s) => (
-            <button
-              key={s}
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(s);
-              }}
-              className={`px-2 py-1 text-xs transition-colors ${section === s
-                ? "text-primary border border-primary bg-secondary"
-                : "text-muted-foreground hover:text-primary border border-transparent"
-                }`}
-            >
-              {s}
-            </button>
-          ))}
-        </nav>
+        {mobileNavOpen && (
+          <nav className="sm:hidden border-t border-border mt-2 pt-2 flex flex-wrap gap-1">
+            {(["home", "about", "projects", "skills", "blog", "contact"] as Section[]).map((s) => (
+              <button
+                key={s}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(s);
+                  setMobileNavOpen(false);
+                }}
+                className={`px-3 py-1.5 text-xs transition-colors ${section === s
+                  ? "text-primary border border-primary bg-secondary"
+                  : "text-muted-foreground hover:text-primary border border-transparent"
+                  }`}
+              >
+                {s}
+              </button>
+            ))}
+          </nav>
+        )}
       </header>
 
       {/* Terminal body */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-6 pb-28">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-32 sm:pb-28">
         {/* Boot message */}
         <div className="text-muted-foreground text-xs mb-6 space-y-0.5">
           <div style={{ color: "#3a7a3a" }}>
