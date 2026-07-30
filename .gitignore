@@ -32,3 +32,6 @@ plans/
 *.log
 npm-debug.log*
 pnpm-debug.log*
+
+# Media and references
+src/imports/
