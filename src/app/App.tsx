@@ -6,6 +6,111 @@ import { Analytics } from "@vercel/analytics/react";
 
 type Section = "home" | "about" | "projects" | "skills" | "blog" | "contact";
 
+type ThemeId = "phosphor" | "amber" | "ice" | "ghost" | "synthwave" | "miami" | "solar" | "plasma" | "redline" | "c64";
+
+const THEMES: Record<ThemeId, { label: string; vars: Record<string, string> }> = {
+  phosphor: {
+    label: "phosphor edition",
+    vars: {
+      "--background": "#0a0f0a", "--foreground": "#00ff41", "--card": "#0d1a0d",
+      "--card-foreground": "#00ff41", "--primary": "#00ff41", "--primary-foreground": "#0a0f0a",
+      "--secondary": "#0f2010", "--secondary-foreground": "#00cc33",
+      "--muted": "#0f1a0f", "--muted-foreground": "#3a7a3a",
+      "--accent": "#00cc33", "--border": "rgba(0,255,65,0.15)", "--ring": "rgba(0,255,65,0.4)", "--radius": "0rem",
+    },
+  },
+  amber: {
+    label: "amber edition",
+    vars: {
+      "--background": "#0f0900", "--foreground": "#ffb000", "--card": "#1a1000",
+      "--card-foreground": "#ffb000", "--primary": "#ffb000", "--primary-foreground": "#0f0900",
+      "--secondary": "#201400", "--secondary-foreground": "#cc8800",
+      "--muted": "#180f00", "--muted-foreground": "#7a5500",
+      "--accent": "#cc8800", "--border": "rgba(255,176,0,0.15)", "--ring": "rgba(255,176,0,0.4)", "--radius": "0rem",
+    },
+  },
+  ice: {
+    label: "ice edition",
+    vars: {
+      "--background": "#000d0f", "--foreground": "#00d4ff", "--card": "#001a20",
+      "--card-foreground": "#00d4ff", "--primary": "#00d4ff", "--primary-foreground": "#000d0f",
+      "--secondary": "#002030", "--secondary-foreground": "#00aacc",
+      "--muted": "#001520", "--muted-foreground": "#006680",
+      "--accent": "#00aacc", "--border": "rgba(0,212,255,0.15)", "--ring": "rgba(0,212,255,0.4)", "--radius": "0rem",
+    },
+  },
+  ghost: {
+    label: "ghost edition",
+    vars: {
+      "--background": "#0a0a0a", "--foreground": "#cccccc", "--card": "#141414",
+      "--card-foreground": "#cccccc", "--primary": "#cccccc", "--primary-foreground": "#0a0a0a",
+      "--secondary": "#1e1e1e", "--secondary-foreground": "#aaaaaa",
+      "--muted": "#181818", "--muted-foreground": "#666666",
+      "--accent": "#aaaaaa", "--border": "rgba(204,204,204,0.15)", "--ring": "rgba(204,204,204,0.4)", "--radius": "0rem",
+    },
+  },
+  synthwave: {
+    label: "synthwave edition",
+    vars: {
+      "--background": "#0d0014", "--foreground": "#ff00ff", "--card": "#180020",
+      "--card-foreground": "#ff00ff", "--primary": "#ff00ff", "--primary-foreground": "#0d0014",
+      "--secondary": "#250030", "--secondary-foreground": "#cc00cc",
+      "--muted": "#1a0020", "--muted-foreground": "#7a007a",
+      "--accent": "#cc00cc", "--border": "rgba(255,0,255,0.15)", "--ring": "rgba(255,0,255,0.4)", "--radius": "0rem",
+    },
+  },
+  miami: {
+    label: "miami edition",
+    vars: {
+      "--background": "#0a000a", "--foreground": "#ff2079", "--card": "#1a0015",
+      "--card-foreground": "#ff2079", "--primary": "#ff2079", "--primary-foreground": "#0a000a",
+      "--secondary": "#200018", "--secondary-foreground": "#cc1a61",
+      "--muted": "#180012", "--muted-foreground": "#7a1040",
+      "--accent": "#cc1a61", "--border": "rgba(255,32,121,0.15)", "--ring": "rgba(255,32,121,0.4)", "--radius": "0rem",
+    },
+  },
+  solar: {
+    label: "solar edition",
+    vars: {
+      "--background": "#0f0800", "--foreground": "#ff6b00", "--card": "#1a1000",
+      "--card-foreground": "#ff6b00", "--primary": "#ff6b00", "--primary-foreground": "#0f0800",
+      "--secondary": "#201200", "--secondary-foreground": "#cc5500",
+      "--muted": "#180f00", "--muted-foreground": "#7a3300",
+      "--accent": "#cc5500", "--border": "rgba(255,107,0,0.15)", "--ring": "rgba(255,107,0,0.4)", "--radius": "0rem",
+    },
+  },
+  plasma: {
+    label: "plasma edition",
+    vars: {
+      "--background": "#0a000f", "--foreground": "#bf00ff", "--card": "#150020",
+      "--card-foreground": "#bf00ff", "--primary": "#bf00ff", "--primary-foreground": "#0a000f",
+      "--secondary": "#1a0028", "--secondary-foreground": "#9900cc",
+      "--muted": "#120018", "--muted-foreground": "#5a0080",
+      "--accent": "#9900cc", "--border": "rgba(191,0,255,0.15)", "--ring": "rgba(191,0,255,0.4)", "--radius": "0rem",
+    },
+  },
+  redline: {
+    label: "redline edition",
+    vars: {
+      "--background": "#0f0000", "--foreground": "#ff2222", "--card": "#1a0000",
+      "--card-foreground": "#ff2222", "--primary": "#ff2222", "--primary-foreground": "#0f0000",
+      "--secondary": "#200000", "--secondary-foreground": "#cc1a1a",
+      "--muted": "#180000", "--muted-foreground": "#7a1010",
+      "--accent": "#cc1a1a", "--border": "rgba(255,34,34,0.15)", "--ring": "rgba(255,34,34,0.4)", "--radius": "0rem",
+    },
+  },
+  c64: {
+    label: "c64 edition",
+    vars: {
+      "--background": "#00003a", "--foreground": "#7b68ee", "--card": "#000050",
+      "--card-foreground": "#7b68ee", "--primary": "#7b68ee", "--primary-foreground": "#00003a",
+      "--secondary": "#000060", "--secondary-foreground": "#6255be",
+      "--muted": "#000048", "--muted-foreground": "#3a3280",
+      "--accent": "#6255be", "--border": "rgba(123,104,238,0.15)", "--ring": "rgba(123,104,238,0.4)", "--radius": "0rem",
+    },
+  },
+};
+
 interface BlogPost {
   id: string;
   title: string;
@@ -208,26 +313,7 @@ const SKILLS = {
 
 const VERSION = "v0.1.5";
 
-type ThemeId = "phosphor" | "amber" | "ice" | "ghost";
-
-const THEMES: Record<ThemeId, { label: string; dot: string; vars: Record<string, string> }> = {
-  phosphor: {
-    label: "phosphor", dot: "#00ff41",
-    vars: { "--background": "#0a0f0a", "--foreground": "#00ff41", "--primary": "#00ff41", "--primary-foreground": "#0a0f0a", "--card": "#0d1a0d", "--card-foreground": "#00ff41", "--secondary": "#0f2010", "--secondary-foreground": "#00cc33", "--muted": "#0f1a0f", "--muted-foreground": "#3a7a3a", "--accent": "#00cc33", "--border": "rgba(0,255,65,0.15)", "--ring": "rgba(0,255,65,0.4)" },
-  },
-  amber: {
-    label: "amber", dot: "#ffb000",
-    vars: { "--background": "#0f0900", "--foreground": "#ffb000", "--primary": "#ffb000", "--primary-foreground": "#0f0900", "--card": "#1a1000", "--card-foreground": "#ffb000", "--secondary": "#1f1400", "--secondary-foreground": "#cc8c00", "--muted": "#150c00", "--muted-foreground": "#7a5500", "--accent": "#cc8c00", "--border": "rgba(255,176,0,0.15)", "--ring": "rgba(255,176,0,0.4)" },
-  },
-  ice: {
-    label: "ice", dot: "#00d4ff",
-    vars: { "--background": "#000d0f", "--foreground": "#00d4ff", "--primary": "#00d4ff", "--primary-foreground": "#000d0f", "--card": "#001a1f", "--card-foreground": "#00d4ff", "--secondary": "#001f25", "--secondary-foreground": "#00aacc", "--muted": "#00151a", "--muted-foreground": "#006a80", "--accent": "#00aacc", "--border": "rgba(0,212,255,0.15)", "--ring": "rgba(0,212,255,0.4)" },
-  },
-  ghost: {
-    label: "ghost", dot: "#cccccc",
-    vars: { "--background": "#0a0a0a", "--foreground": "#cccccc", "--primary": "#cccccc", "--primary-foreground": "#0a0a0a", "--card": "#111111", "--card-foreground": "#cccccc", "--secondary": "#1a1a1a", "--secondary-foreground": "#999999", "--muted": "#141414", "--muted-foreground": "#555555", "--accent": "#999999", "--border": "rgba(204,204,204,0.15)", "--ring": "rgba(204,204,204,0.4)" },
-  },
-};
+type ThemeId = "phosphor" | "amber" | "ice" | "ghost" | "synthwave" | "miami" | "solar" | "plasma" | "redline" | "c64";
 
 // ── Commands ──────────────────────────────────────────────────────────────────
 
@@ -302,7 +388,7 @@ function ScanlineOverlay() {
   return <div className="scanline" />;
 }
 
-function StatusBar({ section }: { section: Section }) {
+function StatusBar({ section, theme }: { section: Section; theme: ThemeId }) {
   const [time, setTime] = useState(new Date());
   useEffect(() => {
     const id = setInterval(() => setTime(new Date()), 1000);
@@ -312,7 +398,7 @@ function StatusBar({ section }: { section: Section }) {
   return (
     <div
       className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-between px-3 sm:px-4 py-1 text-xs border-t border-border select-none"
-      style={{ background: "rgba(0,255,65,0.08)", fontFamily: "'JetBrains Mono', monospace", paddingBottom: "env(safe-area-inset-bottom)" }}
+      style={{ background: `color-mix(in srgb, ${THEMES[theme].vars["--primary"]} 8%, transparent)`, fontFamily: "'JetBrains Mono', monospace", paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <span className="text-muted-foreground">
         <span className="text-primary hidden sm:inline">INSERT</span>
@@ -1215,22 +1301,22 @@ export default function App() {
               Om.dev
             </button>
             <div className="flex items-center gap-2">
-              <span className="text-muted-foreground text-xs hidden sm:inline">{VERSION} ·</span>
-              {(Object.keys(THEMES) as ThemeId[]).map((id) => (
-                <button
-                  key={id}
-                  onClick={(e) => { e.stopPropagation(); setTheme(id); }}
-                  title={THEMES[id].label}
-                  className="flex items-center gap-1 text-xs transition-colors px-1"
-                  style={{ color: theme === id ? THEMES[id].dot : "#3a5a3a" }}
-                >
-                  <span
-                    className="inline-block w-2 h-2 rounded-full"
-                    style={{ background: THEMES[id].dot, opacity: theme === id ? 1 : 0.35 }}
+              <span className="text-muted-foreground text-xs hidden sm:inline">{VERSION} · {THEMES[theme].label}</span>
+              <div className="hidden sm:flex items-center gap-1 ml-2">
+                {(Object.keys(THEMES) as ThemeId[]).map((t) => (
+                  <button
+                    key={t}
+                    title={THEMES[t].label}
+                    onClick={(e) => { e.stopPropagation(); setTheme(t); }}
+                    className="w-3 h-3 transition-transform hover:scale-125"
+                    style={{
+                      background: THEMES[t].vars["--primary"],
+                      outline: theme === t ? `1px solid ${THEMES[t].vars["--primary"]}` : "none",
+                      outlineOffset: "2px",
+                    }}
                   />
-                  <span className="hidden sm:inline">{THEMES[id].label}</span>
-                </button>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
 
@@ -1278,6 +1364,22 @@ export default function App() {
                 {s}
               </button>
             ))}
+            <div className="flex items-center gap-2 px-1 pt-2 border-t border-border mt-1 w-full">
+              <span className="text-muted-foreground text-xs">theme:</span>
+              {(Object.keys(THEMES) as ThemeId[]).map((t) => (
+                <button
+                  key={t}
+                  title={THEMES[t].label}
+                  onClick={(e) => { e.stopPropagation(); setTheme(t); }}
+                  className="w-4 h-4 transition-transform hover:scale-125"
+                  style={{
+                    background: THEMES[t].vars["--primary"],
+                    outline: theme === t ? `1px solid ${THEMES[t].vars["--primary"]}` : "none",
+                    outlineOffset: "2px",
+                  }}
+                />
+              ))}
+            </div>
           </nav>
         )}
       </header>
@@ -1287,7 +1389,7 @@ export default function App() {
         {/* Boot message */}
         <div className="text-muted-foreground text-xs mb-6 space-y-0.5">
           <div style={{ color: "#3a7a3a" }}>
-            Om.dev {VERSION} ({THEMES[theme].label}) #1 SMP {new Date().toDateString()}
+            Om.dev {VERSION} ({theme}) #1 SMP {new Date().toDateString()}
           </div>
           <div style={{ color: "#3a7a3a" }}>
             Type <span className="text-primary">/</span> to open the command palette, or use the nav above.
@@ -1349,7 +1451,7 @@ export default function App() {
         </div>
       </div>
 
-      <StatusBar section={section} />
+      <StatusBar section={section} theme={theme} />
       <SpeedInsights />
       <Analytics />
     </div>
