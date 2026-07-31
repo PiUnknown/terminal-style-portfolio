@@ -6,7 +6,7 @@ import { Analytics } from "@vercel/analytics/react";
 
 type Section = "home" | "about" | "projects" | "skills" | "blog" | "contact";
 
-type ThemeId = "phosphor" | "amber" | "ice" | "ghost" | "synthwave" | "miami" | "plasma" | "redline" | "c64";
+type ThemeId = "phosphor" | "amber" | "ice" | "ghost" | "synthwave" | "miami" | "redline" | "c64";
 
 const THEMES: Record<ThemeId, { label: string; vars: Record<string, string> }> = {
   phosphor: {
@@ -70,16 +70,7 @@ const THEMES: Record<ThemeId, { label: string; vars: Record<string, string> }> =
     },
   },
 
-  plasma: {
-    label: "plasma edition",
-    vars: {
-      "--background": "#0a000f", "--foreground": "#bf00ff", "--card": "#150020",
-      "--card-foreground": "#bf00ff", "--primary": "#bf00ff", "--primary-foreground": "#0a000f",
-      "--secondary": "#1a0028", "--secondary-foreground": "#9900cc",
-      "--muted": "#120018", "--muted-foreground": "#5a0080",
-      "--accent": "#9900cc", "--border": "rgba(191,0,255,0.15)", "--ring": "rgba(191,0,255,0.4)", "--radius": "0rem",
-    },
-  },
+
   redline: {
     label: "redline edition",
     vars: {
