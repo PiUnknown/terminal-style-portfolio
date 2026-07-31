@@ -27,61 +27,45 @@ interface Project {
   architecture: string;
 }
 
+// ── Blog: file-based markdown loader ─────────────────────────────────────────
+
+const mdModules = import.meta.glob<string>(
+  "../content/blog/*.md",
+  { eager: true, query: "?raw", import: "default" }
+);
+
+function parseBlogPost(raw: string, filepath: string): BlogPost {
+  const id = filepath.split("/").pop()!.replace(/\.md$/, "");
+  const fenceEnd = raw.indexOf("\n---", 4);
+  const fm: Record<string, string> = {};
+  if (raw.startsWith("---") && fenceEnd !== -1) {
+    raw
+      .slice(4, fenceEnd)
+      .split("\n")
+      .forEach((line) => {
+        const colon = line.indexOf(":");
+        if (colon !== -1) {
+          fm[line.slice(0, colon).trim()] = line.slice(colon + 1).trim();
+        }
+      });
+  }
+  const body = fenceEnd !== -1 ? raw.slice(fenceEnd + 5).trim() : raw.trim();
+  return {
+    id,
+    title: fm.title ?? id,
+    date: fm.date ?? "",
+    tags: fm.tags ? fm.tags.split(",").map((t) => t.trim()) : [],
+    readTime: fm.readTime ?? "",
+    excerpt: fm.excerpt ?? "",
+    content: body.split(/\n\n+/).filter(Boolean),
+  };
+}
+
 // ── Data ─────────────────────────────────────────────────────────────────────
 
-const BLOG_POSTS: BlogPost[] = [
-  {
-    id: "memory-allocator",
-    title: "Writing a Memory Allocator in C from Scratch",
-    date: "2026-07-14",
-    tags: ["C", "systems", "memory"],
-    readTime: "8 min",
-    excerpt: "malloc() is something we take for granted. Let's break it open.",
-    content: [
-      "Every C program calls malloc(). But what does malloc() actually do?",
-      "I spent last weekend implementing a slab allocator from scratch as part of my OS coursework. Here is what I learned.",
-      "The core idea: you maintain a free list. When the user requests N bytes, you walk the list, find a block >= N, split if needed, and hand back a pointer.",
-      "The tricky part is coalescing — merging adjacent free blocks so you don't fragment the heap into unusable slivers.",
-      "My naive first-fit allocator passed 18/20 test cases. The two failures were edge cases around page-aligned allocations. Fixed by rounding up to the next 4096-byte boundary using (size + 4095) & ~4095.",
-      "Full source: github.com/dev/malloc-from-scratch",
-    ],
-  },
-  {
-    id: "git-internals",
-    title: "Git Internals: What is a Commit, Really?",
-    date: "2026-06-28",
-    tags: ["git", "internals", "tooling"],
-    readTime: "6 min",
-    excerpt: "Commits are just SHA-1-addressed blobs. Here is the proof.",
-    content: [
-      "Run: cat .git/HEAD",
-      "You will see something like: ref: refs/heads/main",
-      "Run: cat .git/refs/heads/main",
-      "That is a 40-character SHA-1 hash — a content address pointing to a commit object.",
-      "Run: git cat-file -p <that-hash>",
-      "You get a tree hash, parent hash, author, committer, and message. That is a commit object in its entirety.",
-      "Tree objects point to blob objects (file contents) and other tree objects (subdirectories). It is a Merkle DAG.",
-      "This means git checkout is literally: read the tree, decompress the blobs, write them to disk. No magic.",
-      "Understanding this made me a dramatically better debugger of merge conflicts.",
-    ],
-  },
-  {
-    id: "cs-sophomore-reflection",
-    title: "Sophomore Year: What I Wish I Had Known",
-    date: "2026-06-10",
-    tags: ["reflection", "career", "advice"],
-    readTime: "5 min",
-    excerpt: "The gap between coursework and real engineering is navigable.",
-    content: [
-      "I finished my sophomore year with a 3.7 GPA and zero side projects. I thought that was fine.",
-      "It was not fine. Recruiters do not care about your Algorithms grade. They want to see code you have shipped.",
-      "What changed: I started treating weekends as engineering time. Not grinding LeetCode — actually building things.",
-      "The rule I adopted: every two weeks, one deployed artifact. A CLI tool, a bot, a website, anything.",
-      "Six months in: three internship offers, a talk at my university's ACM chapter, and more confidence than any grade ever gave me.",
-      "Start building. Ship ugly things. Iterate.",
-    ],
-  },
-];
+const BLOG_POSTS: BlogPost[] = Object.entries(mdModules)
+  .map(([path, raw]) => parseBlogPost(raw, path))
+  .sort((a, b) => b.date.localeCompare(a.date));
 
 const PROJECTS: Project[] = [
   {
