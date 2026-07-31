@@ -6,7 +6,7 @@ import { Analytics } from "@vercel/analytics/react";
 
 type Section = "home" | "about" | "projects" | "skills" | "blog" | "contact";
 
-type ThemeId = "phosphor" | "amber" | "ice" | "ghost" | "synthwave" | "miami" | "solar" | "plasma" | "redline" | "c64";
+type ThemeId = "phosphor" | "amber" | "ice" | "ghost" | "synthwave" | "miami" | "plasma" | "redline" | "c64";
 
 const THEMES: Record<ThemeId, { label: string; vars: Record<string, string> }> = {
   phosphor: {
@@ -69,16 +69,7 @@ const THEMES: Record<ThemeId, { label: string; vars: Record<string, string> }> =
       "--accent": "#cc1a61", "--border": "rgba(255,32,121,0.15)", "--ring": "rgba(255,32,121,0.4)", "--radius": "0rem",
     },
   },
-  solar: {
-    label: "solar edition",
-    vars: {
-      "--background": "#0f0800", "--foreground": "#ff6b00", "--card": "#1a1000",
-      "--card-foreground": "#ff6b00", "--primary": "#ff6b00", "--primary-foreground": "#0f0800",
-      "--secondary": "#201200", "--secondary-foreground": "#cc5500",
-      "--muted": "#180f00", "--muted-foreground": "#7a3300",
-      "--accent": "#cc5500", "--border": "rgba(255,107,0,0.15)", "--ring": "rgba(255,107,0,0.4)", "--radius": "0rem",
-    },
-  },
+
   plasma: {
     label: "plasma edition",
     vars: {
@@ -313,7 +304,6 @@ const SKILLS = {
 
 const VERSION = "v0.1.5";
 
-type ThemeId = "phosphor" | "amber" | "ice" | "ghost" | "synthwave" | "miami" | "solar" | "plasma" | "redline" | "c64";
 
 // ── Commands ──────────────────────────────────────────────────────────────────
 
