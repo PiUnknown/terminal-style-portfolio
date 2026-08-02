@@ -38,5 +38,5 @@ src/imports/
 CLAUDE.md
 
 # Templates
-src/content/projects/template.md
-src/content/blog/template.md
+src/content/projects/project_template.md
+src/content/blog/blog_template.md
