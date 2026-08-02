@@ -36,3 +36,7 @@ pnpm-debug.log*
 # Media and references
 src/imports/
 CLAUDE.md
+
+# Templates
+src/content/projects/template.md
+src/content/blog/template.md
