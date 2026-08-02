@@ -4,10 +4,9 @@ lang: Python
 status: wip
 url: https://github.com/PiUnknown/Project-Gnosis
 stars: 0
+order: 1
 desc: Multi-agent code archaeology system that transforms GitHub repos into structured onboarding documentation.
 ---
-
-# Project Gnosis
 
 Project Gnosis is a multi-agent code archaeology system that transforms an unfamiliar GitHub repository into structured onboarding documentation. Given a repository URL, it analyzes the codebase through a deterministic seven-agent pipeline that parses source code, maps dependencies, evaluates code quality, retrieves relevant context, and generates human-readable explanations for the repository's architecture. Instead of relying on generic LLM summaries, the system combines static analysis with Retrieval-Augmented Generation (RAG) to produce documentation grounded in the actual codebase. :contentReference[oaicite:0]{index=0} :contentReference[oaicite:1]{index=1}
 

@@ -111,6 +111,7 @@ interface Project {
   desc: string;
   body: string;
   stars: number;
+  order: number;
   status: "active" | "archived" | "wip" | "research";
   url: string;
 }
@@ -181,6 +182,7 @@ function parseProject(raw: string): Project {
     desc: fm.desc ?? "",
     body,
     stars: fm.stars ? parseInt(fm.stars, 10) : 0,
+    order: fm.order ? parseInt(fm.order, 10) : 999,
     status: (fm.status as Project["status"]) ?? "active",
     url: fm.url ?? "#",
   };
@@ -190,7 +192,11 @@ const STATUS_ORDER: Record<Project["status"], number> = { wip: 0, research: 1, a
 
 const PROJECTS: Project[] = Object.values(projectMdModules)
   .map((raw) => parseProject(raw))
-  .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]);
+  .sort((a, b) => {
+    const statusDiff = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
+    if (statusDiff !== 0) return statusDiff;
+    return a.order - b.order;
+  });
 
 const SKILLS = {
   languages: ["Python", "C", "C++", "SQL", "HTML", "CSS"],
