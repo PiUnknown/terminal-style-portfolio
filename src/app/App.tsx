@@ -113,6 +113,7 @@ interface Project {
   hostedUrl?: string;
   stack?: string[];
   architecture?: string;
+  content?: string[];
 }
 
 // ── Blog: file-based markdown loader ─────────────────────────────────────────
@@ -175,13 +176,19 @@ function parseProject(raw: string): Project {
       });
   }
   const body = fenceEnd !== -1 ? raw.slice(fenceEnd + 5).trim() : raw.trim();
+  const paragraphs = body.split(/\n\n+/).filter(Boolean);
+  let desc = paragraphs[0] ?? "";
+  if (desc.startsWith("#")) {
+    desc = paragraphs[1] ?? desc;
+  }
   return {
     name: fm.name ?? "",
     lang: fm.lang ?? "",
-    desc: body.split(/\n\n+/)[0] ?? "",
+    desc: desc,
     stars: fm.stars ? parseInt(fm.stars, 10) : 0,
     status: (fm.status as Project["status"]) ?? "active",
     url: fm.url ?? "#",
+    content: paragraphs,
   };
 }
 
@@ -630,6 +637,40 @@ function ProjectsSection({ openProject, setOpenProject }: {
     archived: "#3a7a3a",
   };
 
+  function renderParagraph(para: string, idx: number) {
+    if (para.startsWith("#")) {
+      const level = para.match(/^#+/)?.[0].length ?? 1;
+      const text = para.replace(/^#+\s+/, "").trim();
+      if (level === 1) {
+        return (
+          <h1 key={idx} className="text-xl font-bold text-primary mt-6 mb-3 border-b border-border pb-1" style={{ fontFamily: "'VT323', monospace", letterSpacing: "0.05em" }}>
+            {text}
+          </h1>
+        );
+      }
+      return (
+        <h2 key={idx} className="text-sm font-semibold text-primary mt-5 mb-2 select-none">
+          -- {text.toLowerCase()}
+        </h2>
+      );
+    }
+
+    const parts = para.split("**");
+    if (parts.length > 1) {
+      return (
+        <p key={idx} className="text-sm text-muted-foreground leading-relaxed">
+          {parts.map((part, i) => (i % 2 === 1 ? <strong key={i} className="text-foreground font-semibold">{part}</strong> : part))}
+        </p>
+      );
+    }
+
+    return (
+      <p key={idx} className="text-sm text-muted-foreground leading-relaxed">
+        {para}
+      </p>
+    );
+  }
+
   const project = openProject ? PROJECTS.find((p) => p.name === openProject) ?? null : null;
 
   if (project) {
@@ -651,7 +692,13 @@ function ProjectsSection({ openProject, setOpenProject }: {
             </span>
           </div>
 
-          <p className="text-sm text-muted-foreground">{project.desc}</p>
+          {project.content && project.content.length > 0 ? (
+            <div className="space-y-4">
+              {project.content.map((para, i) => renderParagraph(para, i))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">{project.desc}</p>
+          )}
 
           {project.stack && project.stack.length > 0 && (
             <div>
