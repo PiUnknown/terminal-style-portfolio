@@ -4,6 +4,7 @@ lang: Python
 status: wip
 url: https://github.com/PiUnknown/Project-Gnosis
 stars: 0
+desc: Multi-agent code archaeology system that transforms GitHub repos into structured onboarding documentation.
 ---
 
 # Project Gnosis

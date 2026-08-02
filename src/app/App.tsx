@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
+import { marked } from "marked";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -107,13 +108,10 @@ interface Project {
   name: string;
   lang: string;
   desc: string;
-  status: "active" | "archived" | "wip" | "research";
+  body: string;
+  stars: number;
+  status: "active" | "archived" | "wip";
   url: string;
-  stars?: number;
-  hostedUrl?: string;
-  stack?: string[];
-  architecture?: string;
-  content?: string[];
 }
 
 // ── Blog: file-based markdown loader ─────────────────────────────────────────
@@ -176,23 +174,18 @@ function parseProject(raw: string): Project {
       });
   }
   const body = fenceEnd !== -1 ? raw.slice(fenceEnd + 5).trim() : raw.trim();
-  const paragraphs = body.split(/\n\n+/).filter(Boolean);
-  let desc = paragraphs[0] ?? "";
-  if (desc.startsWith("#")) {
-    desc = paragraphs[1] ?? desc;
-  }
   return {
     name: fm.name ?? "",
     lang: fm.lang ?? "",
-    desc: desc,
+    desc: fm.desc ?? "",
+    body,
     stars: fm.stars ? parseInt(fm.stars, 10) : 0,
     status: (fm.status as Project["status"]) ?? "active",
     url: fm.url ?? "#",
-    content: paragraphs,
   };
 }
 
-const STATUS_ORDER: Record<Project["status"], number> = { wip: 0, active: 1, archived: 2, research: 3 };
+const STATUS_ORDER: Record<Project["status"], number> = { wip: 0, active: 1, archived: 2 };
 
 const PROJECTS: Project[] = Object.values(projectMdModules)
   .map((raw) => parseProject(raw))
@@ -245,6 +238,21 @@ function useTypewriter(text: string, speed = 28, deps: unknown[] = []) {
   }, [...deps]);
 
   return { displayed, done };
+}
+
+function useGithubStars(url: string, fallback: number): number {
+  const [stars, setStars] = useState(fallback);
+  useEffect(() => {
+    const match = url.match(/github\.com\/([^/]+\/[^/]+)/);
+    if (!match) return;
+    fetch(`https://api.github.com/repos/${match[1]}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (typeof d.stargazers_count === "number") setStars(d.stargazers_count);
+      })
+      .catch(() => {});
+  }, [url]);
+  return stars;
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -625,130 +633,104 @@ function AboutSection() {
   );
 }
 
-function ProjectsSection({ openProject, setOpenProject }: {
-  openProject: string | null;
-  setOpenProject: (id: string | null) => void;
-}) {
-
+function ProjectCard({ p, onClick }: { p: Project; onClick: () => void }) {
+  const stars = useGithubStars(p.url, p.stars);
   const statusColor: Record<Project["status"], string> = {
-    wip: "#ffcc00",
-    research: "#cc88ff",
     active: "#00ff41",
     archived: "#3a7a3a",
+    wip: "#ffcc00",
   };
+  return (
+    <button
+      onClick={onClick}
+      className="w-full text-left block border border-border p-3 sm:p-4 hover:border-primary hover:bg-secondary transition-colors group touch-manipulation"
+    >
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-primary group-hover:underline font-semibold">{p.name}</span>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span>★ {stars}</span>
+          <span
+            className="px-2 py-0.5 border text-xs"
+            style={{ color: statusColor[p.status], borderColor: statusColor[p.status] + "44" }}
+          >
+            {p.status}
+          </span>
+        </div>
+      </div>
+      <div className="text-xs text-muted-foreground mb-2">{p.desc}</div>
+      <div className="text-xs" style={{ color: "#6699ff" }}>{p.lang}</div>
+    </button>
+  );
+}
 
-  function renderParagraph(para: string, idx: number) {
-    if (para.startsWith("#")) {
-      const level = para.match(/^#+/)?.[0].length ?? 1;
-      const text = para.replace(/^#+\s+/, "").trim();
-      if (level === 1) {
-        return (
-          <h1 key={idx} className="text-xl font-bold text-primary mt-6 mb-3 border-b border-border pb-1" style={{ fontFamily: "'VT323', monospace", letterSpacing: "0.05em" }}>
-            {text}
-          </h1>
-        );
-      }
-      return (
-        <h2 key={idx} className="text-sm font-semibold text-primary mt-5 mb-2 select-none">
-          -- {text.toLowerCase()}
-        </h2>
-      );
-    }
+function ProjectDetailView({
+  project,
+  onBack,
+}: {
+  project: Project;
+  onBack: () => void;
+}) {
+  return (
+    <div className="space-y-5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+      <div className="text-muted-foreground text-sm">
+        <Prompt path="~/projects" />
+        cat ./{project.name}/README.md
+      </div>
 
-    const parts = para.split("**");
-    if (parts.length > 1) {
-      return (
-        <p key={idx} className="text-sm text-muted-foreground leading-relaxed">
-          {parts.map((part, i) => (i % 2 === 1 ? <strong key={i} className="text-foreground font-semibold">{part}</strong> : part))}
-        </p>
-      );
-    }
+      <div className="border border-border p-3 sm:p-4 space-y-4">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <span
+            className="text-2xl font-bold"
+            style={{ fontFamily: "'VT323', monospace", color: "var(--primary)", letterSpacing: "0.03em" }}
+          >
+            {project.name}
+          </span>
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span style={{ color: "#6699ff" }}>{project.lang}</span>
+            <span>★ {project.stars}</span>
+          </div>
+        </div>
 
-    return (
-      <p key={idx} className="text-sm text-muted-foreground leading-relaxed">
-        {para}
-      </p>
-    );
-  }
+        <div
+          className="prose-terminal text-sm leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: marked(project.body) as string }}
+        />
 
+        <div className="flex gap-3 pt-2 border-t border-border">
+          <a
+            href={project.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="text-xs px-3 py-1 border border-border hover:border-primary hover:text-primary transition-colors text-muted-foreground"
+          >
+            ↗ github
+          </a>
+        </div>
+      </div>
+
+      <button
+        onClick={onBack}
+        className="text-sm text-muted-foreground hover:text-primary transition-colors"
+      >
+        <Prompt path="~/projects" />
+        cd .. # ← go back
+      </button>
+    </div>
+  );
+}
+
+function ProjectsSection({
+  openProject,
+  setOpenProject,
+}: {
+  openProject: string | null;
+  setOpenProject: (name: string | null) => void;
+}) {
   const project = openProject ? PROJECTS.find((p) => p.name === openProject) ?? null : null;
 
   if (project) {
-    return (
-      <div className="space-y-5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-        <div className="text-muted-foreground text-sm">
-          <Prompt path="~/projects" />
-          cat ./{project.name}/README.md
-        </div>
-
-        <div className="border border-border p-3 sm:p-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-primary text-lg font-bold">{project.name}</span>
-            <span
-              className="text-xs px-2 py-0.5 border"
-              style={{ color: statusColor[project.status], borderColor: statusColor[project.status] + "44" }}
-            >
-              {project.status}
-            </span>
-          </div>
-
-          {project.content && project.content.length > 0 ? (
-            <div className="space-y-4">
-              {project.content.map((para, i) => renderParagraph(para, i))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">{project.desc}</p>
-          )}
-
-          {project.stack && project.stack.length > 0 && (
-            <div>
-              <div className="text-xs text-muted-foreground mb-2">-- tech stack</div>
-              <div className="flex flex-wrap gap-2">
-                {project.stack.map((t) => (
-                  <span key={t} className="text-xs border border-border px-2 py-0.5 text-foreground">{t}</span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {project.architecture && (
-            <div>
-              <div className="text-xs text-muted-foreground mb-2">-- architecture</div>
-              <p className="text-sm text-muted-foreground leading-relaxed">{project.architecture}</p>
-            </div>
-          )}
-
-          <div className="flex gap-4 pt-2">
-            <a
-              href={project.url}
-              target="_blank"
-              rel="noreferrer"
-              className="text-xs border border-border px-3 py-1 hover:border-primary hover:text-primary transition-colors"
-            >
-              ⌥ github
-            </a>
-            {project.hostedUrl && (
-              <a
-                href={project.hostedUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="text-xs border border-border px-3 py-1 hover:border-primary hover:text-primary transition-colors"
-              >
-                ↗ live demo
-              </a>
-            )}
-          </div>
-        </div>
-
-        <button
-          onClick={() => setOpenProject(null)}
-          className="text-sm text-muted-foreground hover:text-primary transition-colors"
-        >
-          <Prompt path="~/projects" />
-          cd .. # ← go back
-        </button>
-      </div>
-    );
+    return <ProjectDetailView project={project} onBack={() => setOpenProject(null)} />;
   }
 
   return (
@@ -757,32 +739,10 @@ function ProjectsSection({ openProject, setOpenProject }: {
         <Prompt path="~/projects" />
         ls -la ./repos/
       </div>
-
       <div className="space-y-3">
-        {[...PROJECTS]
-          .sort((a, b) => {
-            const ORDER = { wip: 0, research: 1, active: 2, archived: 3 };
-            return ORDER[a.status] - ORDER[b.status];
-          })
-          .map((p) => (
-            <button
-              key={p.name}
-              onClick={() => setOpenProject(p.name)}
-              className="w-full text-left border border-border p-3 sm:p-4 hover:border-primary hover:bg-secondary transition-colors group"
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-primary group-hover:underline font-semibold">{p.name}</span>
-                <span
-                  className="text-xs px-2 py-0.5 border"
-                  style={{ color: statusColor[p.status], borderColor: statusColor[p.status] + "44" }}
-                >
-                  {p.status}
-                </span>
-              </div>
-              <div className="text-xs text-muted-foreground mb-2">{p.desc}</div>
-              <div className="text-xs" style={{ color: "#6699ff" }}>{p.lang}</div>
-            </button>
-          ))}
+        {PROJECTS.map((p) => (
+          <ProjectCard key={p.name} p={p} onClick={() => setOpenProject(p.name)} />
+        ))}
       </div>
     </div>
   );

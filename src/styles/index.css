@@ -13,3 +13,33 @@
   );
   will-change: auto;
 }
+
+.prose-terminal h1 {
+  color: var(--primary);
+  font-family: 'VT323', monospace;
+  font-size: 1.6rem;
+  margin-bottom: 0.5rem;
+}
+.prose-terminal h2 {
+  color: var(--foreground);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-top: 1.2rem;
+  margin-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.prose-terminal strong { color: var(--foreground); }
+.prose-terminal p { color: var(--muted-foreground); margin-bottom: 0.5rem; }
+.prose-terminal ul { list-style: none; padding: 0; margin-bottom: 0.5rem; }
+.prose-terminal ul li::before { content: "› "; color: var(--primary); }
+.prose-terminal ul li { color: var(--muted-foreground); }
+.prose-terminal code {
+  background: var(--secondary);
+  color: var(--primary);
+  padding: 0.1rem 0.3rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+}
