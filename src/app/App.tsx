@@ -109,9 +109,10 @@ interface Project {
   desc: string;
   status: "active" | "archived" | "wip" | "research";
   url: string;
-  hostedUrl: string;
-  stack: string[];
-  architecture: string;
+  stars?: number;
+  hostedUrl?: string;
+  stack?: string[];
+  architecture?: string;
 }
 
 // ── Blog: file-based markdown loader ─────────────────────────────────────────
@@ -154,137 +155,41 @@ const BLOG_POSTS: BlogPost[] = Object.entries(mdModules)
   .map(([path, raw]) => parseBlogPost(raw, path))
   .sort((a, b) => b.date.localeCompare(a.date));
 
-const PROJECTS: Project[] = [
-  {
-    name: "project-alloy",
-    lang: "Python",
-    desc: "Data curation and continued pretraining pipeline for language models.",
-    status: "research",
-    url: "https://github.com/PiUnknown/Project-Alloy",
-    hostedUrl: "",
-    stack: [
-      "Python",
-      "PyTorch",
-      "Transformers",
-      "Tokenizers",
-      "Datasets",
-    ],
-    architecture:
-      "Research-focused pipeline for document ingestion, cleaning, deduplication, tokenizer preparation, dataset packing, and continued language model pretraining.",
-  },
+const projectMdModules = import.meta.glob<string>(
+  "../content/projects/*.md",
+  { eager: true, query: "?raw", import: "default" }
+);
 
-  {
-    name: "queryforge",
-    lang: "Python",
-    desc: "Production-ready RAG system for querying and synthesizing research papers.",
-    status: "active",
-    url: "https://github.com/PiUnknown/QueryForge",
-    hostedUrl: "",
-    stack: [
-      "Python",
-      "LangChain",
-      "ChromaDB",
-      "Sentence-Transformers",
-      "Ollama",
-      "Streamlit",
-    ],
-    architecture:
-      "Modular RAG pipeline with PDF ingestion, semantic chunking, dense retrieval, local LLM inference, and an evaluation framework measuring Precision@K, Recall, MRR, and F1.",
-  },
+function parseProject(raw: string): Project {
+  const fenceEnd = raw.indexOf("\n---", 4);
+  const fm: Record<string, string> = {};
+  if (raw.startsWith("---") && fenceEnd !== -1) {
+    raw
+      .slice(4, fenceEnd)
+      .split("\n")
+      .forEach((line) => {
+        const colon = line.indexOf(":");
+        if (colon !== -1) {
+          fm[line.slice(0, colon).trim()] = line.slice(colon + 1).trim();
+        }
+      });
+  }
+  const body = fenceEnd !== -1 ? raw.slice(fenceEnd + 5).trim() : raw.trim();
+  return {
+    name: fm.name ?? "",
+    lang: fm.lang ?? "",
+    desc: body.split(/\n\n+/)[0] ?? "",
+    stars: fm.stars ? parseInt(fm.stars, 10) : 0,
+    status: (fm.status as Project["status"]) ?? "active",
+    url: fm.url ?? "#",
+  };
+}
 
-  {
-    name: "support-triage-agent",
-    lang: "Python",
-    desc: "Grounded multi-domain support agent built for adversarial support tickets.",
-    status: "active",
-    url: "https://github.com/PiUnknown/support-triage-agent",
-    hostedUrl: "",
-    stack: [
-      "Python",
-      "FAISS",
-      "Sentence-Transformers",
-      "Groq",
-      "Pandas",
-    ],
-    architecture:
-      "Deterministic seven-stage pipeline performing safety checks, retrieval, classification, escalation, and grounded response generation while resisting prompt injection and PII extraction.",
-  },
+const STATUS_ORDER: Record<Project["status"], number> = { wip: 0, active: 1, archived: 2, research: 3 };
 
-  {
-    name: "TerraGraph",
-    lang: "Python",
-    desc: "AI biodiversity intelligence system for grounded environmental recommendations.",
-    status: "wip",
-    url: "https://github.com/PiUnknown/TerraGraph",
-    hostedUrl: "https://terragraph-x7oxucctkmfigypnt429be.streamlit.app/",
-    stack: [
-      "FastAPI",
-      "ChromaDB",
-      "Sentence-Transformers",
-      "Groq",
-      "Pydantic",
-      "Streamlit",
-    ],
-    architecture:
-      "Hybrid reasoning architecture combining deterministic ecological relationship graphs with semantic retrieval and LLM synthesis to generate evidence-backed biodiversity recommendations.",
-  },
-
-  {
-    name: "IssueRouter",
-    lang: "Python",
-    desc: "AI-powered civic grievance triage system for routing citizen complaints.",
-    status: "active",
-    url: "https://github.com/PiUnknown/IssueRouter",
-    hostedUrl: "",
-    stack: [
-      "FastAPI",
-      "BART",
-      "spaCy",
-      "Sentence-Transformers",
-      "Groq",
-      "React",
-    ],
-    architecture:
-      "Streams complaints from X, performs zero-shot classification, entity extraction, semantic clustering, urgency scoring, and LLM summarization before generating ranked action briefs for government officers.",
-  },
-
-  {
-    name: "digital-persona",
-    lang: "Python",
-    desc: "RAG chatbot that lets users explore LinkedIn profiles through natural conversation.",
-    status: "active",
-    url: "https://github.com/PiUnknown/Digital-Persona",
-    hostedUrl: "https://digital-persona-f5el2cmczdp8k53cszh38k.streamlit.app/",
-    stack: [
-      "LangChain",
-      "FAISS",
-      "Apify",
-      "Sentence-Transformers",
-      "Groq",
-      "Streamlit",
-    ],
-    architecture:
-      "Scrapes LinkedIn profiles, builds a FAISS vector index, retrieves relevant profile chunks, and generates grounded responses using a retrieval-augmented generation pipeline.",
-  },
-
-  {
-    name: "SentioTrade",
-    lang: "Python",
-    desc: "Real-time stock sentiment analysis system powered by FinBERT.",
-    status: "active",
-    url: "https://github.com/PiUnknown/SentioTrade",
-    hostedUrl: "",
-    stack: [
-      "FastAPI",
-      "FinBERT",
-      "PyTorch",
-      "PRAW",
-      "Docker",
-    ],
-    architecture:
-      "End-to-end ML pipeline that scrapes Reddit discussions, performs financial-domain sentiment analysis using FinBERT, aggregates confidence-weighted predictions, and serves live results through a FastAPI backend.",
-  },
-];
+const PROJECTS: Project[] = Object.values(projectMdModules)
+  .map((raw) => parseProject(raw))
+  .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status]);
 
 const SKILLS = {
   languages: ["Python", "C", "C++", "SQL", "HTML", "CSS"],
@@ -748,19 +653,23 @@ function ProjectsSection({ openProject, setOpenProject }: {
 
           <p className="text-sm text-muted-foreground">{project.desc}</p>
 
-          <div>
-            <div className="text-xs text-muted-foreground mb-2">-- tech stack</div>
-            <div className="flex flex-wrap gap-2">
-              {project.stack.map((t) => (
-                <span key={t} className="text-xs border border-border px-2 py-0.5 text-foreground">{t}</span>
-              ))}
+          {project.stack && project.stack.length > 0 && (
+            <div>
+              <div className="text-xs text-muted-foreground mb-2">-- tech stack</div>
+              <div className="flex flex-wrap gap-2">
+                {project.stack.map((t) => (
+                  <span key={t} className="text-xs border border-border px-2 py-0.5 text-foreground">{t}</span>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          <div>
-            <div className="text-xs text-muted-foreground mb-2">-- architecture</div>
-            <p className="text-sm text-muted-foreground leading-relaxed">{project.architecture}</p>
-          </div>
+          {project.architecture && (
+            <div>
+              <div className="text-xs text-muted-foreground mb-2">-- architecture</div>
+              <p className="text-sm text-muted-foreground leading-relaxed">{project.architecture}</p>
+            </div>
+          )}
 
           <div className="flex gap-4 pt-2">
             <a
