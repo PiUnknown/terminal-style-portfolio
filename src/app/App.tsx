@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import { useState, useEffect, useRef, useCallback } from "react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
@@ -110,7 +111,7 @@ interface Project {
   desc: string;
   body: string;
   stars: number;
-  status: "active" | "archived" | "wip";
+  status: "active" | "archived" | "wip" | "research";
   url: string;
 }
 
@@ -185,7 +186,7 @@ function parseProject(raw: string): Project {
   };
 }
 
-const STATUS_ORDER: Record<Project["status"], number> = { wip: 0, active: 1, archived: 2 };
+const STATUS_ORDER: Record<Project["status"], number> = { wip: 0, research: 1, active: 2, archived: 3 };
 
 const PROJECTS: Project[] = Object.values(projectMdModules)
   .map((raw) => parseProject(raw))
@@ -250,7 +251,7 @@ function useGithubStars(url: string, fallback: number): number {
       .then((d) => {
         if (typeof d.stargazers_count === "number") setStars(d.stargazers_count);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [url]);
   return stars;
 }
@@ -636,9 +637,10 @@ function AboutSection() {
 function ProjectCard({ p, onClick }: { p: Project; onClick: () => void }) {
   const stars = useGithubStars(p.url, p.stars);
   const statusColor: Record<Project["status"], string> = {
-    active: "#00ff41",
-    archived: "#3a7a3a",
     wip: "#ffcc00",
+    research: "#a554e3ff",
+    active: "#00ff41",
+    archived: "#ec1b1bff",
   };
   return (
     <button
