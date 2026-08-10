@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
 import { useState, useEffect, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 import { marked } from "marked";
@@ -247,19 +248,84 @@ function useTypewriter(text: string, speed = 28, deps: unknown[] = []) {
   return { displayed, done };
 }
 
+// Shared cache for GitHub star counts to avoid redundant fetches and ensure consistent state.
+const starsCache: Record<string, number> = {};
+const starsListeners: Record<string, Set<(count: number) => void>> = {};
+
+function updateStarsCache(url: string, count: number) {
+  starsCache[url] = count;
+  if (starsListeners[url]) {
+    starsListeners[url].forEach((cb) => cb(count));
+  }
+}
+
 function useGithubStars(url: string, fallback: number): number {
-  const [stars, setStars] = useState(fallback);
+  const [stars, setStars] = useState(() => starsCache[url] ?? fallback);
+
   useEffect(() => {
+    if (!starsListeners[url]) {
+      starsListeners[url] = new Set();
+    }
+    starsListeners[url].add(setStars);
+
     const match = url.match(/github\.com\/([^/]+\/[^/]+)/);
-    if (!match) return;
-    fetch(`https://api.github.com/repos/${match[1]}`)
-      .then((r) => r.json())
-      .then((d) => {
-        if (typeof d.stargazers_count === "number") setStars(d.stargazers_count);
-      })
-      .catch(() => { });
+    if (match) {
+      const repoPath = match[1];
+
+      const fetchStars = () => {
+        fetch(`https://api.github.com/repos/${repoPath}`)
+          .then((r) => r.json())
+          .then((d) => {
+            if (typeof d.stargazers_count === "number") {
+              updateStarsCache(url, d.stargazers_count);
+            }
+          })
+          .catch(() => {});
+      };
+
+      if (starsCache[url] === undefined) {
+        fetchStars();
+      }
+
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === "visible") {
+          fetchStars();
+        }
+      };
+
+      const intervalId = setInterval(() => {
+        if (document.visibilityState === "visible") {
+          fetchStars();
+        }
+      }, 30000);
+
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+
+      return () => {
+        starsListeners[url]?.delete(setStars);
+        clearInterval(intervalId);
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+      };
+    }
+
+    return () => {
+      starsListeners[url]?.delete(setStars);
+    };
   }, [url]);
+
   return stars;
+}
+
+function useReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return reduced;
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -328,9 +394,10 @@ interface SlashPaletteProps {
   activeIdx: number;
   onSelect: (cmd: string) => void;
   onHover: (idx: number) => void;
+  reducedMotion: boolean;
 }
 
-function SlashPalette({ query, activeIdx, onSelect, onHover }: SlashPaletteProps) {
+function SlashPalette({ query, activeIdx, onSelect, onHover, reducedMotion }: SlashPaletteProps) {
   const q = query.toLowerCase();
   const filtered = Object.entries(COMMANDS).filter(
     ([k, v]) => k.startsWith(q) || v.desc.toLowerCase().includes(q)
@@ -339,24 +406,18 @@ function SlashPalette({ query, activeIdx, onSelect, onHover }: SlashPaletteProps
   if (filtered.length === 0) return null;
 
   return (
-    <>
-      <style>{`
-        @keyframes paletteSlideUp {
-          from { opacity: 0; transform: translateY(6px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        .palette-item {
-          animation: paletteSlideUp 0.18s ease both;
-        }
-      `}</style>
-      <div
-        className="absolute left-0 right-0 bottom-full mb-2 border border-border z-50 overflow-hidden"
-        style={{
-          background: "rgba(10,15,10,0.97)",
-          backdropFilter: "blur(8px)",
-          boxShadow: "0 -4px 24px rgba(0,255,65,0.08)",
-        }}
-      >
+    <motion.div
+      initial={reducedMotion ? false : { opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={reducedMotion ? undefined : { opacity: 0, y: 6 }}
+      transition={{ type: "spring", bounce: 0, duration: 0.2 }}
+      className="absolute left-0 right-0 bottom-full mb-2 border border-border z-50 overflow-hidden"
+      style={{
+        background: "rgba(10,15,10,0.97)",
+        backdropFilter: "blur(8px)",
+        boxShadow: "0 -4px 24px rgba(0,255,65,0.08)",
+      }}
+    >
         {/* Palette header */}
         <div
           className="flex items-center justify-between px-3 py-1.5 border-b border-border"
@@ -373,11 +434,13 @@ function SlashPalette({ query, activeIdx, onSelect, onHover }: SlashPaletteProps
         {filtered.map(([cmd, { desc }], i) => {
           const isActive = i === activeIdx;
           return (
-            <button
+            <motion.button
               key={cmd}
-              className="palette-item w-full flex items-center gap-4 px-3 py-2 text-left transition-colors"
+              initial={reducedMotion ? false : { opacity: 0, x: -4 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ type: "spring", bounce: 0, duration: 0.2, delay: reducedMotion ? 0 : i * 0.028 }}
+              className="w-full flex items-center gap-4 px-3 py-2 text-left transition-colors"
               style={{
-                animationDelay: `${i * 28}ms`,
                 background: isActive ? "rgba(0,255,65,0.08)" : "transparent",
                 borderLeft: isActive ? "2px solid #00ff41" : "2px solid transparent",
               }}
@@ -397,11 +460,10 @@ function SlashPalette({ query, activeIdx, onSelect, onHover }: SlashPaletteProps
               {isActive && (
                 <span className="ml-auto text-xs text-muted-foreground shrink-0">↵</span>
               )}
-            </button>
+            </motion.button>
           );
         })}
-      </div>
-    </>
+      </motion.div>
   );
 }
 
@@ -412,7 +474,12 @@ function InlineLog({ lines, path }: { lines: string[]; path: string }) {
   return (
     <div className="mt-6 space-y-0.5 text-xs border-t border-border pt-4">
       {lines.map((line, i) => (
-        <div key={i}>
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, x: -4 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ type: "spring", bounce: 0, duration: 0.2, delay: i * 0.03 }}
+        >
           {line.startsWith(">") ? (
             <div className="text-primary">
               <Prompt path={path} />
@@ -421,7 +488,7 @@ function InlineLog({ lines, path }: { lines: string[]; path: string }) {
           ) : (
             <div className="text-muted-foreground pl-2">{line}</div>
           )}
-        </div>
+        </motion.div>
       ))}
     </div>
   );
@@ -486,16 +553,19 @@ function HomeSection() {
               { label: "reachomjha@gmail.com", icon: "✉", url: "mailto:reachomjha@gmail.com" },
               { label: "resume.pdf", icon: "↓", url: "/resume.pdf" },
             ].map((link) => (
-              <a
+              <motion.a
                 key={link.label}
                 href={link.url}
                 target={link.url.startsWith("mailto") || link.url.startsWith("/") ? undefined : "_blank"}
                 rel="noreferrer"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", bounce: 0, duration: 0.2 }}
                 className="border border-border px-3 py-2 text-xs hover:border-primary hover:bg-secondary transition-colors group"
               >
                 <span className="text-muted-foreground mr-1">{link.icon}</span>
                 <span className="group-hover:text-primary transition-colors">{link.label}</span>
-              </a>
+              </motion.a>
             ))}
           </div>
         </div>
@@ -649,8 +719,11 @@ function ProjectCard({ p, onClick }: { p: Project; onClick: () => void }) {
     archived: "#ec1b1bff",
   };
   return (
-    <button
+    <motion.button
       onClick={onClick}
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", bounce: 0, duration: 0.2 }}
       className="w-full text-left block border border-border p-3 sm:p-4 hover:border-primary hover:bg-secondary transition-colors group touch-manipulation"
     >
       <div className="flex items-center justify-between mb-1">
@@ -667,7 +740,7 @@ function ProjectCard({ p, onClick }: { p: Project; onClick: () => void }) {
       </div>
       <div className="text-xs text-muted-foreground mb-2">{p.desc}</div>
       <div className="text-xs" style={{ color: "#6699ff" }}>{p.lang}</div>
-    </button>
+    </motion.button>
   );
 }
 
@@ -678,6 +751,8 @@ function ProjectDetailView({
   project: Project;
   onBack: () => void;
 }) {
+  const stars = useGithubStars(project.url, project.stars);
+
   return (
     <div className="space-y-5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
       <div className="text-muted-foreground text-sm">
@@ -695,7 +770,7 @@ function ProjectDetailView({
           </span>
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <span style={{ color: "#6699ff" }}>{project.lang}</span>
-            <span>★ {project.stars}</span>
+            <span>★ {stars}</span>
           </div>
         </div>
 
@@ -831,9 +906,12 @@ function BlogListSection({ onOpen }: { onOpen: (id: string) => void }) {
 
       <div className="space-y-3">
         {BLOG_POSTS.map((post) => (
-          <button
+          <motion.button
             key={post.id}
             onClick={() => onOpen(post.id)}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: "spring", bounce: 0, duration: 0.2 }}
             className="w-full text-left border border-border p-3 sm:p-4 hover:border-primary hover:bg-secondary transition-colors group"
           >
             <div className="flex items-start justify-between gap-2 mb-1">
@@ -855,7 +933,7 @@ function BlogListSection({ onOpen }: { onOpen: (id: string) => void }) {
                 </span>
               ))}
             </div>
-          </button>
+          </motion.button>
         ))}
       </div>
     </div>
@@ -1051,6 +1129,7 @@ export default function App() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [paletteIdx, setPaletteIdx] = useState(0);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const reducedMotion = useReducedMotion();
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputWrapRef = useRef<HTMLDivElement>(null);
@@ -1227,19 +1306,22 @@ export default function App() {
 
           <nav className="hidden sm:flex gap-1">
             {(["home", "about", "projects", "skills", "blog", "contact"] as Section[]).map((s) => (
-              <button
+              <motion.button
                 key={s}
                 onClick={(e) => {
                   e.stopPropagation();
                   navigate(s);
                 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", bounce: 0, duration: 0.15 }}
                 className={`px-2 py-1 text-xs transition-colors ${section === s
                   ? "text-primary border border-primary bg-secondary"
                   : "text-muted-foreground hover:text-primary border border-transparent"
                   }`}
               >
                 {s}
-              </button>
+              </motion.button>
             ))}
           </nav>
 
@@ -1254,20 +1336,23 @@ export default function App() {
         {mobileNavOpen && (
           <nav className="sm:hidden border-t border-border mt-2 pt-2 flex flex-wrap gap-1">
             {(["home", "about", "projects", "skills", "blog", "contact"] as Section[]).map((s) => (
-              <button
+              <motion.button
                 key={s}
                 onClick={(e) => {
                   e.stopPropagation();
                   navigate(s);
                   setMobileNavOpen(false);
                 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", bounce: 0, duration: 0.15 }}
                 className={`px-3 py-1.5 text-xs transition-colors ${section === s
                   ? "text-primary border border-primary bg-secondary"
                   : "text-muted-foreground hover:text-primary border border-transparent"
                   }`}
               >
                 {s}
-              </button>
+              </motion.button>
             ))}
             <div className="flex items-center gap-2 px-1 pt-2 border-t border-border mt-1 w-full">
               <span className="text-muted-foreground text-xs">theme:</span>
@@ -1302,22 +1387,32 @@ export default function App() {
         </div>
 
         {/* Section content */}
-        {section === "home" && <HomeSection key="home" />}
-        {section === "about" && <AboutSection />}
-        {section === "projects" && (
-          <ProjectsSection
-            openProject={openProject}
-            setOpenProject={setOpenProject}
-          />
-        )}
-        {section === "skills" && <SkillsSection />}
-        {section === "blog" &&
-          (post ? (
-            <BlogPostView post={post} onBack={() => setOpenPost(null)} />
-          ) : (
-            <BlogListSection onOpen={setOpenPost} />
-          ))}
-        {section === "contact" && <ContactSection />}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={section}
+            initial={reducedMotion ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={reducedMotion ? undefined : { opacity: 0, y: -4 }}
+            transition={{ type: "spring", bounce: 0, duration: 0.35 }}
+          >
+            {section === "home" && <HomeSection />}
+            {section === "about" && <AboutSection />}
+            {section === "projects" && (
+              <ProjectsSection
+                openProject={openProject}
+                setOpenProject={setOpenProject}
+              />
+            )}
+            {section === "skills" && <SkillsSection />}
+            {section === "blog" &&
+              (post ? (
+                <BlogPostView post={post} onBack={() => setOpenPost(null)} />
+              ) : (
+                <BlogListSection onOpen={setOpenPost} />
+              ))}
+            {section === "contact" && <ContactSection />}
+          </motion.div>
+        </AnimatePresence>
 
         {/* Inline log — appears below section content, above the input */}
         <InlineLog lines={inlineLog} path={currentPath} />
@@ -1330,14 +1425,17 @@ export default function App() {
         style={{ bottom: "28px", background: "rgba(10,15,10,0.97)", backdropFilter: "blur(4px)" }}
       >
         <div className="max-w-5xl mx-auto relative" ref={inputWrapRef}>
-          {paletteOpen && filteredCmds.length > 0 && (
-            <SlashPalette
-              query={paletteQuery}
-              activeIdx={paletteIdx}
-              onSelect={selectPaletteItem}
-              onHover={setPaletteIdx}
-            />
-          )}
+          <AnimatePresence>
+            {paletteOpen && filteredCmds.length > 0 && (
+              <SlashPalette
+                query={paletteQuery}
+                activeIdx={paletteIdx}
+                onSelect={selectPaletteItem}
+                onHover={setPaletteIdx}
+                reducedMotion={reducedMotion}
+              />
+            )}
+          </AnimatePresence>
           <div className="flex items-center gap-2">
             <Prompt path={currentPath} />
             <input
