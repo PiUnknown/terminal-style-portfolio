@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 — Om.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=VT323&display=swap"
+    rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      background: #0a0f0a;
+      color: #00ff41;
+      font-family: 'JetBrains Mono', monospace;
+      overflow: hidden;
+    }
+
+    .scanline {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg, transparent, transparent 2px,
+        rgba(0, 0, 0, 0.07) 2px, rgba(0, 0, 0, 0.07) 4px
+      );
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .ascii {
+      font-family: 'VT323', monospace;
+      font-size: clamp(3rem, 10vw, 7rem);
+      line-height: 1;
+      color: #00ff41;
+      white-space: pre;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 0 12px rgba(0, 255, 65, 0.5);
+    }
+
+    .ascii-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(0.7rem, 2vw, 1rem);
+      letter-spacing: 0.15em;
+      color: #3a7a3a;
+      margin-bottom: 2rem;
+    }
+
+    .prompt {
+      font-size: 0.85rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .prompt .user {
+      color: #00cc33;
+    }
+
+    .prompt .at {
+      color: #3a7a3a;
+    }
+
+    .prompt .host {
+      color: #33ff66;
+    }
+
+    .prompt .colon {
+      color: #3a7a3a;
+    }
+
+    .prompt .path {
+      color: #6699ff;
+    }
+
+    .prompt .dollar {
+      color: #3a7a3a;
+    }
+
+    .error-msg {
+      font-size: 0.8rem;
+      color: #3a7a3a;
+      margin-bottom: 1.5rem;
+    }
+
+    .error-msg .cmd {
+      color: #ff4444;
+    }
+
+    .back-link {
+      display: inline-block;
+      color: #00ff41;
+      text-decoration: none;
+      font-size: 0.85rem;
+      border: 1px solid rgba(0, 255, 65, 0.15);
+      padding: 0.5rem 1.2rem;
+      transition: all 0.15s ease;
+    }
+
+    .back-link:hover {
+      border-color: #00ff41;
+      background: rgba(0, 255, 65, 0.08);
+      text-shadow: 0 0 6px rgba(0, 255, 65, 0.3);
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 0.55rem;
+      height: 1rem;
+      background: #00ff41;
+      vertical-align: middle;
+      animation: blink 1.06s step-end infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .cursor {
+        animation: none;
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="scanline"></div>
+  <div class="container">
+    <pre class="ascii">404</pre>
+    <div class="ascii-sub">NOT FOUND</div>
+
+    <div class="prompt">
+      <span class="user">visitor</span><span class="at">@</span><span class="host">portfolio</span><span class="colon">:</span><span class="path">~</span><span class="dollar">$ </span>
+      <span class="cursor"></span>
+    </div>
+
+    <div class="error-msg">
+      <span class="cmd">bash</span>: cd: /unknown-path: No such file or directory
+    </div>
+
+    <a href="/" class="back-link">$ cd ~/</a>
+  </div>
+</body>
+
+</html>
