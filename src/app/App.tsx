@@ -9,11 +9,12 @@ import { marked } from "marked";
 
 type Section = "home" | "about" | "projects" | "skills" | "blog" | "contact";
 
-type ThemeId = "phosphor" | "amber" | "ice" | "ghost" | "synthwave" | "miami" | "redline" | "c64";
+type ThemeId = "phosphor" | "amber" | "ice" | "ghost";
 
-const THEMES: Record<ThemeId, { label: string; vars: Record<string, string> }> = {
+const THEMES: Record<ThemeId, { label: string; dot: string; vars: Record<string, string> }> = {
   phosphor: {
-    label: "phosphor edition",
+    label: "phosphor",
+    dot: "#00ff41",
     vars: {
       "--background": "#0a0f0a", "--foreground": "#00ff41", "--card": "#0d1a0d",
       "--card-foreground": "#00ff41", "--primary": "#00ff41", "--primary-foreground": "#0a0f0a",
@@ -23,7 +24,8 @@ const THEMES: Record<ThemeId, { label: string; vars: Record<string, string> }> =
     },
   },
   amber: {
-    label: "amber edition",
+    label: "amber",
+    dot: "#ffb000",
     vars: {
       "--background": "#0f0900", "--foreground": "#ffb000", "--card": "#1a1000",
       "--card-foreground": "#ffb000", "--primary": "#ffb000", "--primary-foreground": "#0f0900",
@@ -33,7 +35,8 @@ const THEMES: Record<ThemeId, { label: string; vars: Record<string, string> }> =
     },
   },
   ice: {
-    label: "ice edition",
+    label: "ice",
+    dot: "#00d4ff",
     vars: {
       "--background": "#000d0f", "--foreground": "#00d4ff", "--card": "#001a20",
       "--card-foreground": "#00d4ff", "--primary": "#00d4ff", "--primary-foreground": "#000d0f",
@@ -43,55 +46,14 @@ const THEMES: Record<ThemeId, { label: string; vars: Record<string, string> }> =
     },
   },
   ghost: {
-    label: "ghost edition",
+    label: "ghost",
+    dot: "#cccccc",
     vars: {
       "--background": "#0a0a0a", "--foreground": "#cccccc", "--card": "#141414",
       "--card-foreground": "#cccccc", "--primary": "#cccccc", "--primary-foreground": "#0a0a0a",
       "--secondary": "#1e1e1e", "--secondary-foreground": "#aaaaaa",
       "--muted": "#181818", "--muted-foreground": "#666666",
       "--accent": "#aaaaaa", "--border": "rgba(204,204,204,0.15)", "--ring": "rgba(204,204,204,0.4)", "--radius": "0rem",
-    },
-  },
-  synthwave: {
-    label: "synthwave edition",
-    vars: {
-      "--background": "#0d0014", "--foreground": "#ff00ff", "--card": "#180020",
-      "--card-foreground": "#ff00ff", "--primary": "#ff00ff", "--primary-foreground": "#0d0014",
-      "--secondary": "#250030", "--secondary-foreground": "#cc00cc",
-      "--muted": "#1a0020", "--muted-foreground": "#7a007a",
-      "--accent": "#cc00cc", "--border": "rgba(255,0,255,0.15)", "--ring": "rgba(255,0,255,0.4)", "--radius": "0rem",
-    },
-  },
-  miami: {
-    label: "miami edition",
-    vars: {
-      "--background": "#0a000a", "--foreground": "#ff2079", "--card": "#1a0015",
-      "--card-foreground": "#ff2079", "--primary": "#ff2079", "--primary-foreground": "#0a000a",
-      "--secondary": "#200018", "--secondary-foreground": "#cc1a61",
-      "--muted": "#180012", "--muted-foreground": "#7a1040",
-      "--accent": "#cc1a61", "--border": "rgba(255,32,121,0.15)", "--ring": "rgba(255,32,121,0.4)", "--radius": "0rem",
-    },
-  },
-
-
-  redline: {
-    label: "redline edition",
-    vars: {
-      "--background": "#0f0000", "--foreground": "#ff2222", "--card": "#1a0000",
-      "--card-foreground": "#ff2222", "--primary": "#ff2222", "--primary-foreground": "#0f0000",
-      "--secondary": "#200000", "--secondary-foreground": "#cc1a1a",
-      "--muted": "#180000", "--muted-foreground": "#7a1010",
-      "--accent": "#cc1a1a", "--border": "rgba(255,34,34,0.15)", "--ring": "rgba(255,34,34,0.4)", "--radius": "0rem",
-    },
-  },
-  c64: {
-    label: "c64 edition",
-    vars: {
-      "--background": "#00003a", "--foreground": "#7b68ee", "--card": "#000050",
-      "--card-foreground": "#7b68ee", "--primary": "#7b68ee", "--primary-foreground": "#00003a",
-      "--secondary": "#000060", "--secondary-foreground": "#6255be",
-      "--muted": "#000048", "--muted-foreground": "#3a3280",
-      "--accent": "#6255be", "--border": "rgba(123,104,238,0.15)", "--ring": "rgba(123,104,238,0.4)", "--radius": "0rem",
     },
   },
 };
@@ -1345,20 +1307,22 @@ export default function App() {
               Om.dev
             </button>
             <div className="flex items-center gap-2">
-              <span className="text-muted-foreground text-xs hidden sm:inline">{VERSION} · {THEMES[theme].label}</span>
-              <div className="hidden sm:flex items-center gap-1 ml-2">
-                {(Object.keys(THEMES) as ThemeId[]).map((t) => (
+              <span className="text-muted-foreground text-xs hidden sm:inline">{VERSION} ·</span>
+              <div className="hidden sm:flex items-center gap-2 ml-1">
+                {(Object.keys(THEMES) as ThemeId[]).map((id) => (
                   <button
-                    key={t}
-                    title={THEMES[t].label}
-                    onClick={(e) => { e.stopPropagation(); setTheme(t); }}
-                    className="w-3 h-3 transition-transform hover:scale-125"
-                    style={{
-                      background: THEMES[t].vars["--primary"],
-                      outline: theme === t ? `1px solid ${THEMES[t].vars["--primary"]}` : "none",
-                      outlineOffset: "2px",
-                    }}
-                  />
+                    key={id}
+                    onClick={(e) => { e.stopPropagation(); setTheme(id); }}
+                    title={THEMES[id].label}
+                    className="flex items-center gap-1 text-xs transition-colors px-1"
+                    style={{ color: theme === id ? THEMES[id].dot : "var(--muted-foreground)" }}
+                  >
+                    <span
+                      className="inline-block w-2 h-2 rounded-full"
+                      style={{ background: THEMES[id].dot, opacity: theme === id ? 1 : 0.35 }}
+                    />
+                    <span className="hidden sm:inline">{THEMES[id].label}</span>
+                  </button>
                 ))}
               </div>
             </div>
@@ -1416,18 +1380,20 @@ export default function App() {
             ))}
             <div className="flex items-center gap-2 px-1 pt-2 border-t border-border mt-1 w-full">
               <span className="text-muted-foreground text-xs">theme:</span>
-              {(Object.keys(THEMES) as ThemeId[]).map((t) => (
+              {(Object.keys(THEMES) as ThemeId[]).map((id) => (
                 <button
-                  key={t}
-                  title={THEMES[t].label}
-                  onClick={(e) => { e.stopPropagation(); setTheme(t); }}
-                  className="w-4 h-4 transition-transform hover:scale-125"
-                  style={{
-                    background: THEMES[t].vars["--primary"],
-                    outline: theme === t ? `1px solid ${THEMES[t].vars["--primary"]}` : "none",
-                    outlineOffset: "2px",
-                  }}
-                />
+                  key={id}
+                  onClick={(e) => { e.stopPropagation(); setTheme(id); }}
+                  title={THEMES[id].label}
+                  className="flex items-center gap-1 text-xs transition-colors px-1"
+                  style={{ color: theme === id ? THEMES[id].dot : "var(--muted-foreground)" }}
+                >
+                  <span
+                    className="inline-block w-2 h-2 rounded-full"
+                    style={{ background: THEMES[id].dot, opacity: theme === id ? 1 : 0.35 }}
+                  />
+                  <span>{THEMES[id].label}</span>
+                </button>
               ))}
             </div>
           </nav>
