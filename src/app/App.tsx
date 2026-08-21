@@ -9,7 +9,7 @@ import { marked } from "marked";
 
 type Section = "home" | "about" | "projects" | "skills" | "blog" | "contact";
 
-type ThemeId = "phosphor" | "amber" | "ice" | "ghost";
+type ThemeId = "phosphor" | "ice" | "dracula" | "synthwave" | "ruby";
 
 const THEMES: Record<ThemeId, { label: string; dot: string; vars: Record<string, string> }> = {
   phosphor: {
@@ -23,17 +23,6 @@ const THEMES: Record<ThemeId, { label: string; dot: string; vars: Record<string,
       "--accent": "#00cc33", "--border": "rgba(0,255,65,0.15)", "--ring": "rgba(0,255,65,0.4)", "--radius": "0rem",
     },
   },
-  amber: {
-    label: "amber",
-    dot: "#ffb000",
-    vars: {
-      "--background": "#0f0900", "--foreground": "#ffb000", "--card": "#1a1000",
-      "--card-foreground": "#ffb000", "--primary": "#ffb000", "--primary-foreground": "#0f0900",
-      "--secondary": "#201400", "--secondary-foreground": "#cc8800",
-      "--muted": "#180f00", "--muted-foreground": "#7a5500",
-      "--accent": "#cc8800", "--border": "rgba(255,176,0,0.15)", "--ring": "rgba(255,176,0,0.4)", "--radius": "0rem",
-    },
-  },
   ice: {
     label: "ice",
     dot: "#00d4ff",
@@ -45,15 +34,37 @@ const THEMES: Record<ThemeId, { label: string; dot: string; vars: Record<string,
       "--accent": "#00aacc", "--border": "rgba(0,212,255,0.15)", "--ring": "rgba(0,212,255,0.4)", "--radius": "0rem",
     },
   },
-  ghost: {
-    label: "ghost",
-    dot: "#cccccc",
+  dracula: {
+    label: "dracula",
+    dot: "#bd93f9",
     vars: {
-      "--background": "#0a0a0a", "--foreground": "#cccccc", "--card": "#141414",
-      "--card-foreground": "#cccccc", "--primary": "#cccccc", "--primary-foreground": "#0a0a0a",
-      "--secondary": "#1e1e1e", "--secondary-foreground": "#aaaaaa",
-      "--muted": "#181818", "--muted-foreground": "#666666",
-      "--accent": "#aaaaaa", "--border": "rgba(204,204,204,0.15)", "--ring": "rgba(204,204,204,0.4)", "--radius": "0rem",
+      "--background": "#12131a", "--foreground": "#f8f8f2", "--card": "#1a1b26",
+      "--card-foreground": "#f8f8f2", "--primary": "#bd93f9", "--primary-foreground": "#12131a",
+      "--secondary": "#212230", "--secondary-foreground": "#ff79c6",
+      "--muted": "#191a24", "--muted-foreground": "#6272a4",
+      "--accent": "#ff79c6", "--border": "rgba(189,147,249,0.2)", "--ring": "rgba(189,147,249,0.4)", "--radius": "0rem",
+    },
+  },
+  synthwave: {
+    label: "synthwave",
+    dot: "#ff2a8d",
+    vars: {
+      "--background": "#0d021a", "--foreground": "#ff71ce", "--card": "#180530",
+      "--card-foreground": "#ff71ce", "--primary": "#ff2a8d", "--primary-foreground": "#0d021a",
+      "--secondary": "#240845", "--secondary-foreground": "#01cdfe",
+      "--muted": "#140326", "--muted-foreground": "#7d1f5c",
+      "--accent": "#01cdfe", "--border": "rgba(255,42,141,0.2)", "--ring": "rgba(255,42,141,0.4)", "--radius": "0rem",
+    },
+  },
+  ruby: {
+    label: "ruby",
+    dot: "#ff2a2a",
+    vars: {
+      "--background": "#0f0505", "--foreground": "#ff2a2a", "--card": "#1a0808",
+      "--card-foreground": "#ff2a2a", "--primary": "#ff2a2a", "--primary-foreground": "#0f0505",
+      "--secondary": "#240a0a", "--secondary-foreground": "#cc2222",
+      "--muted": "#170606", "--muted-foreground": "#7a1a1a",
+      "--accent": "#cc2222", "--border": "rgba(255,42,42,0.18)", "--ring": "rgba(255,42,42,0.4)", "--radius": "0rem",
     },
   },
 };
