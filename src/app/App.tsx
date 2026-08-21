@@ -102,12 +102,15 @@ function parseBlogPost(raw: string, filepath: string): BlogPost {
       });
   }
   const body = fenceEnd !== -1 ? raw.slice(fenceEnd + 5).trim() : raw.trim();
+  const wordCount = body.replace(/<[^>]+>/g, "").split(/\s+/).filter(Boolean).length;
+  const readTime = `${Math.max(1, Math.ceil(wordCount / 200))} min`;
+
   return {
     id,
     title: fm.title ?? id,
     date: fm.date ?? "",
     tags: fm.tags ? fm.tags.split(",").map((t) => t.trim()) : [],
-    readTime: fm.readTime ?? "",
+    readTime,
     excerpt: fm.excerpt ?? "",
     content: body.split(/\n\n+/).filter(Boolean),
   };
@@ -340,6 +343,32 @@ function Prompt({ user = "visitor", path = "~" }: { user?: string; path?: string
 
 function ScanlineOverlay() {
   return <div className="scanline" />;
+}
+
+function ShareButton({ postId }: { postId: string }) {
+  const [copied, setCopied] = useState(false);
+
+  function handleShare(e: React.MouseEvent) {
+    e.stopPropagation();
+    const url = `${window.location.origin}/blog/${postId}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  return (
+    <button
+      onClick={handleShare}
+      className="text-xs transition-colors shrink-0"
+      style={{
+        color: copied ? "var(--primary)" : "var(--muted-foreground)",
+        fontFamily: "'JetBrains Mono', monospace",
+      }}
+    >
+      {copied ? "✓ copied" : "[share]"}
+    </button>
+  );
 }
 
 interface BootLoaderProps {
@@ -952,6 +981,9 @@ function BlogListSection({ onOpen }: { onOpen: (id: string) => void }) {
                 </span>
               ))}
             </div>
+            <div className="flex items-center justify-end mt-2">
+              <ShareButton postId={post.id} />
+            </div>
           </motion.button>
         ))}
       </div>
@@ -977,6 +1009,10 @@ function BlogPostView({ post, onBack }: { post: BlogPost; onBack: () => void }) 
         <div className="flex gap-4 text-xs text-muted-foreground">
           <span>{post.date}</span>
           <span>{post.readTime} read</span>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>share:</span>
+          <ShareButton postId={post.id} />
         </div>
         <div className="flex gap-2 flex-wrap">
           {post.tags.map((tag) => (
