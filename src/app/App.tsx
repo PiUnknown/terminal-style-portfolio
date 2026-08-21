@@ -1435,7 +1435,7 @@ export default function App() {
       </header>
 
       {/* Terminal body */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-32 sm:pb-28">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-24 sm:pb-20">
         {/* Boot message */}
         <div className="text-muted-foreground text-xs mb-6 space-y-0.5">
           <div style={{ color: "#3a7a3a" }}>
@@ -1481,8 +1481,12 @@ export default function App() {
       </main>
 
       <div
-        className="fixed left-0 right-0 z-40 border-t border-border px-4 py-2"
-        style={{ bottom: "28px", background: "rgba(10,15,10,0.97)", backdropFilter: "blur(4px)" }}
+        className="fixed left-0 right-0 z-40 border-t border-border px-3 sm:px-4 py-2"
+        style={{
+          bottom: "28px",
+          background: "var(--background)",
+          fontFamily: "'JetBrains Mono', monospace",
+        }}
       >
         <div className="max-w-5xl mx-auto relative" ref={inputWrapRef}>
           <AnimatePresence>
@@ -1501,7 +1505,10 @@ export default function App() {
             <input
               ref={inputRef}
               value={cmdInput}
-              onChange={(e) => { setCmdInput(e.target.value); setHistoryIdx(-1); }}
+              onChange={(e) => {
+                setCmdInput(e.target.value);
+                setHistoryIdx(-1);
+              }}
               onKeyDown={handleKey}
               onClick={(e) => e.stopPropagation()}
               placeholder="type / for commands..."
