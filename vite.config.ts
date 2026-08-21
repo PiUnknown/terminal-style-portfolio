@@ -1,6 +1,7 @@
-import { defineConfig } from 'vite'
+import { defineConfig, ViteDevServer, Connect } from 'vite'
 import path from 'path'
 import fs from 'fs'
+import { ServerResponse } from 'http'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 
@@ -20,10 +21,12 @@ function figmaAssetResolver() {
 function dev404Fallback() {
   return {
     name: 'dev-404-fallback',
-    configureServer(server) {
-      server.middlewares.use((req, res, next) => {
+    configureServer(server: ViteDevServer) {
+      server.middlewares.use((req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
         const url = req.url?.split('?')[0] ?? '/'
         if (url === '/' || url === '/index.html') return next()
+        // Only fallback to 404.html if the request accepts HTML
+        if (!req.headers.accept?.includes('text/html')) return next()
         const filePath = path.resolve(__dirname, 'dist', url.slice(1))
         if (fs.existsSync(filePath)) return next()
         const notFound = path.resolve(__dirname, 'public', '404.html')

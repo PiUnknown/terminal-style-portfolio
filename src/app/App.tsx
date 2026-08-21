@@ -208,6 +208,24 @@ const SKILLS = {
 
 const VERSION = "v0.1.5";
 
+const GREETINGS = [
+  "HELLO",
+  "नमस्ते",
+  "HOLA",
+  "BONJOUR",
+  "こんにちは",
+  "你好",
+  "ПРИВЕТ",
+  "مَرْحَبًا",
+  "안녕하세요",
+  "OLÁ",
+  "CIAO",
+  "HALLO",
+  "MERHABA",
+  "XIN CHÀO",
+  "HEJ"
+];
+
 
 // ── Commands ──────────────────────────────────────────────────────────────────
 
@@ -360,6 +378,39 @@ function Prompt({ user = "visitor", path = "~" }: { user?: string; path?: string
 
 function ScanlineOverlay() {
   return <div className="scanline" />;
+}
+
+interface BootLoaderProps {
+  visible: boolean;
+}
+
+function BootLoader({ visible }: BootLoaderProps) {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIndex((prev) => (prev + 1) % GREETINGS.length);
+    }, 100);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background transition-opacity duration-500 ease-out"
+      style={{
+        opacity: visible ? 1 : 0,
+        pointerEvents: visible ? "auto" : "none",
+      }}
+    >
+      <ScanlineOverlay />
+      <div
+        className="text-4xl sm:text-6xl font-bold tracking-widest text-primary text-center px-4"
+        style={{ fontFamily: "'JetBrains Mono', monospace" }}
+      >
+        {GREETINGS[index]}
+      </div>
+    </div>
+  );
 }
 
 function StatusBar({ section, theme }: { section: Section; theme: ThemeId }) {
@@ -1118,6 +1169,7 @@ function ContactSection() {
 // ── Main App ──────────────────────────────────────────────────────────────────
 
 export default function App() {
+  const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState<ThemeId>("phosphor");
   const [section, setSection] = useState<Section>("home");
   const [openPost, setOpenPost] = useState<string | null>(null);
@@ -1133,6 +1185,13 @@ export default function App() {
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputWrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const timer = new Promise((resolve) => setTimeout(resolve, 1500));
+    Promise.all([document.fonts.ready, timer]).then(() => {
+      setLoading(false);
+    });
+  }, []);
 
   // Derive palette state from input
   const isPaletteMode = cmdInput.startsWith("/");
@@ -1268,6 +1327,7 @@ export default function App() {
       style={{ fontFamily: "'JetBrains Mono', monospace", ...THEMES[theme].vars }}
       onClick={() => inputRef.current?.focus()}
     >
+      <BootLoader visible={loading} />
       <ScanlineOverlay />
 
       {/* Header */}
