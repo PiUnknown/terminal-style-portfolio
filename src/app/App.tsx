@@ -1161,6 +1161,70 @@ export default function App() {
     });
   }, []);
 
+  useEffect(() => {
+    const path = window.location.pathname.replace(/^\//, "");
+    const segments = path.split("/");
+    const maybeSection = segments[0] as Section;
+    const validSections: Section[] = ["home", "about", "projects", "skills", "blog", "contact"];
+
+    if (!path || path === "/") {
+      // already home, do nothing
+    } else if (maybeSection === "blog" && segments[1]) {
+      setSection("blog");
+      setOpenPost(segments[1]);
+    } else if (maybeSection === "projects" && segments[1]) {
+      setSection("projects");
+      setOpenProject(segments[1]);
+    } else if (validSections.includes(maybeSection)) {
+      setSection(maybeSection);
+    }
+  }, []);
+
+  useEffect(() => {
+    function onPop() {
+      const path = window.location.pathname.replace(/^\//, "");
+      const segments = path.split("/");
+      const maybeSection = segments[0] as Section;
+      const validSections: Section[] = ["home", "about", "projects", "skills", "blog", "contact"];
+
+      if (!path || path === "/") {
+        setSection("home");
+        setOpenPost(null);
+        setOpenProject(null);
+      } else if (maybeSection === "blog" && segments[1]) {
+        setSection("blog");
+        setOpenPost(segments[1]);
+      } else if (maybeSection === "projects" && segments[1]) {
+        setSection("projects");
+        setOpenProject(segments[1]);
+      } else if (validSections.includes(maybeSection)) {
+        setSection(maybeSection);
+        setOpenPost(null);
+        setOpenProject(null);
+      }
+    }
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  const handleOpenPost = (id: string | null) => {
+    setOpenPost(id);
+    if (id) {
+      history.pushState(null, "", `/blog/${id}`);
+    } else {
+      history.pushState(null, "", "/blog");
+    }
+  };
+
+  const handleOpenProject = (name: string | null) => {
+    setOpenProject(name);
+    if (name) {
+      history.pushState(null, "", `/projects/${name}`);
+    } else {
+      history.pushState(null, "", "/projects");
+    }
+  };
+
   // Derive palette state from input
   const isPaletteMode = cmdInput.startsWith("/");
   const paletteQuery = isPaletteMode ? cmdInput.slice(1) : "";
@@ -1191,6 +1255,7 @@ export default function App() {
     setOpenProject(null);
     setInlineLog([]);
     window.scrollTo({ top: 0, behavior: "smooth" });
+    history.pushState(null, "", s === "home" ? "/" : `/${s}`);
   }, []);
 
   const currentPath = section === "home" ? "~" : `~/${section}`;
@@ -1432,15 +1497,15 @@ export default function App() {
             {section === "projects" && (
               <ProjectsSection
                 openProject={openProject}
-                setOpenProject={setOpenProject}
+                setOpenProject={handleOpenProject}
               />
             )}
             {section === "skills" && <SkillsSection />}
             {section === "blog" &&
               (post ? (
-                <BlogPostView post={post} onBack={() => setOpenPost(null)} />
+                <BlogPostView post={post} onBack={() => handleOpenPost(null)} />
               ) : (
-                <BlogListSection onOpen={setOpenPost} />
+                <BlogListSection onOpen={handleOpenPost} />
               ))}
             {section === "contact" && <ContactSection />}
           </motion.div>
