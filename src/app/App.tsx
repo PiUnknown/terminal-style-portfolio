@@ -384,8 +384,14 @@ function StatusBar({ section, theme }: { section: Section; theme: ThemeId }) {
   const fmt = time.toLocaleTimeString("en-US", { hour12: false });
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-between px-3 sm:px-4 py-1 text-xs border-t border-border select-none"
-      style={{ background: `color-mix(in srgb, ${THEMES[theme].vars["--primary"]} 8%, transparent)`, fontFamily: "'JetBrains Mono', monospace", paddingBottom: "env(safe-area-inset-bottom)" }}
+      className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-between px-3 sm:px-4 text-xs border-t border-border select-none"
+      style={{
+        background: `color-mix(in srgb, ${THEMES[theme].vars["--primary"]} 8%, var(--background))`,
+        fontFamily: "'JetBrains Mono', monospace",
+        height: "calc(28px + env(safe-area-inset-bottom))",
+        paddingBottom: "env(safe-area-inset-bottom)",
+        paddingTop: 0,
+      }}
     >
       <span className="text-muted-foreground">
         <span className="text-primary hidden sm:inline">INSERT</span>
@@ -1449,7 +1455,7 @@ export default function App() {
       <div
         className="fixed left-0 right-0 z-40 border-t border-border px-3 sm:px-4 py-2"
         style={{
-          bottom: "28px",
+          bottom: "calc(28px + env(safe-area-inset-bottom))",
           background: "var(--background)",
           fontFamily: "'JetBrains Mono', monospace",
         }}
