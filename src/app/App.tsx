@@ -9,7 +9,7 @@ import { marked } from "marked";
 
 type Section = "home" | "about" | "projects" | "skills" | "blog" | "contact";
 
-type ThemeId = "phosphor" | "ice" | "synthwave" | "tokyo" | "cyber";
+type ThemeId = "phosphor" | "ice" | "synthwave" | "c64" | "gruvbox";
 
 const THEMES: Record<ThemeId, { label: string; dot: string; vars: Record<string, string> }> = {
   phosphor: {
@@ -45,26 +45,26 @@ const THEMES: Record<ThemeId, { label: string; dot: string; vars: Record<string,
       "--accent": "#01cdfe", "--border": "rgba(255,42,141,0.2)", "--ring": "rgba(255,42,141,0.4)", "--radius": "0rem",
     },
   },
-  tokyo: {
-    label: "tokyo",
-    dot: "#7aa2f7",
+  c64: {
+    label: "c64",
+    dot: "#a5a5ff",
     vars: {
-      "--background": "#0f141c", "--foreground": "#7aa2f7", "--card": "#161d28",
-      "--card-foreground": "#7aa2f7", "--primary": "#7aa2f7", "--primary-foreground": "#0f141c",
-      "--secondary": "#1c2536", "--secondary-foreground": "#bb9af7",
-      "--muted": "#121924", "--muted-foreground": "#565f89",
-      "--accent": "#bb9af7", "--border": "rgba(122,162,247,0.18)", "--ring": "rgba(122,162,247,0.4)", "--radius": "0rem",
+      "--background": "#0d0b1a", "--foreground": "#a5a5ff", "--card": "#16132b",
+      "--card-foreground": "#a5a5ff", "--primary": "#a5a5ff", "--primary-foreground": "#0d0b1a",
+      "--secondary": "#211c40", "--secondary-foreground": "#d0d0ff",
+      "--muted": "#131024", "--muted-foreground": "#6c63a5",
+      "--accent": "#7c70db", "--border": "rgba(165,165,255,0.2)", "--ring": "rgba(165,165,255,0.4)", "--radius": "0rem",
     },
   },
-  cyber: {
-    label: "cyber",
-    dot: "#fcee0a",
+  gruvbox: {
+    label: "gruvbox",
+    dot: "#fabd2f",
     vars: {
-      "--background": "#0a0a03", "--foreground": "#fcee0a", "--card": "#141407",
-      "--card-foreground": "#fcee0a", "--primary": "#fcee0a", "--primary-foreground": "#0a0a03",
-      "--secondary": "#1f1f0a", "--secondary-foreground": "#d4c800",
-      "--muted": "#121204", "--muted-foreground": "#787205",
-      "--accent": "#00f0ff", "--border": "rgba(252,238,10,0.18)", "--ring": "rgba(252,238,10,0.4)", "--radius": "0rem",
+      "--background": "#141617", "--foreground": "#fabd2f", "--card": "#1d2021",
+      "--card-foreground": "#fabd2f", "--primary": "#fabd2f", "--primary-foreground": "#141617",
+      "--secondary": "#282828", "--secondary-foreground": "#b8bb26",
+      "--muted": "#1a1c1d", "--muted-foreground": "#928374",
+      "--accent": "#8ec07c", "--border": "rgba(250,189,47,0.18)", "--ring": "rgba(250,189,47,0.4)", "--radius": "0rem",
     },
   },
 };
