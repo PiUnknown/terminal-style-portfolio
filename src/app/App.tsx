@@ -9,7 +9,7 @@ import { marked } from "marked";
 
 type Section = "home" | "about" | "projects" | "skills" | "blog" | "contact";
 
-type ThemeId = "phosphor" | "ice" | "dracula" | "synthwave" | "ruby";
+type ThemeId = "phosphor" | "ice" | "synthwave" | "tokyo" | "cyber";
 
 const THEMES: Record<ThemeId, { label: string; dot: string; vars: Record<string, string> }> = {
   phosphor: {
@@ -34,17 +34,6 @@ const THEMES: Record<ThemeId, { label: string; dot: string; vars: Record<string,
       "--accent": "#00aacc", "--border": "rgba(0,212,255,0.15)", "--ring": "rgba(0,212,255,0.4)", "--radius": "0rem",
     },
   },
-  dracula: {
-    label: "dracula",
-    dot: "#bd93f9",
-    vars: {
-      "--background": "#12131a", "--foreground": "#f8f8f2", "--card": "#1a1b26",
-      "--card-foreground": "#f8f8f2", "--primary": "#bd93f9", "--primary-foreground": "#12131a",
-      "--secondary": "#212230", "--secondary-foreground": "#ff79c6",
-      "--muted": "#191a24", "--muted-foreground": "#6272a4",
-      "--accent": "#ff79c6", "--border": "rgba(189,147,249,0.2)", "--ring": "rgba(189,147,249,0.4)", "--radius": "0rem",
-    },
-  },
   synthwave: {
     label: "synthwave",
     dot: "#ff2a8d",
@@ -56,15 +45,26 @@ const THEMES: Record<ThemeId, { label: string; dot: string; vars: Record<string,
       "--accent": "#01cdfe", "--border": "rgba(255,42,141,0.2)", "--ring": "rgba(255,42,141,0.4)", "--radius": "0rem",
     },
   },
-  ruby: {
-    label: "ruby",
-    dot: "#ff2a2a",
+  tokyo: {
+    label: "tokyo",
+    dot: "#7aa2f7",
     vars: {
-      "--background": "#0f0505", "--foreground": "#ff2a2a", "--card": "#1a0808",
-      "--card-foreground": "#ff2a2a", "--primary": "#ff2a2a", "--primary-foreground": "#0f0505",
-      "--secondary": "#240a0a", "--secondary-foreground": "#cc2222",
-      "--muted": "#170606", "--muted-foreground": "#7a1a1a",
-      "--accent": "#cc2222", "--border": "rgba(255,42,42,0.18)", "--ring": "rgba(255,42,42,0.4)", "--radius": "0rem",
+      "--background": "#0f141c", "--foreground": "#7aa2f7", "--card": "#161d28",
+      "--card-foreground": "#7aa2f7", "--primary": "#7aa2f7", "--primary-foreground": "#0f141c",
+      "--secondary": "#1c2536", "--secondary-foreground": "#bb9af7",
+      "--muted": "#121924", "--muted-foreground": "#565f89",
+      "--accent": "#bb9af7", "--border": "rgba(122,162,247,0.18)", "--ring": "rgba(122,162,247,0.4)", "--radius": "0rem",
+    },
+  },
+  cyber: {
+    label: "cyber",
+    dot: "#fcee0a",
+    vars: {
+      "--background": "#0a0a03", "--foreground": "#fcee0a", "--card": "#141407",
+      "--card-foreground": "#fcee0a", "--primary": "#fcee0a", "--primary-foreground": "#0a0a03",
+      "--secondary": "#1f1f0a", "--secondary-foreground": "#d4c800",
+      "--muted": "#121204", "--muted-foreground": "#787205",
+      "--accent": "#00f0ff", "--border": "rgba(252,238,10,0.18)", "--ring": "rgba(252,238,10,0.4)", "--radius": "0rem",
     },
   },
 };
