@@ -8,7 +8,6 @@ order: 1
 desc: Multi-agent system that turns any GitHub repository into a structured, human-readable architecture onboarding document.
 ---
 
-# Project Gnosis
 
 Project Gnosis takes a GitHub repository URL and produces a structured onboarding document explaining that codebase's architecture, dependencies, complexity risks, and core components. It exists because undocumented codebases are the default: new engineers routinely lose two to four weeks exploring an unfamiliar repo, and the usual fixes (written docs, Loom walkthroughs, 1:1 onboarding) either don't happen or go stale immediately. Gnosis automates the mental model a senior engineer builds when exploring new code.
 
