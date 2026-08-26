@@ -1,39 +1,109 @@
 ---
 name: project-gnosis
 lang: Python
-status: wip
+status: active
 url: https://github.com/PiUnknown/Project-Gnosis
 stars: 0
 order: 1
-desc: Multi-agent code archaeology system that transforms GitHub repos into structured onboarding documentation.
+desc: Multi-agent system that turns any GitHub repository into a structured, human-readable architecture onboarding document.
 ---
 
-Project Gnosis is a multi-agent code archaeology system that transforms an unfamiliar GitHub repository into structured onboarding documentation. Given a repository URL, it analyzes the codebase through a deterministic seven-agent pipeline that parses source code, maps dependencies, evaluates code quality, retrieves relevant context, and generates human-readable explanations for the repository's architecture. Instead of relying on generic LLM summaries, the system combines static analysis with Retrieval-Augmented Generation (RAG) to produce documentation grounded in the actual codebase. :contentReference[oaicite:0]{index=0} :contentReference[oaicite:1]{index=1}
+# Project Gnosis
 
-**Tech Stack:** Python, FastAPI, React, TypeScript, Tailwind CSS, tree-sitter, NetworkX, ChromaDB, sentence-transformers, NVIDIA NIM (Llama 3.3 70B Instruct), GitHub REST API, GitPython, Radon, pyvis. :contentReference[oaicite:2]{index=2}
+Project Gnosis takes a GitHub repository URL and produces a structured onboarding document explaining that codebase's architecture, dependencies, complexity risks, and core components. It exists because undocumented codebases are the default: new engineers routinely lose two to four weeks exploring an unfamiliar repo, and the usual fixes (written docs, Loom walkthroughs, 1:1 onboarding) either don't happen or go stale immediately. Gnosis automates the mental model a senior engineer builds when exploring new code.
+
+**How it works:**
+- Seven specialized agents run in a fixed sequence, each reading from and writing to one shared state object
+- **Ingestion** → pulls the file tree via the GitHub API
+- **AST Parsing** → extracts symbol tables with tree-sitter
+- **Dependency Graph** → builds a NetworkX graph, detects cycles
+- **Complexity Scoring** → ranks files by risk using radon
+- **Code RAG** → chunks and embeds code semantically into ChromaDB
+- **Explainability** → retrieves context, generates per-component prose via an LLM
+- **Doc Generation** → synthesizes everything into the final output
+
+**Tech Stack:** Python, FastAPI, tree-sitter, NetworkX, radon, ChromaDB, sentence-transformers, NVIDIA NIM, React, TypeScript, Azure App Service, Vercel
 
 ## What the Project Does
 
-The system accepts a public GitHub repository and processes it through seven specialized agents. It begins by building a repository manifest, parses every supported source file into an Abstract Syntax Tree, constructs a dependency graph, calculates complexity metrics, semantically indexes code using AST-based chunking, retrieves relevant context from a vector database, and finally generates architectural explanations using an LLM. The final output includes an onboarding document, dependency graph, complexity report, and supporting JSON artifacts that help engineers understand an unfamiliar project without manually exploring every file. :contentReference[oaicite:3]{index=3} :contentReference[oaicite:4]{index=4}
+A user submits a public GitHub URL, no config or API keys required. The backend classifies the repo into a size tier (Full / Full with Warning / Sampled / Rejected, based on file count) and runs the pipeline as a background job the frontend polls for status.
+
+**Output — four artifacts per run:**
+- `onboarding.md` — a document reading like something a senior engineer handed a new hire
+- `complexity_report.json` — machine-readable, files ranked by risk
+- `dependency_graph.html` — interactive graph rendered with pyvis
+- `agent_context.md` — summary aimed at other AI coding agents working in the repo
+
+**Inside the onboarding doc:**
+- Project summary and repository statistics (file/language/function counts)
+- Architecture map of most heavily-imported modules
+- Per-component explanations with dependency and risk annotations
+- Tech-debt report flagging specific complexity and circular-import issues
+- Suggested file reading order, derived from a topological sort of the dependency graph
+
+**Scope limits (v1):** public repos only; repos over ~3,000 files are rejected rather than analyzed at degraded quality.
 
 ## Who the Project Is Useful For
 
-Project Gnosis is built for developers working with unfamiliar or undocumented repositories. It helps new engineers onboard more quickly, enables open-source contributors to understand project architecture before making changes, assists reviewers working on large pull requests, and gives engineering teams visibility into technical debt before major refactoring efforts. It can also be used to rapidly understand third-party codebases during integrations or acquisitions. :contentReference[oaicite:5]{index=5}
+- **Engineering managers** preparing a codebase for a new hire's first day
+- **Open-source contributors** finding the relevant files for an issue without reading the whole repo
+- **Senior engineers** reviewing a large PR that touches unfamiliar code
+- **Tech leads** scoping a refactor who need a risk-ranked file list before starting
+- **Solo developers** returning to their own project after months away
 
 ## Engineering Decisions
 
-The project is designed as a deterministic multi-agent pipeline where each agent performs a single responsibility and communicates only through a shared state object managed by an orchestrator. This architecture keeps every stage independently testable while making the pipeline easy to extend with additional languages and analysis capabilities. :contentReference[oaicite:6]{index=6}
+**Architecture — shared state over direct agent calls**
+- All seven agents read/write one `ArchaeonState` dataclass; the orchestrator (plain Python, not an LLM) drives the sequence
+- Makes each agent independently testable: mock the state, run the agent, assert on the result
+- Only Agent 6 calls an LLM, and only as a retrieval tool, not as a decision-maker — Agents 1–5 and 7 are fully deterministic
 
-Rather than using conventional token-based chunking for Retrieval-Augmented Generation, Gnosis performs AST-based semantic chunking so that functions, classes, and modules remain intact during retrieval. This preserves the semantic meaning of code, improves retrieval quality, and provides more accurate context for explanation generation. The project also builds a directed dependency graph using NetworkX to identify critical modules, detect circular dependencies, compute centrality metrics, and recommend a reading order for new contributors. Combined with complexity analysis and coupling metrics, the system generates both architectural documentation and technical debt reports from a single analysis pipeline. :contentReference[oaicite:7]{index=7} :contentReference[oaicite:8]{index=8}
+**Chunking — AST nodes, not token windows**
+- A fixed 512-token window can cut a function in half, producing two unretrievable fragments
+- tree-sitter gives exact function/class boundaries across every supported language
+- Result: one function = one chunk, one class = one chunk per method, semantic meaning survives
+
+**Vector store — ChromaDB over FAISS**
+- Needed metadata filtering (file path, symbol name, complexity score) plus a low-ops, persistent local store
+- FAISS wins on raw speed, but only past ~500K chunks — monorepo-scale, outside this project's v1 target
+
+**Embeddings — local (`all-MiniLM-L6-v2`) over API-based**
+- No per-request cost, no rate limits, works offline
+- Accuracy tradeoff versus a hosted embedding model wasn't worth the added dependency at this stage
+
+**Inference — migrated Groq → NVIDIA NIM (Aug 2026)**
+- Both are OpenAI-compatible, so the swap didn't touch calling code
+- Default model set to `meta/llama-3.1-8b-instruct` to hold 5–15s latency on the free tier; `llama-3.3-70b-instruct` available via runtime override
+- Temperature fixed at 0.1 — consistency across runs mattered more than variety
+
+**Deployment — migrated Render → Azure App Service, Streamlit → React**
+- This is an interview/portfolio-facing tool, so the infrastructure needed to look like production infrastructure
+- Tradeoff: Azure introduced a real platform bug (below), accepted for GitHub Actions integration and stronger uptime
+
+**Job store — in-memory dict, not Redis**
+- Jobs don't survive a restart; acceptable for a single-server tool with short-lived jobs
+- Deliberately kept the architecture one file away from a Redis-backed store when multi-server support is needed
 
 ## Challenges Faced
 
-One of the primary challenges was balancing explanation quality with inference rate limits. The initial implementation relied on Groq, but its free-tier limitations slowed analysis of medium-sized repositories. To improve reliability, the inference layer was migrated to NVIDIA NIM, whose OpenAI-compatible API required minimal code changes while providing more generous request limits. :contentReference[oaicite:9]{index=9}
+**Agent 5 silent stall on Azure**
+- *Cause:* `sentence-transformers` embedding ~700 chunks in one large CPU batch exceeded memory on a constrained App Service plan, triggering timeouts
+- *Fix:* streamed chunks in batches of 128, ran explicit garbage collection per batch, added per-batch logging
+- *Result:* stall resolved, throughput traceable instead of a silent freeze
 
-Another challenge was avoiding repeated LLM inference when analyzing the same repository multiple times. This was addressed by implementing a disk-based explanation cache keyed by each file's Git SHA. Cached explanations are reused whenever the source file remains unchanged, reducing API usage while automatically invalidating outdated entries after code changes. :contentReference[oaicite:10]{index=10}
+**SQLite version mismatch on Azure**
+- *Cause:* Azure App Service ships SQLite 3.31; ChromaDB requires 3.35+, so Agent 5 crashed immediately on any collection open
+- *Fix:* swapped in `pysqlite3-binary`, overrode `sys.modules["sqlite3"]` before any ChromaDB import
+- *Result:* a platform constraint invisible in local dev, only surfaced once deployed
+
+**Token-based chunking producing unusable retrieval**
+- *Cause:* fixed-size windows split functions mid-body with no awareness of code structure
+- *Fix:* rebuilt the chunker around tree-sitter's AST output for exact boundaries
+- *Result:* retrieval returns whole, explainable functions instead of arbitrary fragments
 
 ## What I Learned
 
-Building Project Gnosis gave me hands-on experience designing production-oriented AI systems that extend beyond simply calling an LLM API. I learned how to architect deterministic multi-agent pipelines, build language-aware analysis systems using AST parsing, construct dependency graphs for architectural reasoning, implement semantic RAG pipelines for source code, and engineer context that enables grounded explanations rather than hallucinated summaries.
-
-The project also strengthened my understanding of graph engineering, static code analysis, context engineering, retrieval system design, caching strategies, API rate-limit management, and modular software architecture. More importantly, it reinforced the importance of combining traditional software engineering techniques with LLMs to build systems that are explainable, extensible, and genuinely useful for developers. :contentReference[oaicite:11]{index=11}
+- **Cloud platforms surface constraints local dev hides.** The SQLite mismatch had nothing to do with application logic — it was purely what the hosting environment ships by default.
+- **For code retrieval, chunk boundaries matter more than embedding model choice.** Fixing how chunks were defined improved answer quality more than swapping in a stronger model would have.
+- **Independently testable agents made debugging tractable.** When Agent 5 stalled, isolating and re-running just that stage against the same shared state found the root cause quickly.
+- **Infrastructure choices communicate intent.** Moving from Streamlit to React and Render to Azure wasn't about new capability — both prior choices worked — it was about the project reading as production-intent in an interview setting.
