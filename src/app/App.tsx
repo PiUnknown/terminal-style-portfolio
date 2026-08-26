@@ -88,6 +88,7 @@ interface Project {
   order: number;
   status: "active" | "archived" | "wip" | "research";
   url: string;
+  liveUrl?: string;
 }
 
 // ── Blog: file-based markdown loader ─────────────────────────────────────────
@@ -162,6 +163,7 @@ function parseProject(raw: string): Project {
     order: fm.order ? parseInt(fm.order, 10) : 999,
     status: (fm.status as Project["status"]) ?? "active",
     url: fm.url ?? "#",
+    liveUrl: fm.live_url || fm.liveUrl || undefined,
   };
 }
 
@@ -848,6 +850,17 @@ function ProjectDetailView({
           >
             ↗ github
           </a>
+          {project.liveUrl && (
+            <a
+              href={project.liveUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="text-xs px-3 py-1 border border-border hover:border-primary hover:text-primary transition-colors text-muted-foreground"
+            >
+              ↗ live link
+            </a>
+          )}
         </div>
       </div>
 

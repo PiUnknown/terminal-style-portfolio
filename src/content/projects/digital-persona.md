@@ -3,6 +3,7 @@ name: digital-persona
 lang: Python
 status: active
 url: https://github.com/PiUnknown/digital-persona
+live_url: https://digital-persona.streamlit.app
 stars: 0
 order: 2
 desc: RAG-powered chatbot that lets users explore anyone's LinkedIn profile through natural conversation.
