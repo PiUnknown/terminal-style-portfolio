@@ -3,7 +3,7 @@ name: project-gnosis
 lang: Python
 status: wip
 url: https://github.com/PiUnknown/Project-Gnosis
-live_url: https://gnosis.om.dev
+live_url: https://gnosis.piunknown.dev/
 stars: 0
 order: 1
 desc: Multi-agent system that turns any GitHub repository into a structured, human-readable architecture onboarding document.
