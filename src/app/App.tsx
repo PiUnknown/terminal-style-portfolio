@@ -276,7 +276,7 @@ function useGithubStars(url: string, fallback: number): number {
               updateStarsCache(url, d.stargazers_count);
             }
           })
-          .catch(() => {});
+          .catch(() => { });
       };
 
       if (starsCache[url] === undefined) {
@@ -479,52 +479,52 @@ function SlashPalette({ query, activeIdx, onSelect, onHover, reducedMotion }: Sl
         boxShadow: "0 -4px 24px rgba(0,255,65,0.08)",
       }}
     >
-        {/* Palette header */}
-        <div
-          className="flex items-center justify-between px-3 py-1.5 border-b border-border"
-          style={{ background: "rgba(0,255,65,0.04)" }}
-        >
-          <span className="text-xs text-muted-foreground">
-            <span className="text-primary">CMD</span> palette
-          </span>
-          <span className="text-xs text-muted-foreground">
-            ↑↓ navigate &nbsp; ↵ select &nbsp; esc dismiss
-          </span>
-        </div>
+      {/* Palette header */}
+      <div
+        className="flex items-center justify-between px-3 py-1.5 border-b border-border"
+        style={{ background: "rgba(0,255,65,0.04)" }}
+      >
+        <span className="text-xs text-muted-foreground">
+          <span className="text-primary">CMD</span> palette
+        </span>
+        <span className="text-xs text-muted-foreground">
+          ↑↓ navigate &nbsp; ↵ select &nbsp; esc dismiss
+        </span>
+      </div>
 
-        {filtered.map(([cmd, { desc }], i) => {
-          const isActive = i === activeIdx;
-          return (
-            <motion.button
-              key={cmd}
-              initial={reducedMotion ? false : { opacity: 0, x: -4 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ type: "spring", bounce: 0, duration: 0.2, delay: reducedMotion ? 0 : i * 0.028 }}
-              className="w-full flex items-center gap-4 px-3 py-2 text-left transition-colors"
-              style={{
-                background: isActive ? "rgba(0,255,65,0.08)" : "transparent",
-                borderLeft: isActive ? "2px solid #00ff41" : "2px solid transparent",
-              }}
-              onMouseEnter={() => onHover(i)}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                onSelect(cmd);
-              }}
+      {filtered.map(([cmd, { desc }], i) => {
+        const isActive = i === activeIdx;
+        return (
+          <motion.button
+            key={cmd}
+            initial={reducedMotion ? false : { opacity: 0, x: -4 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ type: "spring", bounce: 0, duration: 0.2, delay: reducedMotion ? 0 : i * 0.028 }}
+            className="w-full flex items-center gap-4 px-3 py-2 text-left transition-colors"
+            style={{
+              background: isActive ? "rgba(0,255,65,0.08)" : "transparent",
+              borderLeft: isActive ? "2px solid #00ff41" : "2px solid transparent",
+            }}
+            onMouseEnter={() => onHover(i)}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              onSelect(cmd);
+            }}
+          >
+            <span
+              className="text-sm w-24 shrink-0 font-semibold"
+              style={{ color: isActive ? "#00ff41" : "#3a7a3a" }}
             >
-              <span
-                className="text-sm w-24 shrink-0 font-semibold"
-                style={{ color: isActive ? "#00ff41" : "#3a7a3a" }}
-              >
-                /{cmd}
-              </span>
-              <span className="text-xs text-muted-foreground truncate">{desc}</span>
-              {isActive && (
-                <span className="ml-auto text-xs text-muted-foreground shrink-0">↵</span>
-              )}
-            </motion.button>
-          );
-        })}
-      </motion.div>
+              /{cmd}
+            </span>
+            <span className="text-xs text-muted-foreground truncate">{desc}</span>
+            {isActive && (
+              <span className="ml-auto text-xs text-muted-foreground shrink-0">↵</span>
+            )}
+          </motion.button>
+        );
+      })}
+    </motion.div>
   );
 }
 
@@ -748,7 +748,7 @@ function AboutSection() {
             degree: "B.Tech Information Technology",
             school: "ADGIPS, GGSIPU",
             period: "2024 – 2028",
-            note: "CGPA: 7.95",
+            note: "CGPA: 8",
           },
           {
             degree: "Relevant Coursework",
