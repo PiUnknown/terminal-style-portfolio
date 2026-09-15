@@ -171,8 +171,9 @@ function parseProject(raw: string): Project {
 
 const STATUS_ORDER: Record<Project["status"], number> = { wip: 0, research: 1, active: 2, archived: 3 };
 
-const PROJECTS: Project[] = Object.values(projectMdModules)
-  .map((raw) => parseProject(raw))
+const PROJECTS: Project[] = Object.entries(projectMdModules)
+  .filter(([path]) => !path.includes("template") && !path.split("/").pop()?.startsWith("_"))
+  .map(([, raw]) => parseProject(raw))
   .sort((a, b) => {
     const statusDiff = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
     if (statusDiff !== 0) return statusDiff;
@@ -687,7 +688,7 @@ function AboutSection() {
           I design agentic LLM pipelines, train and fine-tune models, optimize local RAG systems, and build resource-constrained projects. I'm an AI generalist, but if you want to know my usual tech stack, check my GitHub.
         </p>
         <p className="text-muted-foreground">
-          Currently: AI Summer Intern at IIT Ropar<br />
+          Currently: Building <a href="https://gnosis.piunknown.dev/" target="_blank" rel="noreferrer" className="text-primary hover:underline">Gnosis</a><br />
           Previously: 2-month Data Science internship at Indian Navy (WESEE), HPAIR 2025 Tokyo delegate.
         </p>
         <p>
@@ -707,17 +708,9 @@ function AboutSection() {
       <div className="border border-border p-3 sm:p-4 space-y-4 text-sm">
         {[
           {
-            role: "Summer Intern",
-            company: "IIT Ropar",
-            period: "Jul 2026 – Aug 2026",
-            desc: [
-
-            ],
-          },
-          {
             role: "Data Science Intern",
             company: "Indian Navy (WESEE)",
-            period: "Jul 2025 - Aug 2025",
+            period: "Jul 2025 – Sep 2025",
             desc: [
               "Contributed to Trident Netra, a naval AI surveillance system for geospatial intelligence.",
               "Developed data pipelines and preprocessing scripts for satellite imagery classification.",
@@ -1444,10 +1437,11 @@ export default function App() {
           <div className="flex items-center gap-3">
             <button
               onClick={(e) => { e.stopPropagation(); navigate("home"); }}
-              className="text-xl font-bold hover:opacity-80 transition-opacity"
-              style={{ fontFamily: "'VT323', monospace", color: "#00ff41", letterSpacing: "0.1em" }}
+              className="text-sm sm:text-base font-bold hover:opacity-80 transition-opacity flex items-center gap-1"
+              style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--primary)" }}
             >
-              Om.dev
+              <span className="text-muted-foreground opacity-60">~</span>
+              <span>localhost</span>
             </button>
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground text-xs hidden sm:inline">{VERSION} ·</span>
@@ -1548,7 +1542,7 @@ export default function App() {
         {/* Boot message */}
         <div className="text-muted-foreground text-xs mb-6 space-y-0.5">
           <div style={{ color: "#3a7a3a" }}>
-            Om.dev {VERSION} ({theme}) #1 SMP {new Date().toDateString()}
+            localhost {VERSION} ({theme}) #1 SMP {new Date().toDateString()}
           </div>
           <div style={{ color: "#3a7a3a" }}>
             Type <span className="text-primary">/</span> to open the command palette, or use the nav above.
