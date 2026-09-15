@@ -1,0 +1,621 @@
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import confetti from "canvas-confetti";
+
+interface TerminalSnakeModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+type Direction = "UP" | "DOWN" | "LEFT" | "RIGHT";
+type Point = { x: number; y: number };
+type Difficulty = "normal" | "fast" | "glitch";
+
+const GRID_SIZE = 20;
+
+const DIFFICULTY_SETTINGS: Record<Difficulty, { label: string; speed: number; scoreMult: number }> = {
+  normal: { label: "NORMAL", speed: 110, scoreMult: 1 },
+  fast: { label: "TURBO", speed: 75, scoreMult: 1.5 },
+  glitch: { label: "OVERCLOCK", speed: 45, scoreMult: 2 },
+};
+
+// 8-bit Retro Audio Synthesizer (Zero external audio files needed)
+class SoundFX {
+  private ctx: AudioContext | null = null;
+  public enabled: boolean = true;
+
+  private init() {
+    if (!this.ctx && typeof window !== "undefined") {
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (AudioCtx) {
+        this.ctx = new AudioCtx();
+      }
+    }
+    if (this.ctx && this.ctx.state === "suspended") {
+      this.ctx.resume().catch(() => {});
+    }
+  }
+
+  playEat() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = "square";
+      osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.09);
+    } catch {
+      // Ignore audio context errors
+    }
+  }
+
+  playDie() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(55, this.ctx.currentTime + 0.25);
+      gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.26);
+    } catch {
+      // Ignore audio context errors
+    }
+  }
+
+  playStart() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+    try {
+      const notes = [330, 440, 660];
+      notes.forEach((freq, idx) => {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = "square";
+        osc.frequency.value = freq;
+        const startTime = this.ctx.currentTime + idx * 0.06;
+        gain.gain.setValueAtTime(0.08, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.05);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + 0.06);
+      });
+    } catch {
+      // Ignore audio context errors
+    }
+  }
+}
+
+const sfx = new SoundFX();
+
+export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps) {
+  const [snake, setSnake] = useState<Point[]>([
+    { x: 10, y: 10 },
+    { x: 10, y: 11 },
+    { x: 10, y: 12 },
+  ]);
+  const [direction, setDirection] = useState<Direction>("UP");
+  const [food, setFood] = useState<Point>({ x: 5, y: 5 });
+  const [foodType, setFoodType] = useState<string>("0x0A");
+  const [score, setScore] = useState<number>(0);
+  const [highScore, setHighScore] = useState<number>(0);
+  const [gameState, setGameState] = useState<"IDLE" | "PLAYING" | "PAUSED" | "GAMEOVER">("IDLE");
+  const [difficulty, setDifficulty] = useState<Difficulty>("normal");
+  const [soundMuted, setSoundMuted] = useState<boolean>(false);
+  const [isNewHighScore, setIsNewHighScore] = useState<boolean>(false);
+
+  const nextDirectionRef = useRef<Direction>("UP");
+  const moveIntervalRef = useRef<number | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // Load high score from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("terminal_snake_highscore");
+      if (saved) setHighScore(parseInt(saved, 10) || 0);
+    } catch {
+      // Ignore storage errors
+    }
+  }, []);
+
+  const spawnFood = useCallback((currentSnake: Point[]): Point => {
+    const foodItems = ["0x0A", "0xFF", "BYTE", "EOF", "NULL", "ROOT", "SSH"];
+    setFoodType(foodItems[Math.floor(Math.random() * foodItems.length)]);
+    
+    while (true) {
+      const candidate: Point = {
+        x: Math.floor(Math.random() * GRID_SIZE),
+        y: Math.floor(Math.random() * GRID_SIZE),
+      };
+      const hit = currentSnake.some((seg) => seg.x === candidate.x && seg.y === candidate.y);
+      if (!hit) return candidate;
+    }
+  }, []);
+
+  const startGame = useCallback(() => {
+    const initialSnake: Point[] = [
+      { x: 10, y: 10 },
+      { x: 10, y: 11 },
+      { x: 10, y: 12 },
+    ];
+    setSnake(initialSnake);
+    setDirection("UP");
+    nextDirectionRef.current = "UP";
+    setFood(spawnFood(initialSnake));
+    setScore(0);
+    setIsNewHighScore(false);
+    setGameState("PLAYING");
+    sfx.playStart();
+  }, [spawnFood]);
+
+  // Handle Game Loop
+  useEffect(() => {
+    if (gameState !== "PLAYING") {
+      if (moveIntervalRef.current) clearInterval(moveIntervalRef.current);
+      return;
+    }
+
+    const currentSpeed = DIFFICULTY_SETTINGS[difficulty].speed;
+
+    moveIntervalRef.current = window.setInterval(() => {
+      setSnake((prevSnake) => {
+        const head = prevSnake[0];
+        const dir = nextDirectionRef.current;
+        setDirection(dir);
+
+        let newHead: Point;
+        switch (dir) {
+          case "UP":
+            newHead = { x: head.x, y: head.y - 1 };
+            break;
+          case "DOWN":
+            newHead = { x: head.x, y: head.y + 1 };
+            break;
+          case "LEFT":
+            newHead = { x: head.x - 1, y: head.y };
+            break;
+          case "RIGHT":
+            newHead = { x: head.x + 1, y: head.y };
+            break;
+        }
+
+        // Check Wall Collision
+        if (newHead.x < 0 || newHead.x >= GRID_SIZE || newHead.y < 0 || newHead.y >= GRID_SIZE) {
+          handleGameOver();
+          return prevSnake;
+        }
+
+        // Check Self Collision
+        if (prevSnake.some((seg) => seg.x === newHead.x && seg.y === newHead.y)) {
+          handleGameOver();
+          return prevSnake;
+        }
+
+        const newSnake = [newHead, ...prevSnake];
+
+        // Check Food Collision
+        if (newHead.x === food.x && newHead.y === food.y) {
+          sfx.playEat();
+          const gained = Math.round(10 * DIFFICULTY_SETTINGS[difficulty].scoreMult);
+          setScore((s) => {
+            const nextScore = s + gained;
+            setHighScore((currHigh) => {
+              if (nextScore > currHigh) {
+                try {
+                  localStorage.setItem("terminal_snake_highscore", nextScore.toString());
+                } catch {
+                  // ignore
+                }
+                setIsNewHighScore(true);
+                return nextScore;
+              }
+              return currHigh;
+            });
+            return nextScore;
+          });
+          setFood(spawnFood(newSnake));
+        } else {
+          newSnake.pop();
+        }
+
+        return newSnake;
+      });
+    }, currentSpeed);
+
+    return () => {
+      if (moveIntervalRef.current) clearInterval(moveIntervalRef.current);
+    };
+  }, [gameState, food, difficulty, spawnFood]);
+
+  const handleGameOver = () => {
+    sfx.playDie();
+    setGameState("GAMEOVER");
+    if (isNewHighScore) {
+      try {
+        confetti({
+          particleCount: 50,
+          spread: 60,
+          origin: { y: 0.6 },
+          colors: ["#00ff41", "#00d4ff", "#ff2a8d"],
+        });
+      } catch {
+        // ignore
+      }
+    }
+  };
+
+  // Keyboard controls
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+
+      if (e.key === " " || e.code === "Space") {
+        e.preventDefault();
+        if (gameState === "IDLE" || gameState === "GAMEOVER") {
+          startGame();
+        } else if (gameState === "PLAYING") {
+          setGameState("PAUSED");
+        } else if (gameState === "PAUSED") {
+          setGameState("PLAYING");
+        }
+        return;
+      }
+
+      if (gameState !== "PLAYING") return;
+
+      const currentDir = direction;
+
+      if ((e.key === "ArrowUp" || e.key === "w" || e.key === "W") && currentDir !== "DOWN") {
+        e.preventDefault();
+        nextDirectionRef.current = "UP";
+      } else if ((e.key === "ArrowDown" || e.key === "s" || e.key === "S") && currentDir !== "UP") {
+        e.preventDefault();
+        nextDirectionRef.current = "DOWN";
+      } else if ((e.key === "ArrowLeft" || e.key === "a" || e.key === "A") && currentDir !== "RIGHT") {
+        e.preventDefault();
+        nextDirectionRef.current = "LEFT";
+      } else if ((e.key === "ArrowRight" || e.key === "d" || e.key === "D") && currentDir !== "LEFT") {
+        e.preventDefault();
+        nextDirectionRef.current = "RIGHT";
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, gameState, direction, startGame, onClose]);
+
+  // Touch/D-Pad controller
+  const handleDirectionPress = (dir: Direction) => {
+    if (gameState === "IDLE" || gameState === "GAMEOVER") {
+      startGame();
+    }
+    const currentDir = direction;
+    if (dir === "UP" && currentDir !== "DOWN") nextDirectionRef.current = "UP";
+    if (dir === "DOWN" && currentDir !== "UP") nextDirectionRef.current = "DOWN";
+    if (dir === "LEFT" && currentDir !== "RIGHT") nextDirectionRef.current = "LEFT";
+    if (dir === "RIGHT" && currentDir !== "LEFT") nextDirectionRef.current = "RIGHT";
+  };
+
+  // Canvas drawing
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const width = canvas.width;
+    const height = canvas.height;
+    const cellSize = width / GRID_SIZE;
+
+    // Clear background
+    ctx.fillStyle = "#080c08";
+    ctx.fillRect(0, 0, width, height);
+
+    // Draw subtle grid lines
+    ctx.strokeStyle = "rgba(0, 255, 65, 0.05)";
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= GRID_SIZE; i++) {
+      ctx.beginPath();
+      ctx.moveTo(i * cellSize, 0);
+      ctx.lineTo(i * cellSize, height);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(0, i * cellSize);
+      ctx.lineTo(width, i * cellSize);
+      ctx.stroke();
+    }
+
+    // Draw food with glowing pulse
+    const fx = food.x * cellSize;
+    const fy = food.y * cellSize;
+
+    ctx.fillStyle = "rgba(0, 255, 65, 0.2)";
+    ctx.fillRect(fx - 2, fy - 2, cellSize + 4, cellSize + 4);
+
+    ctx.fillStyle = "#00ff41";
+    ctx.shadowColor = "#00ff41";
+    ctx.shadowBlur = 10;
+    ctx.fillRect(fx + 2, fy + 2, cellSize - 4, cellSize - 4);
+    ctx.shadowBlur = 0;
+
+    // Draw snake body
+    snake.forEach((seg, idx) => {
+      const sx = seg.x * cellSize;
+      const sy = seg.y * cellSize;
+
+      if (idx === 0) {
+        // Snake Head
+        ctx.fillStyle = "#00ff41";
+        ctx.shadowColor = "#00ff41";
+        ctx.shadowBlur = 12;
+        ctx.fillRect(sx + 1, sy + 1, cellSize - 2, cellSize - 2);
+        ctx.shadowBlur = 0;
+
+        // Draw small eye pixels
+        ctx.fillStyle = "#050a05";
+        if (direction === "UP" || direction === "DOWN") {
+          ctx.fillRect(sx + 3, sy + (direction === "UP" ? 3 : cellSize - 5), 2, 2);
+          ctx.fillRect(sx + cellSize - 5, sy + (direction === "UP" ? 3 : cellSize - 5), 2, 2);
+        } else {
+          ctx.fillRect(sx + (direction === "LEFT" ? 3 : cellSize - 5), sy + 3, 2, 2);
+          ctx.fillRect(sx + (direction === "LEFT" ? 3 : cellSize - 5), sy + cellSize - 5, 2, 2);
+        }
+      } else {
+        // Snake Body segment with fading opacity towards tail
+        const alpha = Math.max(0.4, 1 - (idx / snake.length) * 0.5);
+        ctx.fillStyle = `rgba(0, 255, 65, ${alpha})`;
+        ctx.fillRect(sx + 2, sy + 2, cellSize - 4, cellSize - 4);
+      }
+    });
+  }, [snake, food, direction]);
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-background/80 backdrop-blur-sm">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 10 }}
+          transition={{ duration: 0.2 }}
+          className="w-full max-w-lg border border-primary/40 bg-card text-foreground shadow-2xl overflow-hidden flex flex-col"
+          style={{ fontFamily: "'JetBrains Mono', monospace" }}
+        >
+          {/* Header Bar */}
+          <div className="flex items-center justify-between border-b border-border bg-secondary/80 px-3 py-2 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="inline-block w-2.5 h-2.5 rounded-full bg-destructive/80" />
+              <span className="inline-block w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
+              <span className="inline-block w-2.5 h-2.5 rounded-full bg-primary/80" />
+              <span className="text-muted-foreground ml-2">~/arcade/snake.sh</span>
+              <span className="text-primary font-bold hidden sm:inline">
+                [{gameState}]
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  const nextMute = !soundMuted;
+                  setSoundMuted(nextMute);
+                  sfx.enabled = !nextMute;
+                }}
+                className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                title={soundMuted ? "Unmute sound" : "Mute sound"}
+              >
+                {soundMuted ? "🔇 MUTED" : "🔊 SFX ON"}
+              </button>
+              <button
+                onClick={onClose}
+                className="text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 px-2 py-0.5 border border-border transition-colors"
+              >
+                ESC / ✕
+              </button>
+            </div>
+          </div>
+
+          {/* Stats Bar */}
+          <div className="grid grid-cols-4 gap-2 border-b border-border bg-background/60 p-2.5 text-center text-xs">
+            <div>
+              <div className="text-muted-foreground text-[10px]">SCORE</div>
+              <div className="text-primary font-bold text-sm">
+                {score.toString().padStart(4, "0")}
+              </div>
+            </div>
+            <div>
+              <div className="text-muted-foreground text-[10px]">HIGH SCORE</div>
+              <div className="text-yellow-400 font-bold text-sm">
+                {highScore.toString().padStart(4, "0")}
+              </div>
+            </div>
+            <div>
+              <div className="text-muted-foreground text-[10px]">LENGTH</div>
+              <div className="text-accent font-bold text-sm">{snake.length}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground text-[10px]">DIFFICULTY</div>
+              <div className="text-primary font-bold text-xs uppercase mt-0.5">
+                {DIFFICULTY_SETTINGS[difficulty].label}
+              </div>
+            </div>
+          </div>
+
+          {/* Canvas Viewport Container */}
+          <div className="relative flex items-center justify-center p-3 bg-black/40">
+            <canvas
+              ref={canvasRef}
+              width={360}
+              height={360}
+              className="w-full max-w-[340px] aspect-square border border-primary/30 bg-[#060a06] shadow-inner"
+            />
+
+            {/* Overlay Screens */}
+            {gameState === "IDLE" && (
+              <div className="absolute inset-0 m-3 flex flex-col items-center justify-center bg-black/85 text-center p-4">
+                <div
+                  className="text-2xl font-bold text-primary mb-1 tracking-wider"
+                  style={{ fontFamily: "'VT323', monospace" }}
+                >
+                  TERMINAL SNAKE v1.0
+                </div>
+                <div className="text-xs text-muted-foreground mb-4">
+                  Eat data packets. Avoid memory bounds.
+                </div>
+
+                {/* Difficulty Selector */}
+                <div className="flex gap-1.5 mb-4">
+                  {(["normal", "fast", "glitch"] as Difficulty[]).map((mode) => (
+                    <button
+                      key={mode}
+                      onClick={() => setDifficulty(mode)}
+                      className={`text-[10px] px-2 py-1 border transition-colors ${
+                        difficulty === mode
+                          ? "border-primary bg-primary/20 text-primary font-bold"
+                          : "border-border text-muted-foreground hover:border-primary/50"
+                      }`}
+                    >
+                      {DIFFICULTY_SETTINGS[mode].label}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={startGame}
+                  className="px-4 py-2 border border-primary bg-primary/10 text-primary hover:bg-primary hover:text-black font-bold text-xs transition-all shadow-[0_0_15px_rgba(0,255,65,0.3)]"
+                >
+                  [ PRESS SPACE OR CLICK TO START ]
+                </button>
+              </div>
+            )}
+
+            {gameState === "PAUSED" && (
+              <div className="absolute inset-0 m-3 flex flex-col items-center justify-center bg-black/80 text-center p-4">
+                <div
+                  className="text-2xl font-bold text-yellow-400 mb-2"
+                  style={{ fontFamily: "'VT323', monospace" }}
+                >
+                  PROCESS SUSPENDED
+                </div>
+                <div className="text-xs text-muted-foreground mb-4">
+                  SIGSTOP received. Press SPACE to resume execution.
+                </div>
+                <button
+                  onClick={() => setGameState("PLAYING")}
+                  className="px-4 py-1.5 border border-primary bg-primary/20 text-primary text-xs font-bold hover:bg-primary hover:text-black transition-colors"
+                >
+                  RESUME [SPACE]
+                </button>
+              </div>
+            )}
+
+            {gameState === "GAMEOVER" && (
+              <div className="absolute inset-0 m-3 flex flex-col items-center justify-center bg-black/90 text-center p-4">
+                <div
+                  className="text-3xl font-bold text-destructive mb-1 animate-pulse"
+                  style={{ fontFamily: "'VT323', monospace" }}
+                >
+                  SEGMENTATION FAULT
+                </div>
+                <div className="text-xs text-muted-foreground mb-3">
+                  Core dumped: process terminated with exit code 139
+                </div>
+
+                <div className="bg-secondary/60 border border-border p-2 mb-4 w-48 text-center text-xs">
+                  <div className="text-muted-foreground text-[10px]">FINAL SCORE</div>
+                  <div className="text-primary font-bold text-lg">{score}</div>
+                  {isNewHighScore && (
+                    <div className="text-yellow-400 text-[10px] font-bold mt-0.5">
+                      ★ NEW RECORD ACHIEVED ★
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  onClick={startGame}
+                  className="px-4 py-2 border border-primary bg-primary/20 text-primary hover:bg-primary hover:text-black font-bold text-xs transition-all"
+                >
+                  REBOOT PROCESS [SPACE]
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Touch / D-Pad on-screen controls for mobile */}
+          <div className="p-3 border-t border-border bg-secondary/30 flex flex-col items-center gap-2">
+            <div className="text-[10px] text-muted-foreground text-center hidden sm:block">
+              Controls: <span className="text-primary">[W A S D]</span> or{" "}
+              <span className="text-primary">[Arrow Keys]</span> to move •{" "}
+              <span className="text-primary">[SPACE]</span> pause •{" "}
+              <span className="text-primary">[ESC]</span> exit
+            </div>
+
+            {/* Mobile D-Pad */}
+            <div className="flex flex-col items-center gap-1 sm:hidden">
+              <button
+                onClick={() => handleDirectionPress("UP")}
+                className="w-12 h-9 border border-border bg-secondary active:bg-primary active:text-black text-xs font-bold"
+              >
+                ▲
+              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleDirectionPress("LEFT")}
+                  className="w-12 h-9 border border-border bg-secondary active:bg-primary active:text-black text-xs font-bold"
+                >
+                  ◀
+                </button>
+                <button
+                  onClick={() => {
+                    if (gameState === "PLAYING") setGameState("PAUSED");
+                    else if (gameState === "PAUSED") setGameState("PLAYING");
+                    else startGame();
+                  }}
+                  className="w-12 h-9 border border-primary/50 bg-primary/10 text-primary active:bg-primary active:text-black text-[10px] font-bold"
+                >
+                  {gameState === "PLAYING" ? "❚❚" : "▶"}
+                </button>
+                <button
+                  onClick={() => handleDirectionPress("RIGHT")}
+                  className="w-12 h-9 border border-border bg-secondary active:bg-primary active:text-black text-xs font-bold"
+                >
+                  ▶
+                </button>
+              </div>
+              <button
+                onClick={() => handleDirectionPress("DOWN")}
+                className="w-12 h-9 border border-border bg-secondary active:bg-primary active:text-black text-xs font-bold"
+              >
+                ▼
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
+}

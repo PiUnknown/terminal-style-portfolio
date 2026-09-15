@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 import { marked } from "marked";
+import { TerminalSnakeModal } from "./components/TerminalSnakeModal";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -216,6 +217,8 @@ const COMMANDS: Record<string, { desc: string; action?: string }> = {
   skills: { desc: "languages & tools", action: "skills" },
   blog: { desc: "writing & posts", action: "blog" },
   contact: { desc: "get in touch", action: "contact" },
+  snake: { desc: "play retro terminal snake mini-game" },
+  game: { desc: "play retro terminal snake mini-game" },
   clear: { desc: "clear terminal output" },
   ls: { desc: "list sections" },
 };
@@ -1203,6 +1206,7 @@ export default function App() {
   const [section, setSection] = useState<Section>("home");
   const [openPost, setOpenPost] = useState<string | null>(null);
   const [openProject, setOpenProject] = useState<string | null>(null);
+  const [snakeOpen, setSnakeOpen] = useState(false);
   const [cmdInput, setCmdInput] = useState("");
   const [cmdHistory, setCmdHistory] = useState<string[]>([]);
   const [historyIdx, setHistoryIdx] = useState(-1);
@@ -1333,6 +1337,12 @@ export default function App() {
 
     if (cmd === "clear") {
       setInlineLog([]);
+      return;
+    }
+
+    if (cmd === "snake" || cmd === "game" || cmd === "play") {
+      setSnakeOpen(true);
+      setInlineLog((o) => [...o, `> ${cmd}`, "  Launching terminal snake v1.0..."]);
       return;
     }
 
@@ -1619,6 +1629,7 @@ export default function App() {
         </div>
       </div>
 
+      <TerminalSnakeModal isOpen={snakeOpen} onClose={() => setSnakeOpen(false)} />
       <StatusBar section={section} theme={theme} />
       <SpeedInsights />
       <Analytics />
