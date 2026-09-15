@@ -8,6 +8,7 @@ import { TerminalSnakeModal } from "./components/TerminalSnakeModal";
 import { MatrixRainBackground } from "./components/MatrixRainBackground";
 import { keyboardSound } from "./utils/sound";
 import { triggerHaptic } from "./utils/haptics";
+import { trackCommand, trackEasterEgg, trackEvent } from "./utils/analytics";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -615,16 +616,24 @@ function HomeSection() {
           </div>
           <div className="grid grid-cols-2 gap-2 mt-2 sm:grid-cols-4">
             {[
-              { label: "github.com/PiUnknown", icon: "⌥", url: "https://github.com/PiUnknown" },
-              { label: "linkedin/omkumarjha043", icon: "⌘", url: "https://linkedin.com/in/omkumarjha043" },
-              { label: "reachomjha@gmail.com", icon: "✉", url: "mailto:reachomjha@gmail.com" },
-              { label: "resume.pdf", icon: "↓", url: "/resume.pdf" },
+              { label: "github.com/PiUnknown", icon: "⌥", url: "https://github.com/PiUnknown", type: "github" },
+              { label: "linkedin/omkumarjha043", icon: "⌘", url: "https://linkedin.com/in/omkumarjha043", type: "linkedin" },
+              { label: "reachomjha@gmail.com", icon: "✉", url: "mailto:reachomjha@gmail.com", type: "email" },
+              { label: "resume.pdf", icon: "↓", url: "/resume.pdf", type: "resume" },
             ].map((link) => (
               <motion.a
                 key={link.label}
                 href={link.url}
                 target={link.url.startsWith("mailto") || link.url.startsWith("/") ? undefined : "_blank"}
                 rel="noreferrer"
+                onClick={() => {
+                  triggerHaptic("light");
+                  if (link.type === "resume") {
+                    trackEvent("resume_download_clicked");
+                  } else {
+                    trackEvent("quick_link_clicked", { link: link.label, url: link.url });
+                  }
+                }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
                 transition={{ type: "spring", bounce: 0, duration: 0.2 }}
@@ -1367,6 +1376,8 @@ export default function App() {
     const cmd = raw.replace(/^\//, "").trim().toLowerCase();
     if (!cmd) return;
 
+    trackCommand(cmd, raw.startsWith("/") ? "slash_palette" : "cli");
+
     setCmdHistory((h) => [cmd, ...h]);
     setHistoryIdx(-1);
     setCmdInput("");
@@ -1378,12 +1389,14 @@ export default function App() {
     }
 
     if (cmd === "snake" || cmd === "game" || cmd === "play") {
+      trackEasterEgg("snake_game", { trigger: cmd });
       setSnakeOpen(true);
       return;
     }
 
     const secretMatrixCmds = ["matrix", "neo", "redpill", "follow the white rabbit", "white rabbit", "wake up"];
     if (secretMatrixCmds.includes(cmd)) {
+      trackEasterEgg("matrix_digital_rain", { trigger: cmd });
       setMatrixOpen(true);
       return;
     }
@@ -1493,6 +1506,7 @@ export default function App() {
                 logoClicksRef.current.count += 1;
                 if (logoClicksRef.current.timer) clearTimeout(logoClicksRef.current.timer);
                 if (logoClicksRef.current.count >= 5) {
+                  trackEasterEgg("logo_clicks", { count: 5 });
                   setMatrixOpen(true);
                   logoClicksRef.current.count = 0;
                 } else {
@@ -1518,6 +1532,7 @@ export default function App() {
                       e.stopPropagation();
                       triggerHaptic("medium");
                       setTheme(id);
+                      trackEvent("theme_changed", { theme: id });
                     }}
                     title={THEMES[id].label}
                     className="flex items-center gap-1 text-xs transition-colors px-1"
