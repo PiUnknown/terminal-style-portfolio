@@ -213,11 +213,10 @@ const COMMANDS: Record<string, { desc: string; action?: string }> = {
   help: { desc: "show available commands" },
   whoami: { desc: "about me", action: "home" },
   about: { desc: "background & education", action: "about" },
-  projects: { desc: "open source work", action: "projects" },
+  projects: { desc: "featured projects & systems", action: "projects" },
   skills: { desc: "languages & tools", action: "skills" },
   blog: { desc: "writing & posts", action: "blog" },
   contact: { desc: "get in touch", action: "contact" },
-  snake: { desc: "play retro terminal snake mini-game" },
   game: { desc: "play retro terminal snake mini-game" },
   clear: { desc: "clear terminal output" },
   ls: { desc: "list sections" },
@@ -537,7 +536,10 @@ function SlashPalette({ query, activeIdx, onSelect, onHover, reducedMotion }: Sl
 function InlineLog({ lines, path }: { lines: string[]; path: string }) {
   if (lines.length === 0) return null;
   return (
-    <div className="mt-6 space-y-0.5 text-xs border-t border-border pt-4">
+    <div
+      className="mt-6 space-y-1 text-sm border-t border-border pt-4"
+      style={{ fontFamily: "'JetBrains Mono', monospace" }}
+    >
       {lines.map((line, i) => (
         <motion.div
           key={i}
@@ -707,7 +709,7 @@ function AboutSection() {
           {
             role: "Summer Intern",
             company: "IIT Ropar",
-            period: "July 2026 – Present",
+            period: "Jul 2026 – Aug 2026",
             desc: [
 
             ],
@@ -715,7 +717,7 @@ function AboutSection() {
           {
             role: "Data Science Intern",
             company: "Indian Navy (WESEE)",
-            period: "July 2025 - Aug 2025",
+            period: "Jul 2025 - Aug 2025",
             desc: [
               "Contributed to Trident Netra, a naval AI surveillance system for geospatial intelligence.",
               "Developed data pipelines and preprocessing scripts for satellite imagery classification.",
@@ -1342,7 +1344,6 @@ export default function App() {
 
     if (cmd === "snake" || cmd === "game" || cmd === "play") {
       setSnakeOpen(true);
-      setInlineLog((o) => [...o, `> ${cmd}`, "  Launching terminal snake v1.0..."]);
       return;
     }
 

@@ -10,13 +10,21 @@ interface TerminalSnakeModalProps {
 type Direction = "UP" | "DOWN" | "LEFT" | "RIGHT";
 type Point = { x: number; y: number };
 type Difficulty = "normal" | "fast" | "glitch";
+type WallMode = "wrap" | "solid";
 
 const GRID_SIZE = 20;
 
 const DIFFICULTY_SETTINGS: Record<Difficulty, { label: string; speed: number; scoreMult: number }> = {
-  normal: { label: "NORMAL", speed: 110, scoreMult: 1 },
-  fast: { label: "TURBO", speed: 75, scoreMult: 1.5 },
+  normal: { label: "NORMAL", speed: 105, scoreMult: 1 },
+  fast: { label: "TURBO", speed: 70, scoreMult: 1.5 },
   glitch: { label: "OVERCLOCK", speed: 45, scoreMult: 2 },
+};
+
+const OPPOSITE_DIRECTIONS: Record<Direction, Direction> = {
+  UP: "DOWN",
+  DOWN: "UP",
+  LEFT: "RIGHT",
+  RIGHT: "LEFT",
 };
 
 // 8-bit Retro Audio Synthesizer (Zero external audio files needed)
@@ -114,15 +122,16 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
   ]);
   const [direction, setDirection] = useState<Direction>("UP");
   const [food, setFood] = useState<Point>({ x: 5, y: 5 });
-  const [foodType, setFoodType] = useState<string>("0x0A");
   const [score, setScore] = useState<number>(0);
   const [highScore, setHighScore] = useState<number>(0);
   const [gameState, setGameState] = useState<"IDLE" | "PLAYING" | "PAUSED" | "GAMEOVER">("IDLE");
   const [difficulty, setDifficulty] = useState<Difficulty>("normal");
+  const [wallMode, setWallMode] = useState<WallMode>("wrap");
   const [soundMuted, setSoundMuted] = useState<boolean>(false);
   const [isNewHighScore, setIsNewHighScore] = useState<boolean>(false);
 
-  const nextDirectionRef = useRef<Direction>("UP");
+  const directionQueueRef = useRef<Direction[]>([]);
+  const currentDirectionRef = useRef<Direction>("UP");
   const moveIntervalRef = useRef<number | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -137,9 +146,6 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
   }, []);
 
   const spawnFood = useCallback((currentSnake: Point[]): Point => {
-    const foodItems = ["0x0A", "0xFF", "BYTE", "EOF", "NULL", "ROOT", "SSH"];
-    setFoodType(foodItems[Math.floor(Math.random() * foodItems.length)]);
-    
     while (true) {
       const candidate: Point = {
         x: Math.floor(Math.random() * GRID_SIZE),
@@ -158,13 +164,26 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
     ];
     setSnake(initialSnake);
     setDirection("UP");
-    nextDirectionRef.current = "UP";
+    currentDirectionRef.current = "UP";
+    directionQueueRef.current = [];
     setFood(spawnFood(initialSnake));
     setScore(0);
     setIsNewHighScore(false);
     setGameState("PLAYING");
     sfx.playStart();
   }, [spawnFood]);
+
+  const queueDirection = useCallback((newDir: Direction) => {
+    const lastQueued = directionQueueRef.current.length > 0
+      ? directionQueueRef.current[directionQueueRef.current.length - 1]
+      : currentDirectionRef.current;
+
+    if (newDir !== lastQueued && newDir !== OPPOSITE_DIRECTIONS[lastQueued]) {
+      if (directionQueueRef.current.length < 2) {
+        directionQueueRef.current.push(newDir);
+      }
+    }
+  }, []);
 
   // Handle Game Loop
   useEffect(() => {
@@ -177,34 +196,56 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
 
     moveIntervalRef.current = window.setInterval(() => {
       setSnake((prevSnake) => {
-        const head = prevSnake[0];
-        const dir = nextDirectionRef.current;
-        setDirection(dir);
+        // Dequeue next direction if available
+        if (directionQueueRef.current.length > 0) {
+          const nextDir = directionQueueRef.current.shift()!;
+          currentDirectionRef.current = nextDir;
+          setDirection(nextDir);
+        }
 
-        let newHead: Point;
+        const head = prevSnake[0];
+        const dir = currentDirectionRef.current;
+
+        let rawX = head.x;
+        let rawY = head.y;
+
         switch (dir) {
           case "UP":
-            newHead = { x: head.x, y: head.y - 1 };
+            rawY = head.y - 1;
             break;
           case "DOWN":
-            newHead = { x: head.x, y: head.y + 1 };
+            rawY = head.y + 1;
             break;
           case "LEFT":
-            newHead = { x: head.x - 1, y: head.y };
+            rawX = head.x - 1;
             break;
           case "RIGHT":
-            newHead = { x: head.x + 1, y: head.y };
+            rawX = head.x + 1;
             break;
         }
 
-        // Check Wall Collision
-        if (newHead.x < 0 || newHead.x >= GRID_SIZE || newHead.y < 0 || newHead.y >= GRID_SIZE) {
-          handleGameOver();
-          return prevSnake;
+        let newHead: Point;
+
+        if (wallMode === "wrap") {
+          // Wrap around to parallel opposite side
+          newHead = {
+            x: (rawX + GRID_SIZE) % GRID_SIZE,
+            y: (rawY + GRID_SIZE) % GRID_SIZE,
+          };
+        } else {
+          // Solid walls collision
+          if (rawX < 0 || rawX >= GRID_SIZE || rawY < 0 || rawY >= GRID_SIZE) {
+            handleGameOver();
+            return prevSnake;
+          }
+          newHead = { x: rawX, y: rawY };
         }
 
-        // Check Self Collision
-        if (prevSnake.some((seg) => seg.x === newHead.x && seg.y === newHead.y)) {
+        const isEating = newHead.x === food.x && newHead.y === food.y;
+
+        // Check Self Collision (ignoring the tail segment if it is about to move away)
+        const bodyToCheck = isEating ? prevSnake : prevSnake.slice(0, -1);
+        if (bodyToCheck.some((seg) => seg.x === newHead.x && seg.y === newHead.y)) {
           handleGameOver();
           return prevSnake;
         }
@@ -212,7 +253,7 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
         const newSnake = [newHead, ...prevSnake];
 
         // Check Food Collision
-        if (newHead.x === food.x && newHead.y === food.y) {
+        if (isEating) {
           sfx.playEat();
           const gained = Math.round(10 * DIFFICULTY_SETTINGS[difficulty].scoreMult);
           setScore((s) => {
@@ -243,7 +284,7 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
     return () => {
       if (moveIntervalRef.current) clearInterval(moveIntervalRef.current);
     };
-  }, [gameState, food, difficulty, spawnFood]);
+  }, [gameState, food, difficulty, wallMode, spawnFood]);
 
   const handleGameOver = () => {
     sfx.playDie();
@@ -251,8 +292,8 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
     if (isNewHighScore) {
       try {
         confetti({
-          particleCount: 50,
-          spread: 60,
+          particleCount: 60,
+          spread: 70,
           origin: { y: 0.6 },
           colors: ["#00ff41", "#00d4ff", "#ff2a8d"],
         });
@@ -272,6 +313,13 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
         return;
       }
 
+      if (e.key === "m" || e.key === "M") {
+        if (gameState !== "IDLE") {
+          setGameState("IDLE");
+          return;
+        }
+      }
+
       if (e.key === " " || e.code === "Space") {
         e.preventDefault();
         if (gameState === "IDLE" || gameState === "GAMEOVER") {
@@ -286,37 +334,31 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
 
       if (gameState !== "PLAYING") return;
 
-      const currentDir = direction;
-
-      if ((e.key === "ArrowUp" || e.key === "w" || e.key === "W") && currentDir !== "DOWN") {
+      if (e.key === "ArrowUp" || e.key === "w" || e.key === "W") {
         e.preventDefault();
-        nextDirectionRef.current = "UP";
-      } else if ((e.key === "ArrowDown" || e.key === "s" || e.key === "S") && currentDir !== "UP") {
+        queueDirection("UP");
+      } else if (e.key === "ArrowDown" || e.key === "s" || e.key === "S") {
         e.preventDefault();
-        nextDirectionRef.current = "DOWN";
-      } else if ((e.key === "ArrowLeft" || e.key === "a" || e.key === "A") && currentDir !== "RIGHT") {
+        queueDirection("DOWN");
+      } else if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
         e.preventDefault();
-        nextDirectionRef.current = "LEFT";
-      } else if ((e.key === "ArrowRight" || e.key === "d" || e.key === "D") && currentDir !== "LEFT") {
+        queueDirection("LEFT");
+      } else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") {
         e.preventDefault();
-        nextDirectionRef.current = "RIGHT";
+        queueDirection("RIGHT");
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, gameState, direction, startGame, onClose]);
+  }, [isOpen, gameState, queueDirection, startGame, onClose]);
 
   // Touch/D-Pad controller
   const handleDirectionPress = (dir: Direction) => {
     if (gameState === "IDLE" || gameState === "GAMEOVER") {
       startGame();
     }
-    const currentDir = direction;
-    if (dir === "UP" && currentDir !== "DOWN") nextDirectionRef.current = "UP";
-    if (dir === "DOWN" && currentDir !== "UP") nextDirectionRef.current = "DOWN";
-    if (dir === "LEFT" && currentDir !== "RIGHT") nextDirectionRef.current = "LEFT";
-    if (dir === "RIGHT" && currentDir !== "LEFT") nextDirectionRef.current = "RIGHT";
+    queueDirection(dir);
   };
 
   // Canvas drawing
@@ -331,11 +373,11 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
     const cellSize = width / GRID_SIZE;
 
     // Clear background
-    ctx.fillStyle = "#080c08";
+    ctx.fillStyle = "#070c07";
     ctx.fillRect(0, 0, width, height);
 
     // Draw subtle grid lines
-    ctx.strokeStyle = "rgba(0, 255, 65, 0.05)";
+    ctx.strokeStyle = "rgba(0, 255, 65, 0.06)";
     ctx.lineWidth = 1;
     for (let i = 0; i <= GRID_SIZE; i++) {
       ctx.beginPath();
@@ -353,7 +395,7 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
     const fx = food.x * cellSize;
     const fy = food.y * cellSize;
 
-    ctx.fillStyle = "rgba(0, 255, 65, 0.2)";
+    ctx.fillStyle = "rgba(0, 255, 65, 0.25)";
     ctx.fillRect(fx - 2, fy - 2, cellSize + 4, cellSize + 4);
 
     ctx.fillStyle = "#00ff41";
@@ -386,7 +428,7 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
         }
       } else {
         // Snake Body segment with fading opacity towards tail
-        const alpha = Math.max(0.4, 1 - (idx / snake.length) * 0.5);
+        const alpha = Math.max(0.4, 1 - (idx / snake.length) * 0.55);
         ctx.fillStyle = `rgba(0, 255, 65, ${alpha})`;
         ctx.fillRect(sx + 2, sy + 2, cellSize - 4, cellSize - 4);
       }
@@ -418,7 +460,16 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
               </span>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              {gameState !== "IDLE" && (
+                <button
+                  onClick={() => setGameState("IDLE")}
+                  className="text-xs text-primary hover:underline px-1.5 py-0.5 border border-primary/40 bg-primary/10 transition-colors"
+                  title="Return to Main Menu & Settings [M]"
+                >
+                  ⚙ MENU
+                </button>
+              )}
               <button
                 onClick={() => {
                   const nextMute = !soundMuted;
@@ -428,7 +479,7 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
                 className="text-xs text-muted-foreground hover:text-primary transition-colors"
                 title={soundMuted ? "Unmute sound" : "Mute sound"}
               >
-                {soundMuted ? "🔇 MUTED" : "🔊 SFX ON"}
+                {soundMuted ? "🔇" : "🔊"}
               </button>
               <button
                 onClick={onClose}
@@ -454,14 +505,28 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
               </div>
             </div>
             <div>
-              <div className="text-muted-foreground text-[10px]">LENGTH</div>
-              <div className="text-accent font-bold text-sm">{snake.length}</div>
+              <div className="text-muted-foreground text-[10px]">WALLS</div>
+              <button
+                onClick={() => setWallMode((m) => (m === "wrap" ? "solid" : "wrap"))}
+                className="text-[10px] text-accent font-bold hover:underline"
+                title="Click to toggle wrap-around vs solid walls"
+              >
+                {wallMode === "wrap" ? "WRAP-THRU" : "SOLID"}
+              </button>
             </div>
             <div>
-              <div className="text-muted-foreground text-[10px]">DIFFICULTY</div>
-              <div className="text-primary font-bold text-xs uppercase mt-0.5">
+              <div className="text-muted-foreground text-[10px]">SPEED</div>
+              <button
+                onClick={() => {
+                  const modes: Difficulty[] = ["normal", "fast", "glitch"];
+                  const nextIdx = (modes.indexOf(difficulty) + 1) % modes.length;
+                  setDifficulty(modes[nextIdx]);
+                }}
+                className="text-primary font-bold text-xs uppercase mt-0.5 hover:underline"
+                title="Click to cycle difficulty"
+              >
                 {DIFFICULTY_SETTINGS[difficulty].label}
-              </div>
+              </button>
             </div>
           </div>
 
@@ -481,27 +546,54 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
                   className="text-2xl font-bold text-primary mb-1 tracking-wider"
                   style={{ fontFamily: "'VT323', monospace" }}
                 >
-                  TERMINAL SNAKE v1.0
+                  TERMINAL SNAKE v1.1
                 </div>
-                <div className="text-xs text-muted-foreground mb-4">
-                  Eat data packets. Avoid memory bounds.
+                <div className="text-xs text-muted-foreground mb-3">
+                  Pass through boundaries freely • Avoid biting tail
                 </div>
 
-                {/* Difficulty Selector */}
-                <div className="flex gap-1.5 mb-4">
-                  {(["normal", "fast", "glitch"] as Difficulty[]).map((mode) => (
+                {/* Settings Selectors */}
+                <div className="flex flex-col gap-2 mb-4 items-center">
+                  <div className="flex gap-1.5 items-center">
+                    <span className="text-[10px] text-muted-foreground mr-1">SPEED:</span>
+                    {(["normal", "fast", "glitch"] as Difficulty[]).map((mode) => (
+                      <button
+                        key={mode}
+                        onClick={() => setDifficulty(mode)}
+                        className={`text-[10px] px-2 py-0.5 border transition-colors ${
+                          difficulty === mode
+                            ? "border-primary bg-primary/20 text-primary font-bold"
+                            : "border-border text-muted-foreground hover:border-primary/50"
+                        }`}
+                      >
+                        {DIFFICULTY_SETTINGS[mode].label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex gap-1.5 items-center">
+                    <span className="text-[10px] text-muted-foreground mr-1">WALLS:</span>
                     <button
-                      key={mode}
-                      onClick={() => setDifficulty(mode)}
-                      className={`text-[10px] px-2 py-1 border transition-colors ${
-                        difficulty === mode
+                      onClick={() => setWallMode("wrap")}
+                      className={`text-[10px] px-2 py-0.5 border transition-colors ${
+                        wallMode === "wrap"
                           ? "border-primary bg-primary/20 text-primary font-bold"
                           : "border-border text-muted-foreground hover:border-primary/50"
                       }`}
                     >
-                      {DIFFICULTY_SETTINGS[mode].label}
+                      WRAP-THROUGH (CLASSIC)
                     </button>
-                  ))}
+                    <button
+                      onClick={() => setWallMode("solid")}
+                      className={`text-[10px] px-2 py-0.5 border transition-colors ${
+                        wallMode === "solid"
+                          ? "border-primary bg-primary/20 text-primary font-bold"
+                          : "border-border text-muted-foreground hover:border-primary/50"
+                      }`}
+                    >
+                      SOLID
+                    </button>
+                  </div>
                 </div>
 
                 <button
@@ -522,14 +614,22 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
                   PROCESS SUSPENDED
                 </div>
                 <div className="text-xs text-muted-foreground mb-4">
-                  SIGSTOP received. Press SPACE to resume execution.
+                  SIGSTOP received. Press SPACE to resume.
                 </div>
-                <button
-                  onClick={() => setGameState("PLAYING")}
-                  className="px-4 py-1.5 border border-primary bg-primary/20 text-primary text-xs font-bold hover:bg-primary hover:text-black transition-colors"
-                >
-                  RESUME [SPACE]
-                </button>
+                <div className="flex gap-2 flex-wrap justify-center">
+                  <button
+                    onClick={() => setGameState("PLAYING")}
+                    className="px-3 py-1.5 border border-primary bg-primary/20 text-primary text-xs font-bold hover:bg-primary hover:text-black transition-colors"
+                  >
+                    RESUME [SPACE]
+                  </button>
+                  <button
+                    onClick={() => setGameState("IDLE")}
+                    className="px-3 py-1.5 border border-border bg-secondary text-muted-foreground text-xs font-bold hover:text-primary hover:border-primary transition-colors"
+                  >
+                    ⚙ MAIN MENU [M]
+                  </button>
+                </div>
               </div>
             )}
 
@@ -542,7 +642,7 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
                   SEGMENTATION FAULT
                 </div>
                 <div className="text-xs text-muted-foreground mb-3">
-                  Core dumped: process terminated with exit code 139
+                  Self-collision detected: memory corrupted
                 </div>
 
                 <div className="bg-secondary/60 border border-border p-2 mb-4 w-48 text-center text-xs">
@@ -555,12 +655,20 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
                   )}
                 </div>
 
-                <button
-                  onClick={startGame}
-                  className="px-4 py-2 border border-primary bg-primary/20 text-primary hover:bg-primary hover:text-black font-bold text-xs transition-all"
-                >
-                  REBOOT PROCESS [SPACE]
-                </button>
+                <div className="flex gap-2 flex-wrap justify-center">
+                  <button
+                    onClick={startGame}
+                    className="px-3 py-2 border border-primary bg-primary/20 text-primary hover:bg-primary hover:text-black font-bold text-xs transition-all"
+                  >
+                    REBOOT [SPACE]
+                  </button>
+                  <button
+                    onClick={() => setGameState("IDLE")}
+                    className="px-3 py-2 border border-border bg-secondary text-muted-foreground hover:text-primary hover:border-primary font-bold text-xs transition-all"
+                  >
+                    ⚙ MAIN MENU [M]
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -569,8 +677,9 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
           <div className="p-3 border-t border-border bg-secondary/30 flex flex-col items-center gap-2">
             <div className="text-[10px] text-muted-foreground text-center hidden sm:block">
               Controls: <span className="text-primary">[W A S D]</span> or{" "}
-              <span className="text-primary">[Arrow Keys]</span> to move •{" "}
+              <span className="text-primary">[Arrow Keys]</span> •{" "}
               <span className="text-primary">[SPACE]</span> pause •{" "}
+              <span className="text-primary">[M]</span> menu •{" "}
               <span className="text-primary">[ESC]</span> exit
             </div>
 
