@@ -5,6 +5,8 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 import { marked } from "marked";
 import { TerminalSnakeModal } from "./components/TerminalSnakeModal";
+import { MatrixRainBackground } from "./components/MatrixRainBackground";
+import { keyboardSound } from "./utils/sound";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -661,6 +663,9 @@ function HomeSection() {
               <span className="text-muted-foreground">location &nbsp; ::</span>{" "}
               <span className="text-foreground">Delhi, IN</span>
             </div>
+            <div className="pt-1 text-[11px] text-muted-foreground/60">
+              <span>// hint: follow the white rabbit</span>
+            </div>
           </div>
         </div>
       )}
@@ -1202,6 +1207,8 @@ export default function App() {
   const [openPost, setOpenPost] = useState<string | null>(null);
   const [openProject, setOpenProject] = useState<string | null>(null);
   const [snakeOpen, setSnakeOpen] = useState(false);
+  const [matrixOpen, setMatrixOpen] = useState(false);
+  const [sfxEnabled, setSfxEnabled] = useState(() => keyboardSound.enabled);
   const [cmdInput, setCmdInput] = useState("");
   const [cmdHistory, setCmdHistory] = useState<string[]>([]);
   const [historyIdx, setHistoryIdx] = useState(-1);
@@ -1213,6 +1220,39 @@ export default function App() {
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputWrapRef = useRef<HTMLDivElement>(null);
+  const logoClicksRef = useRef<{ count: number; timer: ReturnType<typeof setTimeout> | null }>({ count: 0, timer: null });
+
+  // Konami Code Secret Listener (↑ ↑ ↓ ↓ ← → ← → B A)
+  useEffect(() => {
+    const konamiCode = [
+      "ArrowUp", "ArrowUp",
+      "ArrowDown", "ArrowDown",
+      "ArrowLeft", "ArrowRight",
+      "ArrowLeft", "ArrowRight",
+      "b", "a",
+    ];
+    let konamiIdx = 0;
+
+    const handleKonami = (e: KeyboardEvent) => {
+      const activeEl = document.activeElement;
+      if (activeEl && activeEl.tagName === "INPUT" && e.key.length === 1 && e.key !== "b" && e.key !== "a" && e.key !== "B" && e.key !== "A") {
+        return;
+      }
+
+      if (e.key.toLowerCase() === konamiCode[konamiIdx].toLowerCase()) {
+        konamiIdx++;
+        if (konamiIdx === konamiCode.length) {
+          setMatrixOpen(true);
+          konamiIdx = 0;
+        }
+      } else {
+        konamiIdx = e.key.toLowerCase() === konamiCode[0].toLowerCase() ? 1 : 0;
+      }
+    };
+
+    window.addEventListener("keydown", handleKonami);
+    return () => window.removeEventListener("keydown", handleKonami);
+  }, []);
 
   useEffect(() => {
     const timer = new Promise((resolve) => setTimeout(resolve, 1500));
@@ -1340,6 +1380,12 @@ export default function App() {
       return;
     }
 
+    const secretMatrixCmds = ["matrix", "neo", "redpill", "follow the white rabbit", "white rabbit", "wake up"];
+    if (secretMatrixCmds.includes(cmd)) {
+      setMatrixOpen(true);
+      return;
+    }
+
     if (cmd === "help") {
       const lines = Object.entries(COMMANDS).map(
         ([k, v]) => `  ${k.padEnd(12)}${v.desc}`
@@ -1377,6 +1423,7 @@ export default function App() {
   }
 
   function handleKey(e: React.KeyboardEvent<HTMLInputElement>) {
+    keyboardSound.playKey(e.key);
     if (paletteOpen && filteredCmds.length > 0) {
       if (e.key === "ArrowDown") {
         e.preventDefault();
@@ -1436,9 +1483,23 @@ export default function App() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
-              onClick={(e) => { e.stopPropagation(); navigate("home"); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate("home");
+                logoClicksRef.current.count += 1;
+                if (logoClicksRef.current.timer) clearTimeout(logoClicksRef.current.timer);
+                if (logoClicksRef.current.count >= 5) {
+                  setMatrixOpen(true);
+                  logoClicksRef.current.count = 0;
+                } else {
+                  logoClicksRef.current.timer = setTimeout(() => {
+                    logoClicksRef.current.count = 0;
+                  }, 1500);
+                }
+              }}
               className="text-sm sm:text-base font-bold hover:opacity-80 transition-opacity flex items-center gap-1"
               style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--primary)" }}
+              title="~ localhost"
             >
               <span className="text-muted-foreground opacity-60">~</span>
               <span>localhost</span>
@@ -1461,6 +1522,20 @@ export default function App() {
                     <span className="hidden sm:inline">{THEMES[id].label}</span>
                   </button>
                 ))}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const next = !sfxEnabled;
+                    setSfxEnabled(next);
+                    keyboardSound.setEnabled(next);
+                    if (next) keyboardSound.playNavClick();
+                  }}
+                  title={sfxEnabled ? "Mute mechanical keyboard sounds" : "Enable mechanical keyboard sounds"}
+                  className="flex items-center gap-1 text-xs transition-colors px-1.5 py-0.5 border border-border hover:border-primary ml-1"
+                  style={{ color: sfxEnabled ? "var(--primary)" : "var(--muted-foreground)" }}
+                >
+                  <span className="text-[11px]">{sfxEnabled ? "⌨ 🔊" : "⌨ 🔇"}</span>
+                </button>
               </div>
             </div>
           </div>
@@ -1625,6 +1700,11 @@ export default function App() {
       </div>
 
       <TerminalSnakeModal isOpen={snakeOpen} onClose={() => setSnakeOpen(false)} />
+      <MatrixRainBackground
+        isActive={matrixOpen}
+        themeDot={THEMES[theme]?.dot}
+        onToggle={() => setMatrixOpen((m) => !m)}
+      />
       <StatusBar section={section} theme={theme} />
       <SpeedInsights />
       <Analytics />
