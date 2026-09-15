@@ -131,6 +131,7 @@ function parseBlogPost(raw: string, filepath: string): BlogPost {
 // ── Data ─────────────────────────────────────────────────────────────────────
 
 const BLOG_POSTS: BlogPost[] = Object.entries(mdModules)
+  .filter(([path]) => !path.includes("template") && !path.split("/").pop()?.startsWith("_"))
   .map(([path, raw]) => parseBlogPost(raw, path))
   .sort((a, b) => b.date.localeCompare(a.date));
 
