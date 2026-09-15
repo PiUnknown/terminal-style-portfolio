@@ -7,6 +7,7 @@ import { marked } from "marked";
 import { TerminalSnakeModal } from "./components/TerminalSnakeModal";
 import { MatrixRainBackground } from "./components/MatrixRainBackground";
 import { keyboardSound } from "./utils/sound";
+import { triggerHaptic } from "./utils/haptics";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -369,6 +370,7 @@ function ShareButton({ postId }: { postId: string }) {
 
   function handleShare(e: React.MouseEvent) {
     e.stopPropagation();
+    triggerHaptic("success");
     const url = `${window.location.origin}/blog/${postId}`;
     navigator.clipboard.writeText(url).then(() => {
       setCopied(true);
@@ -457,20 +459,15 @@ function StatusBar({ section, theme }: { section: Section; theme: ThemeId }) {
 // ── Slash Palette ─────────────────────────────────────────────────────────────
 
 interface SlashPaletteProps {
-  query: string;
+  commands: [string, { desc: string; action?: string }][];
   activeIdx: number;
   onSelect: (cmd: string) => void;
   onHover: (idx: number) => void;
   reducedMotion: boolean;
 }
 
-function SlashPalette({ query, activeIdx, onSelect, onHover, reducedMotion }: SlashPaletteProps) {
-  const q = query.toLowerCase();
-  const filtered = Object.entries(COMMANDS).filter(
-    ([k, v]) => k.startsWith(q) || v.desc.toLowerCase().includes(q)
-  );
-
-  if (filtered.length === 0) return null;
+function SlashPalette({ commands, activeIdx, onSelect, onHover, reducedMotion }: SlashPaletteProps) {
+  if (commands.length === 0) return null;
 
   return (
     <motion.div
@@ -498,7 +495,7 @@ function SlashPalette({ query, activeIdx, onSelect, onHover, reducedMotion }: Sl
         </span>
       </div>
 
-      {filtered.map(([cmd, { desc }], i) => {
+      {commands.map(([cmd, { desc }], i) => {
         const isActive = i === activeIdx;
         return (
           <motion.button
@@ -1308,6 +1305,7 @@ export default function App() {
   }, []);
 
   const handleOpenPost = (id: string | null) => {
+    triggerHaptic("light");
     setOpenPost(id);
     if (id) {
       history.pushState(null, "", `/blog/${id}`);
@@ -1317,6 +1315,7 @@ export default function App() {
   };
 
   const handleOpenProject = (name: string | null) => {
+    triggerHaptic("light");
     setOpenProject(name);
     if (name) {
       history.pushState(null, "", `/projects/${name}`);
@@ -1331,6 +1330,8 @@ export default function App() {
 
   const filteredCmds = isPaletteMode
     ? Object.entries(COMMANDS).filter(([k, v]) => {
+      // Exclude command if it navigates to the current active section (unless in sub-view)
+      if (v.action && v.action === section && !openProject && !openPost) return false;
       const q = paletteQuery.toLowerCase();
       return k.startsWith(q) || v.desc.toLowerCase().includes(q);
     })
@@ -1350,6 +1351,7 @@ export default function App() {
   }, [inlineLog]);
 
   const navigate = useCallback((s: Section) => {
+    triggerHaptic("selection");
     setSection(s);
     setOpenPost(null);
     setOpenProject(null);
@@ -1424,6 +1426,7 @@ export default function App() {
 
   function handleKey(e: React.KeyboardEvent<HTMLInputElement>) {
     keyboardSound.playKey(e.key);
+    triggerHaptic("light");
     if (paletteOpen && filteredCmds.length > 0) {
       if (e.key === "ArrowDown") {
         e.preventDefault();
@@ -1485,6 +1488,7 @@ export default function App() {
             <button
               onClick={(e) => {
                 e.stopPropagation();
+                triggerHaptic("light");
                 navigate("home");
                 logoClicksRef.current.count += 1;
                 if (logoClicksRef.current.timer) clearTimeout(logoClicksRef.current.timer);
@@ -1510,7 +1514,11 @@ export default function App() {
                 {(Object.keys(THEMES) as ThemeId[]).map((id) => (
                   <button
                     key={id}
-                    onClick={(e) => { e.stopPropagation(); setTheme(id); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      triggerHaptic("medium");
+                      setTheme(id);
+                    }}
                     title={THEMES[id].label}
                     className="flex items-center gap-1 text-xs transition-colors px-1"
                     style={{ color: theme === id ? THEMES[id].dot : "var(--muted-foreground)" }}
@@ -1525,6 +1533,7 @@ export default function App() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
+                    triggerHaptic("light");
                     const next = !sfxEnabled;
                     setSfxEnabled(next);
                     keyboardSound.setEnabled(next);
@@ -1670,7 +1679,7 @@ export default function App() {
           <AnimatePresence>
             {paletteOpen && filteredCmds.length > 0 && (
               <SlashPalette
-                query={paletteQuery}
+                commands={filteredCmds}
                 activeIdx={paletteIdx}
                 onSelect={selectPaletteItem}
                 onHover={setPaletteIdx}

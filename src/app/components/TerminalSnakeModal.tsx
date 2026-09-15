@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import confetti from "canvas-confetti";
+import { triggerHaptic } from "../utils/haptics";
 
 interface TerminalSnakeModalProps {
   isOpen: boolean;
@@ -171,6 +172,7 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
     setIsNewHighScore(false);
     setGameState("PLAYING");
     sfx.playStart();
+    triggerHaptic("selection");
   }, [spawnFood]);
 
   const queueDirection = useCallback((newDir: Direction) => {
@@ -255,6 +257,7 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
         // Check Food Collision
         if (isEating) {
           sfx.playEat();
+          triggerHaptic("medium");
           const gained = Math.round(10 * DIFFICULTY_SETTINGS[difficulty].scoreMult);
           setScore((s) => {
             const nextScore = s + gained;
@@ -288,6 +291,7 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
 
   const handleGameOver = () => {
     sfx.playDie();
+    triggerHaptic("warning");
     setGameState("GAMEOVER");
     if (isNewHighScore) {
       try {
@@ -355,6 +359,7 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
 
   // Touch/D-Pad controller
   const handleDirectionPress = (dir: Direction) => {
+    triggerHaptic("light");
     if (gameState === "IDLE" || gameState === "GAMEOVER") {
       startGame();
     }
