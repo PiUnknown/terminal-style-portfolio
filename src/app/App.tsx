@@ -9,6 +9,7 @@ import { MatrixRainBackground } from "./components/MatrixRainBackground";
 import { keyboardSound } from "./utils/sound";
 import { triggerHaptic } from "./utils/haptics";
 import { trackCommand, trackEasterEgg, trackEvent } from "./utils/analytics";
+import { executeTerminalCommand, getTabCompletion, buildVFS } from "./utils/terminalEngine";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -212,7 +213,7 @@ const GREETINGS = [
 ];
 
 
-// ── Commands ──────────────────────────────────────────────────────────────────
+// ── Commands (Slash Palette) ──────────────────────────────────────────────────
 
 const COMMANDS: Record<string, { desc: string; action?: string }> = {
   help: { desc: "show available commands" },
@@ -534,33 +535,115 @@ function SlashPalette({ commands, activeIdx, onSelect, onHover, reducedMotion }:
 
 // ── Inline log ────────────────────────────────────────────────────────────────
 
+interface WeatherCardData {
+  location: string;
+  morning: { cond: string; temp: string; wind: string };
+  noon: { cond: string; temp: string; wind: string };
+  evening: { cond: string; temp: string; wind: string };
+}
+
+function WeatherCard({ data }: { data: WeatherCardData }) {
+  return (
+    <div className="my-2 max-w-md border border-border bg-card/40 text-xs font-mono">
+      <div className="px-3 py-1.5 border-b border-border text-muted-foreground flex items-center justify-between">
+        <span>
+          Weather report: <span className="text-primary font-bold">{data.location}</span>
+        </span>
+        <span className="text-[10px] text-primary/80">● LIVE</span>
+      </div>
+      <div className="grid grid-cols-3 text-center divide-x divide-border">
+        {/* Morning */}
+        <div className="py-2 px-2 space-y-1">
+          <div className="text-muted-foreground text-[11px] pb-1 border-b border-border/40 font-semibold">Morning</div>
+          <div className="text-primary text-sm font-semibold pt-0.5">{data.morning.cond}</div>
+          <div className="text-foreground font-bold">{data.morning.temp}</div>
+          <div className="text-muted-foreground text-[11px]">{data.morning.wind}</div>
+        </div>
+        {/* Noon */}
+        <div className="py-2 px-2 space-y-1">
+          <div className="text-muted-foreground text-[11px] pb-1 border-b border-border/40 font-semibold">Noon</div>
+          <div className="text-primary text-sm font-semibold pt-0.5">{data.noon.cond}</div>
+          <div className="text-foreground font-bold">{data.noon.temp}</div>
+          <div className="text-muted-foreground text-[11px]">{data.noon.wind}</div>
+        </div>
+        {/* Evening */}
+        <div className="py-2 px-2 space-y-1">
+          <div className="text-muted-foreground text-[11px] pb-1 border-b border-border/40 font-semibold">Evening</div>
+          <div className="text-primary text-sm font-semibold pt-0.5">{data.evening.cond}</div>
+          <div className="text-foreground font-bold">{data.evening.temp}</div>
+          <div className="text-muted-foreground text-[11px]">{data.evening.wind}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function InlineLog({ lines, path }: { lines: string[]; path: string }) {
   if (lines.length === 0) return null;
   return (
     <div
-      className="mt-6 space-y-1 text-sm border-t border-border pt-4"
+      className="mt-6 space-y-1 text-sm border-t border-border pt-4 overflow-x-auto"
       style={{ fontFamily: "'JetBrains Mono', monospace" }}
     >
-      {lines.map((line, i) => (
-        <motion.div
-          key={i}
-          initial={{ opacity: 0, x: -4 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ type: "spring", bounce: 0, duration: 0.2, delay: i * 0.03 }}
-        >
-          {line.startsWith(">") ? (
-            <div className="text-primary">
-              <Prompt path={path} />
-              {line.slice(2)}
-            </div>
-          ) : (
-            <div className="text-muted-foreground pl-2">{line}</div>
-          )}
-        </motion.div>
-      ))}
+      {lines.map((line, i) => {
+        const isPrompt = line.startsWith(">");
+        const isWeatherJson = line.startsWith("__WEATHER_JSON__:");
+        const isSuccess = line.includes("✓");
+        const isError = line.includes("bash:") || line.includes("cannot access") || line.includes("No such file") || line.includes("Not a directory");
+        const isTreeOrList = line.includes("├──") || line.includes("└──") || line.includes("drwxr-xr-x") || line.includes("-rw-r--r--");
+
+        if (isWeatherJson) {
+          try {
+            const data: WeatherCardData = JSON.parse(line.replace("__WEATHER_JSON__:", ""));
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -4 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ type: "spring", bounce: 0, duration: 0.2, delay: 0.05 }}
+              >
+                <WeatherCard data={data} />
+              </motion.div>
+            );
+          } catch {
+            return null;
+          }
+        }
+
+        return (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, x: -4 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ type: "spring", bounce: 0, duration: 0.2, delay: Math.min(i * 0.02, 0.3) }}
+          >
+            {isPrompt ? (
+              <div className="text-primary font-semibold">
+                <Prompt path={path} />
+                {line.slice(2)}
+              </div>
+            ) : (
+              <div
+                className={`pl-2 whitespace-pre font-mono leading-relaxed ${
+                  isSuccess
+                    ? "text-primary"
+                    : isError
+                    ? "text-red-400 opacity-90"
+                    : isTreeOrList
+                    ? "text-foreground opacity-85"
+                    : "text-muted-foreground"
+                }`}
+              >
+                {line}
+              </div>
+            )}
+          </motion.div>
+        );
+      })}
     </div>
   );
 }
+
 
 // ── Sections ──────────────────────────────────────────────────────────────────
 
@@ -668,9 +751,6 @@ function HomeSection() {
             <div>
               <span className="text-muted-foreground">location &nbsp; ::</span>{" "}
               <span className="text-foreground">Delhi, IN</span>
-            </div>
-            <div className="pt-1 text-[11px] text-muted-foreground/60">
-              <span>// hint: follow the white rabbit</span>
             </div>
           </div>
         </div>
@@ -1371,66 +1451,83 @@ export default function App() {
 
   const currentPath = section === "home" ? "~" : `~/${section}`;
 
-  function execCommand(raw: string) {
-    // Strip leading slash if came from palette
-    const cmd = raw.replace(/^\//, "").trim().toLowerCase();
-    if (!cmd) return;
+  async function execCommand(raw: string) {
+    const trimmed = raw.trim();
+    if (!trimmed) return;
 
-    trackCommand(cmd, raw.startsWith("/") ? "slash_palette" : "cli");
+    const baseCmd = trimmed.replace(/^\//, "").split(/\s+/)[0].toLowerCase();
+    trackCommand(baseCmd, raw.startsWith("/") ? "slash_palette" : "cli");
 
-    setCmdHistory((h) => [cmd, ...h]);
+    setCmdHistory((h) => [trimmed, ...h]);
     setHistoryIdx(-1);
     setCmdInput("");
     setPaletteOpen(false);
 
-    if (cmd === "clear") {
+    const result = await executeTerminalCommand(trimmed, {
+      currentSection: section,
+      currentPath,
+      theme,
+      sfxEnabled,
+      projects: PROJECTS,
+      blogPosts: BLOG_POSTS,
+      skills: SKILLS,
+      history: cmdHistory,
+    });
+
+    if (result.clearLog) {
       setInlineLog([]);
       return;
     }
 
-    if (cmd === "snake" || cmd === "game" || cmd === "play") {
-      trackEasterEgg("snake_game", { trigger: cmd });
+    if (result.openSnake) {
+      trackEasterEgg("snake_game", { trigger: trimmed });
       setSnakeOpen(true);
-      return;
     }
 
-    const secretMatrixCmds = ["matrix", "neo", "redpill", "follow the white rabbit", "white rabbit", "wake up"];
-    if (secretMatrixCmds.includes(cmd)) {
-      trackEasterEgg("matrix_digital_rain", { trigger: cmd });
+    if (result.openMatrix) {
+      trackEasterEgg("matrix_digital_rain", { trigger: trimmed });
       setMatrixOpen(true);
+    }
+
+    if (result.newTheme) {
+      setTheme(result.newTheme);
+      trackEvent("theme_changed", { theme: result.newTheme, source: "cli" });
+    }
+
+    if (result.toggleSfx !== undefined) {
+      setSfxEnabled(result.toggleSfx);
+      keyboardSound.setEnabled(result.toggleSfx);
+    }
+
+    if (result.downloadResume) {
+      trackEvent("resume_download_clicked", { source: "cli" });
+      const a = document.createElement("a");
+      a.href = "/resume.pdf";
+      a.download = "Om_Kumar_Jha_Resume.pdf";
+      a.target = "_blank";
+      a.click();
+    }
+
+    if (result.newSection && result.newSection !== section) {
+      navigate(result.newSection);
+      if (result.openProject) {
+        handleOpenProject(result.openProject);
+      } else if (result.openPost) {
+        handleOpenPost(result.openPost);
+      }
+      setInlineLog(result.output);
       return;
     }
 
-    if (cmd === "help") {
-      const lines = Object.entries(COMMANDS).map(
-        ([k, v]) => `  ${k.padEnd(12)}${v.desc}`
-      );
-      setInlineLog((o) => [...o, `> ${cmd}`, ...lines]);
-      return;
+    if (result.openProject) {
+      handleOpenProject(result.openProject);
+    } else if (result.openPost) {
+      handleOpenPost(result.openPost);
     }
 
-    if (cmd === "ls") {
-      setInlineLog((o) => [
-        ...o,
-        `> ${cmd}`,
-        "  home  about  projects  skills  blog  contact",
-      ]);
-      return;
+    if (result.output.length > 0) {
+      setInlineLog((o) => [...o, ...result.output]);
     }
-
-    const found = Object.entries(COMMANDS).find(([k]) => k === cmd);
-    if (found && found[1].action) {
-      navigate(found[1].action as Section);
-      // Echo appended after nav — inlineLog reset by navigate, so just add the echo
-      setInlineLog([`> ${cmd}`]);
-      return;
-    }
-
-    setInlineLog((o) => [
-      ...o,
-      `> ${cmd}`,
-      `  bash: ${cmd}: command not found. Type '/help' for available commands.`,
-    ]);
   }
 
   function selectPaletteItem(cmd: string) {
@@ -1456,6 +1553,11 @@ export default function App() {
         selectPaletteItem(filteredCmds[paletteIdx]?.[0] ?? "");
         return;
       }
+      if (e.key === "Tab") {
+        e.preventDefault();
+        selectPaletteItem(filteredCmds[paletteIdx]?.[0] ?? "");
+        return;
+      }
       if (e.key === "Escape") {
         setPaletteOpen(false);
         setCmdInput("");
@@ -1464,6 +1566,18 @@ export default function App() {
     } else {
       if (e.key === "Enter") {
         execCommand(cmdInput);
+      } else if (e.key === "Tab") {
+        e.preventDefault();
+        const vfs = buildVFS(PROJECTS, BLOG_POSTS, SKILLS);
+        const allCliCommands = [
+          "help", "whoami", "about", "projects", "skills", "blog", "contact",
+          "game", "clear", "ls", "cd", "cat", "pwd", "tree", "open",
+          "theme", "sfx", "neofetch", "weather", "date", "uptime", "history", "cowsay"
+        ];
+        const completion = getTabCompletion(cmdInput, currentPath, vfs, allCliCommands);
+        if (completion) {
+          setCmdInput(completion);
+        }
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
         const idx = Math.min(historyIdx + 1, cmdHistory.length - 1);
