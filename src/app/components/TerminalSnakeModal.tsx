@@ -41,7 +41,7 @@ class SoundFX {
       }
     }
     if (this.ctx && this.ctx.state === "suspended") {
-      this.ctx.resume().catch(() => {});
+      this.ctx.resume().catch(() => { });
     }
   }
 
@@ -565,11 +565,10 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
                       <button
                         key={mode}
                         onClick={() => setDifficulty(mode)}
-                        className={`text-[10px] px-2 py-0.5 border transition-colors ${
-                          difficulty === mode
+                        className={`text-[10px] px-2 py-0.5 border transition-colors ${difficulty === mode
                             ? "border-primary bg-primary/20 text-primary font-bold"
                             : "border-border text-muted-foreground hover:border-primary/50"
-                        }`}
+                          }`}
                       >
                         {DIFFICULTY_SETTINGS[mode].label}
                       </button>
@@ -580,21 +579,19 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
                     <span className="text-[10px] text-muted-foreground mr-1">WALLS:</span>
                     <button
                       onClick={() => setWallMode("wrap")}
-                      className={`text-[10px] px-2 py-0.5 border transition-colors ${
-                        wallMode === "wrap"
+                      className={`text-[10px] px-2 py-0.5 border transition-colors ${wallMode === "wrap"
                           ? "border-primary bg-primary/20 text-primary font-bold"
                           : "border-border text-muted-foreground hover:border-primary/50"
-                      }`}
+                        }`}
                     >
                       WRAP-THROUGH (CLASSIC)
                     </button>
                     <button
                       onClick={() => setWallMode("solid")}
-                      className={`text-[10px] px-2 py-0.5 border transition-colors ${
-                        wallMode === "solid"
+                      className={`text-[10px] px-2 py-0.5 border transition-colors ${wallMode === "solid"
                           ? "border-primary bg-primary/20 text-primary font-bold"
                           : "border-border text-muted-foreground hover:border-primary/50"
-                      }`}
+                        }`}
                     >
                       SOLID
                     </button>

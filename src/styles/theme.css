@@ -3,17 +3,17 @@
 :root {
   --font-size: 15px;
   --background: #0a0f0a;
-  --foreground: #00ff41;
+  --foreground: #d1d5db;
   --card: #0d1a0d;
-  --card-foreground: #00ff41;
+  --card-foreground: #d1d5db;
   --popover: #0d1a0d;
-  --popover-foreground: #00ff41;
+  --popover-foreground: #d1d5db;
   --primary: #00ff41;
   --primary-foreground: #0a0f0a;
   --secondary: #0f2010;
   --secondary-foreground: #00cc33;
   --muted: #0f1a0f;
-  --muted-foreground: #3a7a3a;
+  --muted-foreground: #9ca3af;
   --accent: #00cc33;
   --accent-foreground: #0a0f0a;
   --destructive: #ff3333;
@@ -43,17 +43,17 @@
 
 .dark {
   --background: #0a0f0a;
-  --foreground: #00ff41;
+  --foreground: #d1d5db;
   --card: #0d1a0d;
-  --card-foreground: #00ff41;
+  --card-foreground: #d1d5db;
   --popover: #0d1a0d;
-  --popover-foreground: #00ff41;
+  --popover-foreground: #d1d5db;
   --primary: #00ff41;
   --primary-foreground: #0a0f0a;
   --secondary: #0f2010;
   --secondary-foreground: #00cc33;
   --muted: #0f1a0f;
-  --muted-foreground: #3a7a3a;
+  --muted-foreground: #9ca3af;
   --accent: #00cc33;
   --accent-foreground: #0a0f0a;
   --destructive: #ff3333;

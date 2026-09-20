@@ -22,10 +22,10 @@ const THEMES: Record<ThemeId, { label: string; dot: string; vars: Record<string,
     label: "phosphor",
     dot: "#00ff41",
     vars: {
-      "--background": "#0a0f0a", "--foreground": "#00ff41", "--card": "#0d1a0d",
-      "--card-foreground": "#00ff41", "--primary": "#00ff41", "--primary-foreground": "#0a0f0a",
+      "--background": "#0a0f0a", "--foreground": "#d1d5db", "--card": "#0d1a0d",
+      "--card-foreground": "#d1d5db", "--primary": "#00ff41", "--primary-foreground": "#0a0f0a",
       "--secondary": "#0f2010", "--secondary-foreground": "#00cc33",
-      "--muted": "#0f1a0f", "--muted-foreground": "#3a7a3a",
+      "--muted": "#0f1a0f", "--muted-foreground": "#9ca3af",
       "--accent": "#00cc33", "--border": "rgba(0,255,65,0.15)", "--ring": "rgba(0,255,65,0.4)", "--radius": "0rem",
     },
   },
@@ -33,10 +33,10 @@ const THEMES: Record<ThemeId, { label: string; dot: string; vars: Record<string,
     label: "ice",
     dot: "#00d4ff",
     vars: {
-      "--background": "#000d0f", "--foreground": "#00d4ff", "--card": "#001a20",
-      "--card-foreground": "#00d4ff", "--primary": "#00d4ff", "--primary-foreground": "#000d0f",
+      "--background": "#000d0f", "--foreground": "#d1d5db", "--card": "#001a20",
+      "--card-foreground": "#d1d5db", "--primary": "#00d4ff", "--primary-foreground": "#000d0f",
       "--secondary": "#002030", "--secondary-foreground": "#00aacc",
-      "--muted": "#001520", "--muted-foreground": "#006680",
+      "--muted": "#001520", "--muted-foreground": "#9ca3af",
       "--accent": "#00aacc", "--border": "rgba(0,212,255,0.15)", "--ring": "rgba(0,212,255,0.4)", "--radius": "0rem",
     },
   },
@@ -44,10 +44,10 @@ const THEMES: Record<ThemeId, { label: string; dot: string; vars: Record<string,
     label: "synthwave",
     dot: "#ff2a8d",
     vars: {
-      "--background": "#0d021a", "--foreground": "#ff71ce", "--card": "#180530",
-      "--card-foreground": "#ff71ce", "--primary": "#ff2a8d", "--primary-foreground": "#0d021a",
+      "--background": "#0d021a", "--foreground": "#d1d5db", "--card": "#180530",
+      "--card-foreground": "#d1d5db", "--primary": "#ff2a8d", "--primary-foreground": "#0d021a",
       "--secondary": "#240845", "--secondary-foreground": "#01cdfe",
-      "--muted": "#140326", "--muted-foreground": "#7d1f5c",
+      "--muted": "#140326", "--muted-foreground": "#9ca3af",
       "--accent": "#01cdfe", "--border": "rgba(255,42,141,0.2)", "--ring": "rgba(255,42,141,0.4)", "--radius": "0rem",
     },
   },
@@ -55,10 +55,10 @@ const THEMES: Record<ThemeId, { label: string; dot: string; vars: Record<string,
     label: "c64",
     dot: "#a5a5ff",
     vars: {
-      "--background": "#0d0b1a", "--foreground": "#a5a5ff", "--card": "#16132b",
-      "--card-foreground": "#a5a5ff", "--primary": "#a5a5ff", "--primary-foreground": "#0d0b1a",
+      "--background": "#0d0b1a", "--foreground": "#d1d5db", "--card": "#16132b",
+      "--card-foreground": "#d1d5db", "--primary": "#a5a5ff", "--primary-foreground": "#0d0b1a",
       "--secondary": "#211c40", "--secondary-foreground": "#d0d0ff",
-      "--muted": "#131024", "--muted-foreground": "#6c63a5",
+      "--muted": "#131024", "--muted-foreground": "#9ca3af",
       "--accent": "#7c70db", "--border": "rgba(165,165,255,0.2)", "--ring": "rgba(165,165,255,0.4)", "--radius": "0rem",
     },
   },
@@ -66,14 +66,15 @@ const THEMES: Record<ThemeId, { label: string; dot: string; vars: Record<string,
     label: "gruvbox",
     dot: "#fabd2f",
     vars: {
-      "--background": "#141617", "--foreground": "#fabd2f", "--card": "#1d2021",
-      "--card-foreground": "#fabd2f", "--primary": "#fabd2f", "--primary-foreground": "#141617",
+      "--background": "#141617", "--foreground": "#ebdbb2", "--card": "#1d2021",
+      "--card-foreground": "#ebdbb2", "--primary": "#fabd2f", "--primary-foreground": "#141617",
       "--secondary": "#282828", "--secondary-foreground": "#b8bb26",
-      "--muted": "#1a1c1d", "--muted-foreground": "#928374",
+      "--muted": "#1a1c1d", "--muted-foreground": "#a89984",
       "--accent": "#8ec07c", "--border": "rgba(250,189,47,0.18)", "--ring": "rgba(250,189,47,0.4)", "--radius": "0rem",
     },
   },
 };
+
 
 interface BlogPost {
   id: string;
@@ -353,11 +354,11 @@ function Cursor({ visible = true }: { visible?: boolean }) {
 function Prompt({ user = "visitor", path = "~" }: { user?: string; path?: string }) {
   return (
     <span className="select-none">
-      <span style={{ color: "#00cc33" }}>{user}</span>
+      <span className="text-primary">{user}</span>
       <span className="text-muted-foreground">@</span>
-      <span style={{ color: "#33ff66" }}>portfolio</span>
+      <span className="text-accent">portfolio</span>
       <span className="text-muted-foreground">:</span>
-      <span style={{ color: "#6699ff" }}>{path}</span>
+      <span className="text-blue-400">{path}</span>
       <span className="text-muted-foreground">$ </span>
     </span>
   );
@@ -505,11 +506,7 @@ function SlashPalette({ commands, activeIdx, onSelect, onHover, reducedMotion }:
             initial={reducedMotion ? false : { opacity: 0, x: -4 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ type: "spring", bounce: 0, duration: 0.2, delay: reducedMotion ? 0 : i * 0.028 }}
-            className="w-full flex items-center gap-4 px-3 py-2 text-left transition-colors"
-            style={{
-              background: isActive ? "rgba(0,255,65,0.08)" : "transparent",
-              borderLeft: isActive ? "2px solid #00ff41" : "2px solid transparent",
-            }}
+            className={`w-full flex items-center gap-4 px-3 py-2 text-left transition-colors border-l-2 ${isActive ? "bg-primary/10 border-primary" : "border-transparent"}`}
             onMouseEnter={() => onHover(i)}
             onMouseDown={(e) => {
               e.preventDefault();
@@ -517,8 +514,7 @@ function SlashPalette({ commands, activeIdx, onSelect, onHover, reducedMotion }:
             }}
           >
             <span
-              className="text-sm w-24 shrink-0 font-semibold"
-              style={{ color: isActive ? "#00ff41" : "#3a7a3a" }}
+              className={`text-sm w-24 shrink-0 font-semibold ${isActive ? "text-primary" : "text-muted-foreground"}`}
             >
               /{cmd}
             </span>
@@ -670,7 +666,7 @@ function HomeSection() {
           {line1.displayed}
           {line1.done ? null : <Cursor />}
         </div>
-        <div className="text-base sm:text-lg mb-3" style={{ color: "#33ff66" }}>
+        <div className="text-base sm:text-lg mb-3 text-accent">
           {line1.done && (
             <>
               {line2.displayed}
@@ -742,11 +738,11 @@ function HomeSection() {
             </div>
             <div>
               <span className="text-muted-foreground">learning &nbsp; ::</span>{" "}
-              <span style={{ color: "#33ff66" }}>Transformers, attention & model training</span>
+              <span className="text-accent">Transformers, attention & model training</span>
             </div>
             <div>
               <span className="text-muted-foreground">open for &nbsp; ::</span>{" "}
-              <span style={{ color: "#66ff88" }}>Remote Internships</span>
+              <span className="text-accent">Remote Internships</span>
             </div>
             <div>
               <span className="text-muted-foreground">location &nbsp; ::</span>{" "}
@@ -890,7 +886,7 @@ function ProjectCard({ p, onClick }: { p: Project; onClick: () => void }) {
         </div>
       </div>
       <div className="text-xs text-muted-foreground mb-2">{p.desc}</div>
-      <div className="text-xs" style={{ color: "#6699ff" }}>{p.lang}</div>
+      <div className="text-xs text-blue-400">{p.lang}</div>
     </motion.button>
   );
 }
@@ -920,7 +916,7 @@ function ProjectDetailView({
             {project.name}
           </span>
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <span style={{ color: "#6699ff" }}>{project.lang}</span>
+            <span className="text-blue-400">{project.lang}</span>
             <span>★ {stars}</span>
           </div>
         </div>
@@ -1045,7 +1041,7 @@ function SkillsSection() {
           return ORDER[a.status] - ORDER[b.status];
         }).map(({ label, status }) => {
           const icon = status === "done" ? "✓" : status === "progress" ? "◐" : "○";
-          const color = status === "done" ? "#00ff41" : status === "progress" ? "#ffcc00" : "#3a7a3a";
+          const color = status === "done" ? "var(--primary)" : status === "progress" ? "#ffcc00" : "var(--muted-foreground)";
           return (
             <div key={label} className="flex items-center gap-3">
               <span className="w-4 shrink-0 text-center" style={{ color }}>{icon}</span>
@@ -1088,8 +1084,7 @@ function BlogListSection({ onOpen }: { onOpen: (id: string) => void }) {
               {post.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="text-xs px-1.5 py-0.5 border border-border"
-                  style={{ color: "#6699ff", borderColor: "rgba(102,153,255,0.3)" }}
+                  className="px-2 py-0.5 text-xs rounded border text-blue-400 border-blue-400/30"
                 >
                   #{tag}
                 </span>
@@ -1115,8 +1110,8 @@ function BlogPostView({ post, onBack }: { post: BlogPost; onBack: () => void }) 
 
       <div className="border border-border p-3 sm:p-4 space-y-4">
         <div
-          className="text-2xl font-bold"
-          style={{ fontFamily: "'VT323', monospace", color: "#00ff41", letterSpacing: "0.03em" }}
+          className="text-[1.6rem] font-medium leading-none tracking-wider text-primary"
+          style={{ fontFamily: "'VT323', monospace" }}
         >
           {post.title}
         </div>
@@ -1132,8 +1127,7 @@ function BlogPostView({ post, onBack }: { post: BlogPost; onBack: () => void }) 
           {post.tags.map((tag) => (
             <span
               key={tag}
-              className="text-xs px-1.5 py-0.5 border"
-              style={{ color: "#6699ff", borderColor: "rgba(102,153,255,0.3)" }}
+              className="px-2 py-0.5 text-xs rounded border text-blue-400 border-blue-400/30"
             >
               #{tag}
             </span>
@@ -1754,10 +1748,10 @@ export default function App() {
       <main className="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-24 sm:pb-20">
         {/* Boot message */}
         <div className="text-muted-foreground text-xs mb-6 space-y-0.5">
-          <div style={{ color: "#3a7a3a" }}>
+          <div className="text-muted-foreground">
             localhost {VERSION} ({theme}) #1 SMP {new Date().toDateString()}
           </div>
-          <div style={{ color: "#3a7a3a" }}>
+          <div className="text-muted-foreground">
             Type <span className="text-primary">/</span> to open the command palette, or use the nav above.
           </div>
         </div>
