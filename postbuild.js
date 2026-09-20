@@ -51,7 +51,7 @@ for (const file of files) {
   const fm = parseFrontmatter(content);
   
   if (fm.title) {
-    const title = `${fm.title} — Terminal Portfolio`;
+    const title = fm.title;
     // Escape quotes in description to prevent breaking the meta tag
     const rawDescription = fm.excerpt || fm.title;
     const description = rawDescription.replace(/"/g, '&quot;');
