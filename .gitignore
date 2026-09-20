@@ -40,3 +40,5 @@ CLAUDE.md
 # Templates
 src/content/projects/project_template.md
 src/content/blog/blog_template.md
+src/content/blog/_*.md  
+ 

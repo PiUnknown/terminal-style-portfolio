@@ -83,7 +83,7 @@ interface BlogPost {
   tags: string[];
   readTime: string;
   excerpt: string;
-  content: string[];
+  body: string;
 }
 
 interface Project {
@@ -116,7 +116,9 @@ function parseBlogPost(raw: string, filepath: string): BlogPost {
       .forEach((line) => {
         const colon = line.indexOf(":");
         if (colon !== -1) {
-          fm[line.slice(0, colon).trim()] = line.slice(colon + 1).trim();
+          const key = line.slice(0, colon).trim().replace(/^["']|["']$/g, "");
+          const val = line.slice(colon + 1).trim().replace(/^["']|["']$/g, "");
+          fm[key] = val;
         }
       });
   }
@@ -131,7 +133,7 @@ function parseBlogPost(raw: string, filepath: string): BlogPost {
     tags: fm.tags ? fm.tags.split(",").map((t) => t.trim()) : [],
     readTime,
     excerpt: fm.excerpt ?? "",
-    content: body.split(/\n\n+/).filter(Boolean),
+    body,
   };
 }
 
@@ -157,7 +159,9 @@ function parseProject(raw: string): Project {
       .forEach((line) => {
         const colon = line.indexOf(":");
         if (colon !== -1) {
-          fm[line.slice(0, colon).trim()] = line.slice(colon + 1).trim();
+          const key = line.slice(0, colon).trim().replace(/^["']|["']$/g, "");
+          const val = line.slice(colon + 1).trim().replace(/^["']|["']$/g, "");
+          fm[key] = val;
         }
       });
   }
@@ -384,13 +388,22 @@ function ShareButton({ postId }: { postId: string }) {
   return (
     <button
       onClick={handleShare}
-      className="text-xs transition-colors shrink-0"
-      style={{
-        color: copied ? "var(--primary)" : "var(--muted-foreground)",
-        fontFamily: "'JetBrains Mono', monospace",
-      }}
+      className={`text-xs px-2 py-0.5 border transition-colors shrink-0 flex items-center gap-1.5 ${
+        copied
+          ? "border-primary text-primary"
+          : "border-border text-muted-foreground hover:border-primary hover:text-primary"
+      }`}
+      style={{ fontFamily: "'JetBrains Mono', monospace" }}
     >
-      {copied ? "✓ copied" : "[share]"}
+      {copied ? (
+        <>
+          <span>✓</span> copied
+        </>
+      ) : (
+        <>
+          <span>🔗</span> share
+        </>
+      )}
     </button>
   );
 }
@@ -1114,12 +1127,11 @@ function BlogPostView({ post, onBack }: { post: BlogPost; onBack: () => void }) 
         >
           {post.title}
         </div>
-        <div className="flex gap-4 text-xs text-muted-foreground">
-          <span>{post.date}</span>
-          <span>{post.readTime} read</span>
-        </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span>share:</span>
+        <div className="flex items-center justify-between flex-wrap gap-4 border-b border-border pb-3">
+          <div className="flex gap-4 text-xs text-muted-foreground">
+            <span>{post.date}</span>
+            <span>{post.readTime} read</span>
+          </div>
           <ShareButton postId={post.id} />
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -1132,24 +1144,11 @@ function BlogPostView({ post, onBack }: { post: BlogPost; onBack: () => void }) 
             </span>
           ))}
         </div>
-        <div className="border-t border-border pt-4 space-y-3">
-          {post.content.map((para, i) => (
-            <p key={i} className="text-sm leading-relaxed">
-              {para.startsWith("Run:") ? (
-                <>
-                  <span className="text-muted-foreground">Run: </span>
-                  <code
-                    className="text-primary bg-secondary px-2 py-0.5"
-                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                  >
-                    {para.slice(5)}
-                  </code>
-                </>
-              ) : (
-                <span className="text-muted-foreground">{para}</span>
-              )}
-            </p>
-          ))}
+        <div className="border-t border-border pt-4">
+          <div
+            className="prose-terminal text-sm leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: marked(post.body) as string }}
+          />
         </div>
       </div>
 

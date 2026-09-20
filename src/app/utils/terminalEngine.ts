@@ -9,7 +9,7 @@ export interface BlogPost {
   tags: string[];
   readTime: string;
   excerpt: string;
-  content: string[];
+  body: string;
 }
 
 export interface Project {
@@ -245,7 +245,7 @@ export function buildVFS(
     blogDir.children[filename] = {
       type: "file",
       name: filename,
-      size: (post.content || []).join("\n\n").length || 2048,
+      size: post.body?.length || 2048,
       date: post.date || "Sep 17 21:00",
       actionType: "blog",
       actionTarget: post.id,
@@ -256,7 +256,7 @@ export function buildVFS(
         "--------------------------------------------------",
         post.excerpt,
         "",
-        ...(post.content || []),
+        post.body || "",
       ].join("\n\n"),
     };
   });

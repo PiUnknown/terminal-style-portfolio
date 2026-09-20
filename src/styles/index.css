@@ -31,6 +31,13 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
+.prose-terminal h3, .prose-terminal h4, .prose-terminal h5, .prose-terminal h6 {
+  color: var(--primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.4rem;
+}
 .prose-terminal strong { color: var(--foreground); }
 .prose-terminal p { color: var(--muted-foreground); margin-bottom: 0.5rem; }
 .prose-terminal ul { list-style: none; padding: 0; margin-bottom: 0.5rem; }
@@ -42,6 +49,17 @@
   padding: 0.1rem 0.3rem;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.85em;
+}
+.prose-terminal a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-decoration-color: var(--border);
+  text-underline-offset: 4px;
+  transition: all 0.2s ease;
+}
+.prose-terminal a:hover {
+  text-decoration-color: var(--primary);
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
