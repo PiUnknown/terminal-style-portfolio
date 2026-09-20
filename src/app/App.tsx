@@ -1071,7 +1071,7 @@ function BlogListSection({ onOpen }: { onOpen: (id: string) => void }) {
     <div className="space-y-5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
       <div className="text-muted-foreground text-sm">
         <Prompt path="~/blog" />
-        ls -t ./posts/ | head -20
+        ls -t ./posts/
       </div>
 
       <div className="space-y-3">
