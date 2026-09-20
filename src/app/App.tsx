@@ -908,16 +908,38 @@ function ProjectDetailView({
       </div>
 
       <div className="border border-border p-3 sm:p-4 space-y-4">
-        <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-3 mb-4">
           <span
             className="text-2xl font-bold"
             style={{ fontFamily: "'VT323', monospace", color: "var(--primary)", letterSpacing: "0.03em" }}
           >
             {project.name}
           </span>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="text-blue-400">{project.lang}</span>
-            <span>★ {stars}</span>
+          <div className="flex items-center flex-wrap gap-3">
+            <a
+              href={project.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="text-xs px-2 py-0.5 border border-border hover:border-primary hover:text-primary transition-colors text-muted-foreground"
+            >
+              ↗ github
+            </a>
+            {project.liveUrl && (
+              <a
+                href={project.liveUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="text-xs px-2 py-0.5 border border-border hover:border-primary hover:text-primary transition-colors text-muted-foreground"
+              >
+                ↗ live link
+              </a>
+            )}
+            <div className="flex items-center gap-2 text-xs text-muted-foreground ml-2">
+              <span className="text-blue-400">{project.lang}</span>
+              <span>★ {stars}</span>
+            </div>
           </div>
         </div>
 
@@ -925,29 +947,6 @@ function ProjectDetailView({
           className="prose-terminal text-sm leading-relaxed"
           dangerouslySetInnerHTML={{ __html: marked(project.body) as string }}
         />
-
-        <div className="flex gap-3 pt-2 border-t border-border">
-          <a
-            href={project.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="text-xs px-3 py-1 border border-border hover:border-primary hover:text-primary transition-colors text-muted-foreground"
-          >
-            ↗ github
-          </a>
-          {project.liveUrl && (
-            <a
-              href={project.liveUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="text-xs px-3 py-1 border border-border hover:border-primary hover:text-primary transition-colors text-muted-foreground"
-            >
-              ↗ live link
-            </a>
-          )}
-        </div>
       </div>
 
       <button
