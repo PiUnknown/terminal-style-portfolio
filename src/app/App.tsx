@@ -1625,7 +1625,7 @@ export default function App() {
               style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--primary)" }}
               title="~ localhost"
             >
-              <img src="/favicon.svg" alt="logo" className="w-5 h-5 mr-1" />
+              <span className="text-muted-foreground opacity-60">~</span>
               <span>localhost</span>
             </button>
             <div className="flex items-center gap-2">
