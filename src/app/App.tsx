@@ -1300,6 +1300,11 @@ export default function App() {
   const inputWrapRef = useRef<HTMLDivElement>(null);
   const logoClicksRef = useRef<{ count: number; timer: ReturnType<typeof setTimeout> | null }>({ count: 0, timer: null });
 
+  // Scroll to top on navigation
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [section, openPost, openProject]);
+
   // Konami Code Secret Listener (↑ ↑ ↓ ↓ ← → ← → B A)
   useEffect(() => {
     const konamiCode = [
@@ -1428,7 +1433,9 @@ export default function App() {
   }, [isPaletteMode, paletteQuery]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (inlineLog.length > 0) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [inlineLog]);
 
   const navigate = useCallback((s: Section) => {
