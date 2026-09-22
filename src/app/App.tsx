@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 import { marked } from "marked";
+import { SpotifyWidget } from "./components/SpotifyWidget";
 import { TerminalSnakeModal } from "./components/TerminalSnakeModal";
 import { MatrixRainBackground } from "./components/MatrixRainBackground";
 import { keyboardSound } from "./utils/sound";
@@ -459,13 +460,10 @@ function StatusBar({ section, theme }: { section: Section; theme: ThemeId }) {
         paddingTop: 0,
       }}
     >
-      <span className="text-muted-foreground">
-        <span className="text-primary hidden sm:inline">INSERT</span>
-        <span className="hidden sm:inline"> — </span>
-        type <span className="text-primary">/</span>
-        <span className="hidden sm:inline"> to open command palette</span>
+      <span className="text-muted-foreground flex items-center">
+        <SpotifyWidget />
       </span>
-      <span className="text-muted-foreground">
+      <span className="text-muted-foreground flex items-center">
         <span className="text-primary">[{section}]</span> &nbsp;{fmt}
       </span>
     </div>
