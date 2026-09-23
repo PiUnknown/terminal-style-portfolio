@@ -19,7 +19,9 @@ export function SpotifyWidget() {
   useEffect(() => {
     const fetchSpotify = async () => {
       try {
-        const res = await fetch("/api/spotify");
+        const res = await fetch(`/api/spotify?t=${Date.now()}`, {
+          cache: "no-store",
+        });
         const json = await res.json();
         setData(json);
       } catch (e) {
@@ -47,7 +49,6 @@ export function SpotifyWidget() {
       <span className="truncate max-w-[150px] lg:max-w-[250px]">
         {data.isPlaying ? "Playing: " : "Last Played: "}
         <span className="text-foreground">{data.song}</span>
-        {data.artist && <span className="opacity-70"> - {data.artist}</span>}
       </span>
     </a>
   );
