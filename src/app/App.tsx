@@ -28,6 +28,7 @@ const THEMES: Record<ThemeId, { label: string; dot: string; vars: Record<string,
       "--secondary": "#0f2010", "--secondary-foreground": "#00cc33",
       "--muted": "#0f1a0f", "--muted-foreground": "#9ca3af",
       "--accent": "#00cc33", "--border": "rgba(0,255,65,0.15)", "--ring": "rgba(0,255,65,0.4)", "--radius": "0rem",
+      "--status-done": "#00ff41", "--status-progress": "#ffcc00", "--status-planned": "#9ca3af",
     },
   },
   ice: {
@@ -39,6 +40,7 @@ const THEMES: Record<ThemeId, { label: string; dot: string; vars: Record<string,
       "--secondary": "#002030", "--secondary-foreground": "#00aacc",
       "--muted": "#001520", "--muted-foreground": "#9ca3af",
       "--accent": "#00aacc", "--border": "rgba(0,212,255,0.15)", "--ring": "rgba(0,212,255,0.4)", "--radius": "0rem",
+      "--status-done": "#00d4ff", "--status-progress": "#ffcc00", "--status-planned": "#9ca3af",
     },
   },
   synthwave: {
@@ -50,6 +52,7 @@ const THEMES: Record<ThemeId, { label: string; dot: string; vars: Record<string,
       "--secondary": "#240845", "--secondary-foreground": "#01cdfe",
       "--muted": "#140326", "--muted-foreground": "#9ca3af",
       "--accent": "#01cdfe", "--border": "rgba(255,42,141,0.2)", "--ring": "rgba(255,42,141,0.4)", "--radius": "0rem",
+      "--status-done": "#ff2a8d", "--status-progress": "#ffcc00", "--status-planned": "#9ca3af",
     },
   },
   c64: {
@@ -61,6 +64,7 @@ const THEMES: Record<ThemeId, { label: string; dot: string; vars: Record<string,
       "--secondary": "#211c40", "--secondary-foreground": "#d0d0ff",
       "--muted": "#131024", "--muted-foreground": "#9ca3af",
       "--accent": "#7c70db", "--border": "rgba(165,165,255,0.2)", "--ring": "rgba(165,165,255,0.4)", "--radius": "0rem",
+      "--status-done": "#a5a5ff", "--status-progress": "#ffcc00", "--status-planned": "#9ca3af",
     },
   },
   gruvbox: {
@@ -72,6 +76,7 @@ const THEMES: Record<ThemeId, { label: string; dot: string; vars: Record<string,
       "--secondary": "#282828", "--secondary-foreground": "#b8bb26",
       "--muted": "#1a1c1d", "--muted-foreground": "#a89984",
       "--accent": "#8ec07c", "--border": "rgba(250,189,47,0.18)", "--ring": "rgba(250,189,47,0.4)", "--radius": "0rem",
+      "--status-done": "#b8bb26", "--status-progress": "#fabd2f", "--status-planned": "#a89984",
     },
   },
 };
@@ -1051,7 +1056,12 @@ function SkillsSection() {
           return ORDER[a.status] - ORDER[b.status];
         }).map(({ label, status }) => {
           const icon = status === "done" ? "✓" : status === "progress" ? "◐" : "○";
-          const color = status === "done" ? "var(--primary)" : status === "progress" ? "#ffcc00" : "var(--muted-foreground)";
+          const color =
+            status === "done"
+              ? "var(--status-done, var(--primary))"
+              : status === "progress"
+                ? "var(--status-progress, #ffcc00)"
+                : "var(--status-planned, var(--muted-foreground))";
           return (
             <div key={label} className="flex items-center gap-3">
               <span className="w-4 shrink-0 text-center" style={{ color }}>{icon}</span>

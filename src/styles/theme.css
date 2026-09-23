@@ -19,6 +19,9 @@
   --destructive: #ff3333;
   --destructive-foreground: #ffffff;
   --border: rgba(0, 255, 65, 0.15);
+  --status-done: #00ff41;
+  --status-progress: #ffcc00;
+  --status-planned: #9ca3af;
   --input: transparent;
   --input-background: #0d1a0d;
   --switch-background: #1a3a1a;
@@ -59,6 +62,9 @@
   --destructive: #ff3333;
   --destructive-foreground: #ffffff;
   --border: rgba(0, 255, 65, 0.15);
+  --status-done: #00ff41;
+  --status-progress: #ffcc00;
+  --status-planned: #9ca3af;
   --input: rgba(0, 255, 65, 0.05);
   --ring: rgba(0, 255, 65, 0.4);
   --font-weight-medium: 500;
