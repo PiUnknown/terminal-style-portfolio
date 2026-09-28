@@ -8,7 +8,7 @@ excerpt: "MCP is how AI apps connect to your tools and data. What it actually is
 
 ## What is MCP?
 
-`MCP (Model Context Protocol)` **is an open standard** for connecting AI apps to external tools and data.
+`MCP (Model Context Protocol)` is an open standard for connecting AI apps to external tools and data.
 
 It does not make the model smarter. It gives the app a common way to discover and use capabilities.
 
