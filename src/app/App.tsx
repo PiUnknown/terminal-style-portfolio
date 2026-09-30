@@ -150,6 +150,13 @@ const BLOG_POSTS: BlogPost[] = Object.entries(mdModules)
   .map(([path, raw]) => parseBlogPost(raw, path))
   .sort((a, b) => b.date.localeCompare(a.date));
 
+const ALL_BLOG_TAGS = Array.from(
+  new Set(BLOG_POSTS.flatMap((p) => p.tags))
+).map((tag) => ({
+  name: tag,
+  count: BLOG_POSTS.filter((p) => p.tags.includes(tag)).length,
+}));
+
 const projectMdModules = import.meta.glob<string>(
   "../content/projects/*.md",
   { eager: true, query: "?raw", import: "default" }
@@ -1074,53 +1081,175 @@ function SkillsSection() {
   );
 }
 
-function BlogListSection({ onOpen }: { onOpen: (id: string) => void }) {
+function BlogListSection({
+  selectedTag,
+  onSelectTag,
+  onOpen,
+}: {
+  selectedTag: string | null;
+  onSelectTag: (tag: string | null) => void;
+  onOpen: (id: string) => void;
+}) {
+  const filteredPosts = selectedTag
+    ? BLOG_POSTS.filter((post) =>
+        post.tags.some((t) => t.toLowerCase() === selectedTag.toLowerCase())
+      )
+    : BLOG_POSTS;
+
   return (
     <div className="space-y-5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-      <div className="text-muted-foreground text-sm">
-        <Prompt path="~/blog" />
-        ls -t ./posts/
+      {/* Dynamic CLI Prompt Line */}
+      <div className="text-muted-foreground text-sm flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <Prompt path="~/blog" />
+          {selectedTag ? (
+            <span>
+              ls ./posts/ | grep <span className="text-primary font-bold">--tag="{selectedTag}"</span>
+            </span>
+          ) : (
+            <span>ls -t ./posts/</span>
+          )}
+        </div>
+        {selectedTag && (
+          <button
+            type="button"
+            onClick={() => onSelectTag(null)}
+            className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 border border-border px-2 py-0.5 hover:border-primary bg-card/50 cursor-pointer"
+            title="Clear filter and show all posts"
+          >
+            <span>[esc] clear filter</span>
+          </button>
+        )}
       </div>
 
-      <div className="space-y-3">
-        {BLOG_POSTS.map((post) => (
-          <motion.button
-            key={post.id}
-            onClick={() => onOpen(post.id)}
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.98 }}
-            transition={{ type: "spring", bounce: 0, duration: 0.2 }}
-            className="w-full text-left border border-border p-3 sm:p-4 hover:border-primary hover:bg-secondary transition-colors group"
+      {/* Monospace Terminal Tag Ribbon / Selector Bar */}
+      <div className="border border-border p-2.5 sm:p-3.5 bg-card/40 space-y-2 text-xs">
+        <div className="flex items-center justify-between text-muted-foreground border-b border-border/50 pb-2">
+          <div className="flex items-center gap-2">
+            <span className="text-primary font-semibold tracking-wider">TAG_FLAGS:</span>
+            <span className="text-[11px] text-muted-foreground hidden sm:inline">
+              (click flag to filter / click active to clear)
+            </span>
+          </div>
+          <span className="text-[11px] font-mono text-muted-foreground">
+            matching: <span className="text-primary font-bold">{filteredPosts.length}</span>/{BLOG_POSTS.length}
+          </span>
+        </div>
+
+        <div className="flex flex-wrap gap-1.5 pt-1 items-center">
+          <button
+            type="button"
+            onClick={() => onSelectTag(null)}
+            className={`px-2 py-1 text-xs border transition-all cursor-pointer font-mono ${
+              selectedTag === null
+                ? "border-primary bg-primary/10 text-primary font-bold shadow-[0_0_8px_rgba(0,255,65,0.15)]"
+                : "border-border text-muted-foreground hover:border-primary/60 hover:text-primary"
+            }`}
           >
-            <div className="flex items-start justify-between gap-2 mb-1">
-              <span className="text-primary group-hover:underline font-semibold text-sm leading-snug">
-                {post.title}
-              </span>
-              <span className="text-xs text-muted-foreground shrink-0">{post.readTime}</span>
-            </div>
-            <div className="text-xs text-muted-foreground mb-2">{post.date}</div>
-            <div className="text-xs text-muted-foreground mb-3">{post.excerpt}</div>
-            <div className="flex gap-2 flex-wrap">
-              {post.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="px-2 py-0.5 text-xs rounded border text-blue-400 border-blue-400/30"
-                >
-                  #{tag}
-                </span>
-              ))}
-            </div>
-            <div className="flex items-center justify-end mt-2">
-              <ShareButton postId={post.id} />
-            </div>
-          </motion.button>
-        ))}
+            * ALL ({BLOG_POSTS.length})
+          </button>
+          {ALL_BLOG_TAGS.map(({ name, count }) => {
+            const isActive = selectedTag?.toLowerCase() === name.toLowerCase();
+            return (
+              <button
+                key={name}
+                type="button"
+                onClick={() => onSelectTag(isActive ? null : name)}
+                className={`px-2 py-1 text-xs border transition-all cursor-pointer flex items-center gap-1.5 font-mono ${
+                  isActive
+                    ? "border-primary bg-primary/10 text-primary font-bold shadow-[0_0_8px_rgba(0,255,65,0.15)]"
+                    : "border-border text-muted-foreground hover:border-primary/60 hover:text-primary"
+                }`}
+              >
+                <span>#{name}</span>
+                <span className="opacity-60 text-[10px]">[{count}]</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
+
+      {/* Posts List or Empty Filter State */}
+      {filteredPosts.length === 0 ? (
+        <div className="border border-dashed border-border p-6 text-center space-y-3 bg-card/20">
+          <div className="text-sm text-muted-foreground font-mono">
+            grep: ./posts/: No entries matching tag <span className="text-primary font-bold">"#{selectedTag}"</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => onSelectTag(null)}
+            className="px-3 py-1.5 text-xs border border-primary text-primary hover:bg-primary/10 transition-colors font-mono cursor-pointer"
+          >
+            [ reset filter: ls ./posts/ ]
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <AnimatePresence mode="popLayout">
+            {filteredPosts.map((post) => (
+              <motion.button
+                key={post.id}
+                layout
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ type: "spring", bounce: 0, duration: 0.2 }}
+                onClick={() => onOpen(post.id)}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full text-left border border-border p-3 sm:p-4 hover:border-primary hover:bg-secondary transition-colors group cursor-pointer block"
+              >
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <span className="text-primary group-hover:underline font-semibold text-sm leading-snug">
+                    {post.title}
+                  </span>
+                  <span className="text-xs text-muted-foreground shrink-0">{post.readTime}</span>
+                </div>
+                <div className="text-xs text-muted-foreground mb-2">{post.date}</div>
+                <div className="text-xs text-muted-foreground mb-3">{post.excerpt}</div>
+                <div className="flex gap-2 flex-wrap">
+                  {post.tags.map((tag) => {
+                    const isTagActive = selectedTag?.toLowerCase() === tag.toLowerCase();
+                    return (
+                      <span
+                        key={tag}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectTag(isTagActive ? null : tag);
+                        }}
+                        className={`px-2 py-0.5 text-xs rounded border transition-all cursor-pointer ${
+                          isTagActive
+                            ? "text-primary border-primary bg-primary/20 font-semibold"
+                            : "text-blue-400 border-blue-400/30 hover:border-blue-400 hover:bg-blue-400/10"
+                        }`}
+                        title={`Filter by #${tag}`}
+                      >
+                        #{tag}
+                      </span>
+                    );
+                  })}
+                </div>
+                <div className="flex items-center justify-end mt-2">
+                  <ShareButton postId={post.id} />
+                </div>
+              </motion.button>
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 }
 
-function BlogPostView({ post, onBack }: { post: BlogPost; onBack: () => void }) {
+function BlogPostView({
+  post,
+  onBack,
+  onSelectTag,
+}: {
+  post: BlogPost;
+  onBack: () => void;
+  onSelectTag?: (tag: string) => void;
+}) {
   return (
     <div className="space-y-5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
       <div className="text-muted-foreground text-sm">
@@ -1144,12 +1273,19 @@ function BlogPostView({ post, onBack }: { post: BlogPost; onBack: () => void }) 
         </div>
         <div className="flex gap-2 flex-wrap">
           {post.tags.map((tag) => (
-            <span
+            <button
               key={tag}
-              className="px-2 py-0.5 text-xs rounded border text-blue-400 border-blue-400/30"
+              type="button"
+              onClick={() => {
+                if (onSelectTag) {
+                  onSelectTag(tag);
+                }
+              }}
+              className="px-2 py-0.5 text-xs rounded border text-blue-400 border-blue-400/30 hover:border-blue-400 hover:bg-blue-400/10 transition-colors cursor-pointer"
+              title={`View posts tagged #${tag}`}
             >
               #{tag}
-            </span>
+            </button>
           ))}
         </div>
         <div className="border-t border-border pt-4">
@@ -1162,7 +1298,7 @@ function BlogPostView({ post, onBack }: { post: BlogPost; onBack: () => void }) 
 
       <button
         onClick={onBack}
-        className="text-sm text-muted-foreground hover:text-primary transition-colors"
+        className="text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer flex items-center gap-1.5"
       >
         <Prompt path="~/blog" />
         cd .. # ← go back
@@ -1269,15 +1405,61 @@ function ContactSection() {
         </div>
       </form>
 
-      <div className="border border-border p-3 space-y-1 text-xs text-muted-foreground">
-        <div>
-          email &nbsp;&nbsp;:: <span className="text-foreground">reachomjha@gmail.com</span>
+      <div className="space-y-2 pt-1">
+        <div className="text-muted-foreground text-xs flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-1.5">
+            <Prompt path="~/contact" />
+            <span>cat ./channels.env</span>
+          </div>
+          <span className="text-[10px] text-muted-foreground/70 font-mono">[DIRECT_CHANNELS]</span>
         </div>
-        <div>
-          github &nbsp;:: <span className="text-foreground">github.com/PiUnknown</span>
-        </div>
-        <div>
-          X &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:: <span className="text-foreground">@piunknown043</span>
+
+        <div className="border border-border bg-card/40 p-3 sm:p-4 text-xs font-mono space-y-2.5">
+          {[
+            {
+              key: "email",
+              val: "reachomjha@gmail.com",
+              href: "mailto:reachomjha@gmail.com",
+              badge: "PRIMARY",
+            },
+            {
+              key: "github",
+              val: "github.com/PiUnknown",
+              href: "https://github.com/PiUnknown",
+              badge: "CODE",
+            },
+            {
+              key: "linkedin",
+              val: "linkedin.com/in/omkumarjha043",
+              href: "https://linkedin.com/in/omkumarjha043",
+              badge: "NETWORK",
+            },
+          ].map(({ key, val, href, badge }) => (
+            <div key={key} className="flex items-center justify-between flex-wrap gap-2 group">
+              <div className="flex items-center gap-2">
+                <span className="text-primary font-semibold w-16 sm:w-20 shrink-0">{key}</span>
+                <span className="text-muted-foreground">::</span>
+                <a
+                  href={href}
+                  target={href.startsWith("mailto") ? undefined : "_blank"}
+                  rel="noreferrer"
+                  onClick={() => {
+                    triggerHaptic("light");
+                    trackEvent("contact_link_clicked", { channel: key, url: href });
+                  }}
+                  className="text-foreground hover:text-primary hover:underline transition-colors flex items-center gap-1 cursor-pointer"
+                >
+                  <span>{val}</span>
+                  {!href.startsWith("mailto") && (
+                    <span className="text-[10px] text-muted-foreground group-hover:text-primary transition-colors">↗</span>
+                  )}
+                </a>
+              </div>
+              <span className="text-[10px] text-muted-foreground border border-border/60 px-1.5 py-0.5 rounded bg-background/50">
+                {badge}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -1292,6 +1474,7 @@ export default function App() {
   const [section, setSection] = useState<Section>("home");
   const [openPost, setOpenPost] = useState<string | null>(null);
   const [openProject, setOpenProject] = useState<string | null>(null);
+  const [selectedBlogTag, setSelectedBlogTag] = useState<string | null>(null);
   const [snakeOpen, setSnakeOpen] = useState(false);
   const [matrixOpen, setMatrixOpen] = useState(false);
   const [sfxEnabled, setSfxEnabled] = useState(() => keyboardSound.enabled);
@@ -1357,12 +1540,19 @@ export default function App() {
     const segments = path.split("/");
     const maybeSection = segments[0] as Section;
     const validSections: Section[] = ["home", "about", "projects", "skills", "blog", "contact"];
+    const urlParams = new URLSearchParams(window.location.search);
+    const tagParam = urlParams.get("tag");
 
     if (!path || path === "/") {
       // already home, do nothing
     } else if (maybeSection === "blog" && segments[1]) {
       setSection("blog");
       setOpenPost(segments[1]);
+    } else if (maybeSection === "blog") {
+      setSection("blog");
+      if (tagParam) {
+        setSelectedBlogTag(tagParam);
+      }
     } else if (maybeSection === "projects" && segments[1]) {
       setSection("projects");
       setOpenProject(segments[1]);
@@ -1377,14 +1567,21 @@ export default function App() {
       const segments = path.split("/");
       const maybeSection = segments[0] as Section;
       const validSections: Section[] = ["home", "about", "projects", "skills", "blog", "contact"];
+      const urlParams = new URLSearchParams(window.location.search);
+      const tagParam = urlParams.get("tag");
 
       if (!path || path === "/") {
         setSection("home");
         setOpenPost(null);
         setOpenProject(null);
+        setSelectedBlogTag(null);
       } else if (maybeSection === "blog" && segments[1]) {
         setSection("blog");
         setOpenPost(segments[1]);
+      } else if (maybeSection === "blog") {
+        setSection("blog");
+        setOpenPost(null);
+        setSelectedBlogTag(tagParam);
       } else if (maybeSection === "projects" && segments[1]) {
         setSection("projects");
         setOpenProject(segments[1]);
@@ -1392,11 +1589,23 @@ export default function App() {
         setSection(maybeSection);
         setOpenPost(null);
         setOpenProject(null);
+        setSelectedBlogTag(null);
       }
     }
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
+
+  const handleSelectBlogTag = (tag: string | null) => {
+    keyboardSound.playKey("t");
+    triggerHaptic("selection");
+    setSelectedBlogTag(tag);
+    if (tag) {
+      history.pushState(null, "", `/blog?tag=${encodeURIComponent(tag)}`);
+    } else {
+      history.pushState(null, "", "/blog");
+    }
+  };
 
   const handleOpenPost = (id: string | null) => {
     triggerHaptic("light");
@@ -1404,7 +1613,11 @@ export default function App() {
     if (id) {
       history.pushState(null, "", `/blog/${id}`);
     } else {
-      history.pushState(null, "", "/blog");
+      if (selectedBlogTag) {
+        history.pushState(null, "", `/blog?tag=${encodeURIComponent(selectedBlogTag)}`);
+      } else {
+        history.pushState(null, "", "/blog");
+      }
     }
   };
 
@@ -1451,6 +1664,9 @@ export default function App() {
     setSection(s);
     setOpenPost(null);
     setOpenProject(null);
+    if (s !== "blog") {
+      setSelectedBlogTag(null);
+    }
     setInlineLog([]);
     window.scrollTo({ top: 0, behavior: "smooth" });
     history.pushState(null, "", s === "home" ? "/" : `/${s}`);
@@ -1479,6 +1695,7 @@ export default function App() {
       blogPosts: BLOG_POSTS,
       skills: SKILLS,
       history: cmdHistory,
+      selectedTag: selectedBlogTag,
     });
 
     if (result.clearLog) {
@@ -1513,6 +1730,15 @@ export default function App() {
       a.download = "Om_Kumar_Jha_Resume.pdf";
       a.target = "_blank";
       a.click();
+    }
+
+    if (result.filterTag !== undefined) {
+      setSelectedBlogTag(result.filterTag);
+      if (result.filterTag) {
+        history.pushState(null, "", `/blog?tag=${encodeURIComponent(result.filterTag)}`);
+      } else if (result.newSection === "blog" || section === "blog") {
+        history.pushState(null, "", "/blog");
+      }
     }
 
     if (result.newSection && result.newSection !== section) {
@@ -1578,10 +1804,10 @@ export default function App() {
         const vfs = buildVFS(PROJECTS, BLOG_POSTS, SKILLS);
         const allCliCommands = [
           "help", "whoami", "about", "projects", "skills", "blog", "contact",
-          "game", "clear", "ls", "cd", "cat", "pwd", "tree", "open",
+          "game", "clear", "ls", "cd", "cat", "pwd", "tree", "open", "grep",
           "theme", "sfx", "neofetch", "weather", "date", "uptime", "history", "cowsay"
         ];
-        const completion = getTabCompletion(cmdInput, currentPath, vfs, allCliCommands);
+        const completion = getTabCompletion(cmdInput, currentPath, vfs, allCliCommands, BLOG_POSTS);
         if (completion) {
           setCmdInput(completion);
         }
@@ -1789,9 +2015,20 @@ export default function App() {
             {section === "skills" && <SkillsSection />}
             {section === "blog" &&
               (post ? (
-                <BlogPostView post={post} onBack={() => handleOpenPost(null)} />
+                <BlogPostView
+                  post={post}
+                  onBack={() => handleOpenPost(null)}
+                  onSelectTag={(tag) => {
+                    handleSelectBlogTag(tag);
+                    handleOpenPost(null);
+                  }}
+                />
               ) : (
-                <BlogListSection onOpen={handleOpenPost} />
+                <BlogListSection
+                  selectedTag={selectedBlogTag}
+                  onSelectTag={handleSelectBlogTag}
+                  onOpen={handleOpenPost}
+                />
               ))}
             {section === "contact" && <ContactSection />}
           </motion.div>

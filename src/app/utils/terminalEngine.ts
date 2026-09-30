@@ -53,6 +53,7 @@ export interface TerminalContext {
   blogPosts: BlogPost[];
   skills: Record<string, string[]>;
   history: string[];
+  selectedTag?: string | null;
 }
 
 export interface CommandResult {
@@ -61,6 +62,7 @@ export interface CommandResult {
   newPath?: string;
   openProject?: string | null;
   openPost?: string | null;
+  filterTag?: string | null;
   newTheme?: ThemeId;
   toggleSfx?: boolean;
   openSnake?: boolean;
@@ -146,7 +148,6 @@ export function buildVFS(
       "# Om's Contact Channels",
       "EMAIL=\"reachomjha@gmail.com\"",
       "GITHUB=\"https://github.com/PiUnknown\"",
-      "X_TWITTER=\"https://x.com/piunknown043\"",
       "LINKEDIN=\"https://linkedin.com/in/omkumarjha043\"",
       "",
       "echo \"Run 'cd contact' or './send-message.sh' to send a message via form!\"",
@@ -171,6 +172,14 @@ export function buildVFS(
   };
 
   // 2. Directory: projects/
+  const reposDir: VFSDirectory = {
+    type: "dir",
+    name: "repos",
+    date: "Sep 17 21:00",
+    section: "projects",
+    children: {},
+  };
+
   const projectsDir: VFSDirectory = {
     type: "dir",
     name: "projects",
@@ -189,13 +198,14 @@ export function buildVFS(
           "-------------------------------------------------------------",
         ].join("\n"),
       },
+      "repos": reposDir,
     },
   };
 
   projects.forEach((proj) => {
     const slug = proj.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
     const filename = `${slug}.md`;
-    projectsDir.children[filename] = {
+    const projFile: VFSFile = {
       type: "file",
       name: filename,
       size: proj.body?.length || 1024,
@@ -215,10 +225,21 @@ export function buildVFS(
         .filter(Boolean)
         .join("\n"),
     };
+    projectsDir.children[filename] = projFile;
+    reposDir.children[filename] = projFile;
   });
   root.children["projects"] = projectsDir;
+  root.children["repos"] = reposDir;
 
   // 3. Directory: blog/
+  const postsDir: VFSDirectory = {
+    type: "dir",
+    name: "posts",
+    date: "Sep 17 21:00",
+    section: "blog",
+    children: {},
+  };
+
   const blogDir: VFSDirectory = {
     type: "dir",
     name: "blog",
@@ -237,12 +258,13 @@ export function buildVFS(
           "--------------------------------------------------",
         ].join("\n"),
       },
+      "posts": postsDir,
     },
   };
 
   blogPosts.forEach((post) => {
     const filename = `${post.id}.md`;
-    blogDir.children[filename] = {
+    const postFile: VFSFile = {
       type: "file",
       name: filename,
       size: post.body?.length || 2048,
@@ -259,8 +281,11 @@ export function buildVFS(
         post.body || "",
       ].join("\n\n"),
     };
+    blogDir.children[filename] = postFile;
+    postsDir.children[filename] = postFile;
   });
   root.children["blog"] = blogDir;
+  root.children["posts"] = postsDir;
 
   // 4. Directory: skills/
   const skillsDir: VFSDirectory = {
@@ -324,6 +349,17 @@ export function buildVFS(
     date: "Sep 17 21:00",
     section: "contact",
     children: {
+      "channels.env": {
+        type: "file",
+        name: "channels.env",
+        size: 320,
+        date: "Sep 17 21:00",
+        content: [
+          "EMAIL=\"reachomjha@gmail.com\"",
+          "GITHUB=\"https://github.com/PiUnknown\"",
+          "LINKEDIN=\"https://linkedin.com/in/omkumarjha043\"",
+        ].join("\n"),
+      },
       "info.txt": {
         type: "file",
         name: "info.txt",
@@ -332,7 +368,6 @@ export function buildVFS(
         content: [
           "EMAIL:    reachomjha@gmail.com",
           "GITHUB:   https://github.com/PiUnknown",
-          "X:        https://x.com/piunknown043",
           "LINKEDIN: https://linkedin.com/in/omkumarjha043",
         ].join("\n"),
       },
@@ -411,7 +446,8 @@ export function getTabCompletion(
   input: string,
   currentPath: string,
   vfs: VFSDirectory,
-  allCommands: string[]
+  allCommands: string[],
+  blogPosts?: BlogPost[]
 ): string | null {
   const trimmed = input.trimStart();
   const parts = trimmed.split(/\s+/);
@@ -424,6 +460,25 @@ export function getTabCompletion(
       return matches[0] + " ";
     }
     return null;
+  }
+
+  // Autocomplete blog / grep tag arguments
+  if (blogPosts && blogPosts.length > 0) {
+    const cmd = parts[0].toLowerCase();
+    if (cmd === "blog" || cmd === "grep") {
+      const allTags = Array.from(new Set(blogPosts.flatMap((p) => p.tags)));
+      const lastPart = parts[parts.length - 1];
+      const cleanTarget = lastPart.replace(/^(--tag=|-t|--tag|#)/, "").toLowerCase();
+
+      const matched = allTags.filter((t) => t.toLowerCase().startsWith(cleanTarget));
+      if (matched.length === 1) {
+        const prefix = parts.slice(0, -1).join(" ");
+        if (lastPart.startsWith("--tag=")) {
+          return `${prefix ? prefix + " " : ""}--tag=${matched[0]} `;
+        }
+        return `${prefix ? prefix + " " : ""}${matched[0]} `;
+      }
+    }
   }
 
   // Autocomplete file or directory path argument (for cd, cat, open, ls, etc.)
@@ -463,6 +518,83 @@ export async function executeTerminalCommand(
 
   const vfs = buildVFS(ctx.projects, ctx.blogPosts, ctx.skills);
 
+  // ── 0. Pipe Support (e.g. ls ./posts/ | grep --tag="ai") ──
+  if (cleanCmd.includes("|")) {
+    const pipeParts = cleanCmd.split("|").map((s) => s.trim()).filter(Boolean);
+    if (pipeParts.length >= 2) {
+      const leftCmd = pipeParts[0];
+      const rightCmd = pipeParts[1];
+
+      // Execute left command
+      const leftResult = await executeTerminalCommand(leftCmd, ctx);
+
+      // Parse right command (e.g. grep ...)
+      const rightTokens = rightCmd.split(/\s+/);
+      const rightBase = rightTokens[0].toLowerCase();
+      const rightArgs = rightTokens.slice(1);
+
+      if (rightBase === "grep") {
+        let pattern = "";
+        let filterTag: string | null = null;
+
+        const tagFlagIdx = rightArgs.findIndex((a) => a === "-t" || a === "--tag");
+        if (tagFlagIdx !== -1 && rightArgs[tagFlagIdx + 1]) {
+          pattern = rightArgs[tagFlagIdx + 1].replace(/^["']|["']$/g, "").replace(/^#/, "");
+          filterTag = pattern;
+        } else {
+          const inlineTagArg = rightArgs.find((a) => a.startsWith("--tag="));
+          if (inlineTagArg) {
+            pattern = inlineTagArg.split("=")[1]?.replace(/^["']|["']$/g, "").replace(/^#/, "") || "";
+            filterTag = pattern;
+          } else if (rightArgs.length > 0) {
+            pattern = rightArgs[0].replace(/^["']|["']$/g, "").replace(/^#/, "");
+            filterTag = pattern;
+          }
+        }
+
+        const allTags = Array.from(new Set(ctx.blogPosts.flatMap((p) => p.tags)));
+        const matchedTag = filterTag ? allTags.find((t) => t.toLowerCase() === filterTag!.toLowerCase()) || null : null;
+
+        if (matchedTag) {
+          const matchingPosts = ctx.blogPosts.filter((p) =>
+            p.tags.map((t) => t.toLowerCase()).includes(matchedTag.toLowerCase())
+          );
+          const postLines = matchingPosts.map(
+            (p) => `  * ./posts/${p.id}.md — "${p.title}" [${(p.tags || []).map((t) => "#" + t).join(" ")}]`
+          );
+          return {
+            output: [
+              `> ${raw}`,
+              `  grep: filtered by tag #${matchedTag} (${matchingPosts.length} ${matchingPosts.length === 1 ? "match" : "matches"}):`,
+              ...postLines,
+            ],
+            newSection: "blog",
+            newPath: "~/blog",
+            filterTag: matchedTag,
+            openPost: null,
+            openProject: null,
+          };
+        }
+
+        const rawLines = leftResult.output.slice(1);
+        const filteredLines = rawLines.filter((line) => {
+          if (!pattern) return true;
+          return line.toLowerCase().includes(pattern.toLowerCase());
+        });
+
+        return {
+          output: [
+            `> ${raw}`,
+            ...(filteredLines.length > 0 ? filteredLines : [`  grep: pattern '${pattern}' not found in output.`]),
+          ],
+          filterTag: null,
+          newSection: leftResult.newSection,
+          newPath: leftResult.newPath,
+        };
+      }
+    }
+  }
+
   // ── 1. Clear ──
   if (command === "clear" || command === "cls") {
     return { output: [], clearLog: true };
@@ -482,9 +614,11 @@ export async function executeTerminalCommand(
         "    cat <file>           Read and display file contents inline",
         "    tree                 Display ASCII visual tree of portfolio files",
         "    open <project|blog>  Navigate directly to project / article view",
+        "    grep [-t] <tag>      Filter blog posts by tag",
         "",
         "  SECTIONS & SHORTCUTS:",
-        "    home | about | projects | skills | blog | contact",
+        "    home | about | projects | skills | contact",
+        "    blog [--tag <tag>]   Navigate to blog or filter by tag (e.g. blog -t ai)",
         "",
         "  SYSTEM & UTILITIES:",
         "    theme [name]         List or change theme (phosphor, ice, synthwave, c64, gruvbox)",
@@ -731,6 +865,69 @@ export async function executeTerminalCommand(
   const validSections: Section[] = ["home", "about", "projects", "skills", "blog", "contact"];
   if (validSections.includes(command as Section)) {
     const s = command as Section;
+
+    if (s === "blog") {
+      let filterTag: string | null = null;
+      const tagFlagIdx = args.findIndex((a) => a === "-t" || a === "--tag");
+      if (tagFlagIdx !== -1 && args[tagFlagIdx + 1]) {
+        filterTag = args[tagFlagIdx + 1].replace(/^#/, "");
+      } else {
+        const inlineTagArg = args.find((a) => a.startsWith("--tag="));
+        if (inlineTagArg) {
+          filterTag = inlineTagArg.split("=")[1]?.replace(/^#/, "") || null;
+        } else if (args.length > 0 && !args[0].startsWith("-")) {
+          if (args[0].toLowerCase() === "all" || args[0].toLowerCase() === "clear" || args[0].toLowerCase() === "reset") {
+            filterTag = null;
+          } else {
+            filterTag = args[0].replace(/^#/, "");
+          }
+        }
+      }
+
+      const allTags = Array.from(new Set(ctx.blogPosts.flatMap((p) => p.tags)));
+
+      if (filterTag) {
+        const matched = allTags.find((t) => t.toLowerCase() === filterTag!.toLowerCase());
+        if (matched) {
+          const matchCount = ctx.blogPosts.filter((p) =>
+            p.tags.map((t) => t.toLowerCase()).includes(matched.toLowerCase())
+          ).length;
+          return {
+            output: [
+              `> ${raw}`,
+              `  ✓ switched to blog (filter: #${matched} — ${matchCount} ${matchCount === 1 ? "post" : "posts"})`,
+            ],
+            newSection: "blog",
+            newPath: "~/blog",
+            filterTag: matched,
+            openPost: null,
+            openProject: null,
+          };
+        } else {
+          return {
+            output: [
+              `> ${raw}`,
+              `  blog: tag '${filterTag}' not found. Available tags: ${allTags.map((t) => "#" + t).join(", ")}`,
+            ],
+            newSection: "blog",
+            newPath: "~/blog",
+            filterTag: null,
+            openPost: null,
+            openProject: null,
+          };
+        }
+      }
+
+      return {
+        output: [`> ${raw}`, `  ✓ switched to section: blog`],
+        newSection: "blog",
+        newPath: "~/blog",
+        filterTag: null,
+        openPost: null,
+        openProject: null,
+      };
+    }
+
     return {
       output: [`> ${raw}`, `  ✓ switched to section: ${s}`],
       newSection: s,
@@ -738,6 +935,68 @@ export async function executeTerminalCommand(
       openPost: null,
       openProject: null,
     };
+  }
+
+  // ── 9b. GREP Command (Tag filtering in blog) ──
+  if (command === "grep") {
+    if (args.length === 0) {
+      return {
+        output: [`> ${raw}`, `  usage: grep [-t|--tag] <tag_name>`],
+      };
+    }
+
+    let searchTag: string | null = null;
+    const tagIdx = args.findIndex((a) => a === "-t" || a === "--tag");
+    if (tagIdx !== -1 && args[tagIdx + 1]) {
+      searchTag = args[tagIdx + 1].replace(/^#/, "");
+    } else {
+      const inlineTagArg = args.find((a) => a.startsWith("--tag="));
+      if (inlineTagArg) {
+        searchTag = inlineTagArg.split("=")[1]?.replace(/^#/, "") || null;
+      } else {
+        searchTag = args[0].replace(/^#/, "");
+      }
+    }
+
+    const allTags = Array.from(new Set(ctx.blogPosts.flatMap((p) => p.tags)));
+    if (searchTag) {
+      if (searchTag.toLowerCase() === "all" || searchTag.toLowerCase() === "clear" || searchTag.toLowerCase() === "reset") {
+        return {
+          output: [`> ${raw}`, `  grep: cleared tag filter, showing all ${ctx.blogPosts.length} posts.`],
+          newSection: "blog",
+          newPath: "~/blog",
+          filterTag: null,
+          openPost: null,
+          openProject: null,
+        };
+      }
+
+      const matched = allTags.find((t) => t.toLowerCase() === searchTag!.toLowerCase());
+      if (matched) {
+        const matches = ctx.blogPosts.filter((p) =>
+          p.tags.map((t) => t.toLowerCase()).includes(matched.toLowerCase())
+        );
+        return {
+          output: [
+            `> ${raw}`,
+            `  grep: ${matches.length} matching ${matches.length === 1 ? "post" : "posts"} for tag #${matched}:`,
+            ...matches.map((m) => `    * ./posts/${m.id}.md — "${m.title}" (${m.date})`),
+          ],
+          newSection: "blog",
+          newPath: "~/blog",
+          filterTag: matched,
+          openPost: null,
+          openProject: null,
+        };
+      } else {
+        return {
+          output: [
+            `> ${raw}`,
+            `  grep: no posts found for tag '#${searchTag}'. Available tags: ${allTags.map((t) => "#" + t).join(", ")}`,
+          ],
+        };
+      }
+    }
   }
 
   // ── 10. THEME ──
