@@ -8,78 +8,65 @@ excerpt: "MCP is how AI apps connect to your tools and data. What it actually is
 
 ## What is MCP?
 
-`MCP (Model Context Protocol)` is an open standard for connecting AI apps to external tools and data.
+**Model Context Protocol (MCP)** is an open standard for securely connecting AI applications to external tools, data sources, and workflows.
 
-It does not make the model smarter. It gives the app a common way to discover and use capabilities.
+It does not make the underlying AI model smarter. Instead, it provides a standardized protocol for AI applications to dynamically discover and invoke capabilities.
 
-### Three pieces:
 
-- **Host** - the AI app that manages connections.
-- **Client** - the part of that app wired to one server.
-- **Server** - the program exposing capabilities, local or remote.
+### Core Architecture
 
-### A server can expose:
+- **Host**: The main AI application that manages connections and user interactions.
+- **Client**: The component inside the host app connected to a specific server.
+- **Server**: The program exposing capabilities, hosted locally or remotely.
 
-- **Tools** - actions, like `search_orders(id)`
-- **Resources** - data the app can read, like a database schema
-- **Prompts** - reusable templates for a task
 
-The model never calls your database directly. The host decides what to expose and handles every tool request.
+### Server Capabilities
 
-## Why is everyone adopting it?
+- **Tools**: Executable actions the model can trigger (e.g., `search_orders(id)`).
+- **Resources**: Readable data contexts provided to the model (e.g., database schemas, logs).
+- **Prompts**: Pre-configured prompt templates for specific tasks.
 
-- one server can describe its capabilities to any MCP-compatible host
-- a host can connect to many servers without custom discovery logic per tool
-- the same pattern covers actions, read-only context, and reusable prompts
 
-It is useful interoperability, not magic portability:
+> **Key Takeaway:** The AI model never accesses external systems directly. **The host application sits in the middle**, managing security, permissions, and tool invocation approval.
 
-- the host must support your capabilities and transport
-- every integration still needs credentials and careful permissions
 
-## How is it different from an API?
+## Why is MCP being widely adopted?
 
-An API is how two pieces of code talk. You read its docs, write glue code for its specific URLs, params, and auth - and every API is different.
+- **Universal Interface**: A single MCP server can expose its features to any MCP-compatible host without custom integration code.
+- **Unified Capabilities**: Combines tool actions, read-only resource context, and reusable prompt templates into one standard.
+- **Zero Glue Code**: Hosts seamlessly discover server capabilities at runtime.
 
-MCP is one fixed way for an AI app to ask any tool two things:
 
-- what can you do?
-- do this for me
+## How is MCP different from a standard API?
 
-The easiest way to think about it: **USB-C for AI apps**.
+A standard REST API defines how two specific applications communicate. Developers must read documentation, write custom glue code, and handle unique authentication formats for every API.
 
-- an API is every device having its own charging plug - works fine, but you need the right cable for each one
-- MCP is the shared port - plug in any MCP server and the AI app instantly knows what it can do and how to call it, no new glue code
+MCP provides a universal protocol for AI applications to query any system:
+1. *What capabilities do you support?*
+2. *Execute this specific tool with these arguments.*
 
-They are not rivals. Most MCP servers call regular APIs behind the scenes - MCP just standardizes how the AI app on the other end discovers and uses them.
+Think of MCP as **USB-C for AI applications**:
+- Standard APIs are like proprietary charging cables—functional, but requiring a unique cable for every device.
+- MCP is the standardized USB-C port—plug in any MCP server, and the AI host immediately recognizes how to interact with it.
 
-## What happens when a tool runs?
 
-1. **you ask** - "refund order A-104"
-2. **model proposes** - run `refund(order_id="A-104")`
-3. **host approves** - and executes the call
-4. **server runs** - the action, returns the result
-5. **model reads it** - and answers you in plain words
+> **Key Takeaway:** MCP does not replace traditional APIs. Most MCP servers call underlying REST or GraphQL APIs behind the scenes—MCP simply standardizes discovery and execution for AI hosts.
 
-The important part: the model only *proposes*. The host - code you control - sits in the middle, decides what gets executed, and can demand approval first.
 
-Underneath, MCP messages are JSON-RPC. A local server speaks over standard input/output; a remote one uses Streamable HTTP.
+## How a Tool Request Executes
 
-## When should you skip it?
+1. **User Request**: You ask the AI host: *"Refund order A-104"*.
+2. **Model Proposal**: The model requests to run `refund(order_id="A-104")`.
+3. **Host Approval**: The host validates the request and obtains user approval.
+4. **Server Execution**: The MCP server executes the backend action and returns the result.
+5. **Final Response**: The model interprets the result and responds in plain language.
 
-If one app calls one known endpoint, a plain API client is simpler.
 
-Add MCP when AI apps need to discover and use that capability through the same interface as every other tool.
+## Getting Started
 
-## How can you get started?
+- **Official Website**: [modelcontextprotocol.io](https://modelcontextprotocol.io)
+- **Architecture Guide**: [modelcontextprotocol.io/learn/architecture](https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture)
+- **Python SDK**: [github.com/modelcontextprotocol/python-sdk](https://github.com/modelcontextprotocol/python-sdk)
 
-- **Overview** - [modelcontextprotocol.io intro](https://modelcontextprotocol.io/docs/2026-07-28/getting-started/intro)
-- **Architecture** - [modelcontextprotocol.io/learn/architecture](https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture)
-- **Build your first server** - [modelcontextprotocol.io/docs/develop/build-server](https://modelcontextprotocol.io/docs/develop/build-server)
-- **Python SDK** - [github.com/modelcontextprotocol/python-sdk](https://github.com/modelcontextprotocol/python-sdk)
 
-## My advice for a first project
-
-Wrap something you already have - a database query, an internal API - as one MCP tool, and watch your agent discover and call it.
-
-That is the whole trick.
+> **First Project Advice:** Wrap an existing internal query or API endpoint into a single MCP tool, and test how your AI agent discovers and executes it.

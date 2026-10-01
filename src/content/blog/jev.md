@@ -8,127 +8,127 @@ excerpt: "Jev is a new kind of AI model that makes decisions instead of writing 
 
 ## What is Jev?
 
-Jev is a new AI model from TypeSafe AI. It does not chat.
+**Jev** is a new class of decision-making AI model from TypeSafe AI. It does not engage in prose conversations or write text responses.
 
-You send it:
+Instead, you provide:
+- Input text to evaluate
+- A list of structured, typed questions
 
-- some text
-- a list of typed questions
+It returns concise, deterministic answers:
+- A probability score (yes/no)
+- A selected choice from your predefined options
+- A scalar position on a scale
 
-It sends back one answer per question:
+The easiest way to think about Jev is as **a smart `if` statement**.
 
-- a yes/no probability
-- a pick from your options
-- a position on your scale
+Traditional code branches on computable values (like `if (order.total > 100)`), but fails when condition evaluation requires subjective judgment:
+- Is this incoming email about a billing dispute?
+- How frustrated is this customer?
 
-No prose, ever.
+Jev evaluates the subjective judgment, allowing your software to branch cleanly on the result.
 
-The easiest way to think about it: **a smart if statement**.
 
-Code branches on what it can compute, like `if (order.total > 100)`. It falls apart when the condition is a judgment.
+> **Key Takeaway:** Jev is built for high-speed, programmatic decisions inside software pipelines, not text conversations.
 
-- Is this email about billing?
-- How angry is this customer?
 
-Jev answers the judgment. Your code keeps the branch.
+## Why is Jev trending?
 
-## Why is it suddenly trending?
+- **Backing & Launch**: TypeSafe AI emerged from stealth on September 15, 2026, with $40M in seed funding.
+- **System One Architecture**: Built specifically for ultra-fast software decisions rather than human chat.
+- **Performance & Cost**: Most inference calls finish in **~100ms** at **$0.042 per million input tokens**, with free output.
+- **Real-World Scale**: Early benchmarks saw developers classify 98,000 document listings in under ten minutes for under $0.10.
 
-- TypeSafe came out of stealth on **September 15, 2026** with **$40M in seed funding**.
-- Jev is its first public model, and it calls it a new class: a **System One model** - fast decisions inside software, not conversations with people.
-- Most calls finish in **~100ms**. Input costs **$0.042 per million tokens**. Output is free.
-- In the first days, people labeled 1,018 research papers for $0.08 and classified 98,000 listings in ten minutes.
 
-## How is it different from an LLM with structured output?
+## How does Jev differ from structured LLM outputs?
 
-An LLM can answer these questions too. But:
+While standard Large Language Models can produce structured JSON, they come with trade-offs:
+- LLMs generate JSON token-by-token, introducing latency.
+- Standard LLMs charge full conversational pricing.
+- Generative models can occasionally drift outside your defined schema.
 
-- it generates its JSON one token at a time - slow
-- it charges LLM prices for it
-- it can drift outside your format
+Jev samples all requested questions in parallel as probability distributions over your defined options. It is fast, cost-effective, and guaranteed to strictly adhere to your schema.
 
-Jev samples all answers in parallel, as probability distributions over options you defined. Fast, cheap, and unable to return a value outside your schema.
 
-## How do you try it?
+## How to try Jev
 
-1. Join the waitlist at [typesafe.ai](https://typesafe.ai). Early signups got in within a day or two.
-2. Grab an API key at [console.typesafe.ai/keys](https://console.typesafe.ai/keys).
-3. Make your first call:
+1. Join the waitlist at [typesafe.ai](https://typesafe.ai).
+2. Generate an API key at [console.typesafe.ai/keys](https://console.typesafe.ai/keys).
+3. Execute your first API request:
 
-Run: curl -s https://api.typesafe.ai/v1/systemone -H "Authorization: Bearer $TYPESAFE_API_KEY" -H "Content-Type: application/json" -d '{"model":"jev-latest","state":"My card was charged twice for order A-104. Please refund the duplicate.","questions":{"refund_requested":{"type":"noul","instructions":"Does the customer ask for money back?"}}}'
+```bash
+curl -s https://api.typesafe.ai/v1/systemone \
+  -H "Authorization: Bearer $TYPESAFE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "jev-latest",
+    "state": "My card was charged twice for order A-104. Please refund the duplicate.",
+    "questions": {
+      "refund_requested": {
+        "type": "noul",
+        "instructions": "Does the customer ask for money back?"
+      }
+    }
+  }'
+```
 
-You get back:
+Response output:
 
-    {"refund_requested": {"type": "noul", "noul": 0.93}}
+```json
+{
+  "refund_requested": {
+    "type": "noul",
+    "noul": 0.93
+  }
+}
+```
 
-That number is the probability of yes. Branch on it like any other value.
+The returned `0.93` represents the probability of a positive answer. You can directly branch on this value in code.
 
-## The three question types
 
-### Noul - is this true?
+## The Three Question Primitives
 
-Returns one number between 0 and 1: the probability of yes.
 
-- near 1: strong yes
-- near 0: strong no
-- 0.5: genuinely unsure
+### 1. Noul (Boolean Probability)
 
-Use it when the probability itself is the signal:
+Returns a float between `0.0` and `1.0` representing the probability of `true`:
+- Near `1.0`: Strong positive
+- Near `0.0`: Strong negative
+- `0.5`: High uncertainty
 
-- does this message contain personal info?
-- is the customer asking for a refund?
-- does this resume mention distributed systems?
+Use cases:
+- Detecting sensitive personal information
+- Identifying refund requests
+- Checking candidate resume requirements
 
-One trap: define the condition precisely. "Is this candidate strong in Python?" is vague - a 0.5 there means your question was unclear, not that the candidate is medium-skilled. Better: "Does the resume say the candidate used Python at work?" If you want a skill level, that is a Score, not a Noul.
 
-### Choice - which of these options?
+### 2. Choice (Categorical Selection)
 
-You give the full list of options. You get back:
+Selects the best fit from a user-provided array of options and returns the probability distribution and confidence score.
 
-- the selected option
-- the probability of every option
-- a confidence score for how peaked that distribution is
+Use cases:
+- Routing support tickets (`billing`, `technical`, `account`)
+- Classifying document categories
+- Identifying programming languages
 
-Use it when the answer is one of a known set with no order:
 
-- routing a ticket: billing, technical, or account
-- classifying a document type
-- detecting a programming language
+### 3. Score (Scalar Assessment)
 
-Add an `other` option when your list might not cover every input.
+Maps input onto a continuous numerical spectrum (e.g., `0` = calm, `1` = frustrated, `2` = hostile). Can return intermediate values like `1.4`.
 
-### Score - where on this scale?
+Use cases:
+- Assessing customer sentiment
+- Rating bug severity
+- Scoring technical proficiency
 
-You define the levels: 0 = calm, 1 = frustrated, 2 = very frustrated. You get back a position along them - it can even fall between two levels, like 1.4.
 
-Use it when the answer lives on a spectrum:
+> **Key Takeaway:** Map your code logic directly to the right primitive: **Choice** maps to code branches, **Score** maps to numeric thresholds, and **Noul** maps directly to an `if` condition.
 
-- bug severity
-- customer frustration
-- skill level
 
-### Picking between them
+## Getting Started Resources
 
-Ask what your code does with the answer:
+- **Playground**: [console.typesafe.ai/playground](https://console.typesafe.ai/playground)
+- **Documentation**: [docs.typesafe.ai](https://docs.typesafe.ai)
+- **SDKs**: `npm install @typesafe-ai/sdk` or `pip install typesafe-sdk`
 
-- a Choice maps onto code paths
-- a Score maps onto a threshold
-- a Noul maps onto an `if`
 
-You can mix all three in one call: same text, three questions, all answered in parallel.
-
-Deeper docs: [noul](https://docs.typesafe.ai/primitives/noul) - [choice](https://docs.typesafe.ai/primitives/choice) - [score](https://docs.typesafe.ai/primitives/score)
-
-SDKs: `npm install @typesafe-ai/sdk` or `pip install typesafe-sdk`
-
-## Where to start
-
-- **Playground** - [console.typesafe.ai/playground](https://console.typesafe.ai/playground): paste text, try questions, no code
-- **Docs** - [docs.typesafe.ai](https://docs.typesafe.ai): short and good
-- **Deep dive** - [flaviocopes.com/jev](https://flaviocopes.com/jev): the best long read
-- **Coding agents** - [github.com/typesafe-ai/skills](https://github.com/typesafe-ai/skills): the official skill, so your agent stops treating Jev like a chat model
-
-## My advice for a first project
-
-Find something you currently handle with a pile of regex or an overworked prompt, and let Jev label, route, or score it instead. 
-That is the whole trick.
+> **First Project Advice:** Identify a task currently handled by complex regex or an overworked LLM prompt, and let Jev label, route, or score it instead.

@@ -1241,6 +1241,30 @@ function BlogListSection({
   );
 }
 
+function renderMarkdown(content: string): string {
+  const renderer = new marked.Renderer();
+  renderer.code = function ({ text, lang }) {
+    const language = lang || "code";
+    const escaped = text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+    const encoded = encodeURIComponent(text);
+    return `<div class="code-block-wrapper">
+      <div class="code-block-header">
+        <span class="font-mono text-xs uppercase tracking-wide opacity-80">${language}</span>
+        <button class="copy-code-btn text-xs hover:text-primary transition-colors cursor-pointer select-none opacity-70 hover:opacity-100 p-0.5 flex items-center" data-code="${encoded}" type="button" title="Copy code">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+        </button>
+      </div>
+      <pre><code>${escaped}</code></pre>
+    </div>`;
+  };
+  return marked.parse(content, { renderer }) as string;
+}
+
 function BlogPostView({
   post,
   onBack,
@@ -1250,6 +1274,23 @@ function BlogPostView({
   onBack: () => void;
   onSelectTag?: (tag: string) => void;
 }) {
+  const handlePostClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const btn = (e.target as HTMLElement).closest(".copy-code-btn") as HTMLButtonElement | null;
+    if (btn && btn.dataset.code) {
+      e.stopPropagation();
+      const code = decodeURIComponent(btn.dataset.code);
+      navigator.clipboard.writeText(code).then(() => {
+        const origContent = btn.innerHTML;
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+        btn.style.color = "var(--primary)";
+        setTimeout(() => {
+          btn.innerHTML = origContent;
+          btn.style.color = "";
+        }, 1500);
+      }).catch(() => {});
+    }
+  };
+
   return (
     <div className="space-y-5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
       <div className="text-muted-foreground text-sm">
@@ -1257,7 +1298,7 @@ function BlogPostView({
         cat ./posts/{post.id}.md
       </div>
 
-      <div className="border border-border p-3 sm:p-4 space-y-4">
+      <div className="border border-border p-3 sm:p-4 space-y-4" onClick={handlePostClick}>
         <div
           className="text-[1.6rem] font-medium leading-none tracking-wider text-primary"
           style={{ fontFamily: "'VT323', monospace" }}
@@ -1291,7 +1332,7 @@ function BlogPostView({
         <div className="border-t border-border pt-4">
           <div
             className="prose-terminal text-sm leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: marked(post.body) as string }}
+            dangerouslySetInnerHTML={{ __html: renderMarkdown(post.body) }}
           />
         </div>
       </div>

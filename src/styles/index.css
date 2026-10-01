@@ -43,12 +43,55 @@
 .prose-terminal ul { list-style: none; padding: 0; margin-bottom: 0.5rem; }
 .prose-terminal ul li::before { content: "› "; color: var(--primary); }
 .prose-terminal ul li { color: var(--muted-foreground); }
-.prose-terminal code {
+.prose-terminal blockquote {
+  border-left: 2px solid var(--primary);
+  background: rgba(0, 255, 65, 0.04);
+  padding: 0.6rem 1rem;
+  margin: 1rem 0;
+  color: var(--foreground);
+}
+.prose-terminal blockquote p {
+  color: var(--foreground);
+  margin-bottom: 0;
+}
+.prose-terminal :not(pre) > code {
   background: var(--secondary);
   color: var(--primary);
-  padding: 0.1rem 0.3rem;
+  padding: 0.1rem 0.35rem;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.85em;
+  border-radius: 0.15rem;
+}
+.prose-terminal .code-block-wrapper {
+  margin: 1.5rem 0;
+  border: 1px solid var(--border);
+  background: rgba(13, 26, 13, 0.8);
+  border-radius: 0.2rem;
+  overflow: hidden;
+}
+.prose-terminal .code-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.8rem;
+  background: var(--secondary);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.prose-terminal pre {
+  margin: 0;
+  padding: 0.8rem 1rem;
+  overflow-x: auto;
+  background: transparent;
+}
+.prose-terminal pre code {
+  background: transparent;
+  color: var(--foreground);
+  padding: 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  font-family: 'JetBrains Mono', monospace;
 }
 .prose-terminal a {
   color: var(--primary);
