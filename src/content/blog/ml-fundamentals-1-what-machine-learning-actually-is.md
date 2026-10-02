@@ -2,7 +2,7 @@
 title: "ML Fundamentals #1: What Machine Learning Actually Is"
 date: "2026-10-01"
 tags: "ml, fundamentals, notes"
-readTime: "6 min"
+readTime: "12 min"
 excerpt: "How can a computer learn a pattern without someone writing every rule? Start with ripe mangoes, then understand models, training, and what it means to learn from data."
 ---
 
