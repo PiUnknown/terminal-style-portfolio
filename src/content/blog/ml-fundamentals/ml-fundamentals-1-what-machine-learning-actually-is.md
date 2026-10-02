@@ -1,6 +1,6 @@
 ---
 title: "ML Fundamentals #1: What Machine Learning Actually Is"
-date: "2026-10-01"
+date: "2026-10-02"
 series: "ML Fundamentals"
 order: 1
 tags: "ml, fundamentals, notes"
