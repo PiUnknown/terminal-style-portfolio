@@ -1,3 +1,5 @@
+import { buildBlogFolders, slugify, type BlogFolder, type SeriesAwarePost } from "./blogSeries";
+
 export type Section = "home" | "about" | "projects" | "skills" | "blog" | "contact";
 
 export type ThemeId = "phosphor" | "ice" | "synthwave" | "c64" | "gruvbox";
@@ -10,6 +12,10 @@ export interface BlogPost {
   readTime: string;
   excerpt: string;
   body: string;
+  /** Folder / super-blog this post belongs to, e.g. "Ever Fundamentals". */
+  series?: string;
+  /** Lesson position inside that folder (1, 2, 3 …). */
+  seriesOrder?: number;
 }
 
 export interface Project {
@@ -51,6 +57,8 @@ export interface TerminalContext {
   sfxEnabled: boolean;
   projects: Project[];
   blogPosts: BlogPost[];
+  /** Series folders as the UI sees them (falls back to deriving from posts). */
+  blogFolders?: BlogFolder[];
   skills: Record<string, string[]>;
   history: string[];
   selectedTag?: string | null;
@@ -62,6 +70,8 @@ export interface CommandResult {
   newPath?: string;
   openProject?: string | null;
   openPost?: string | null;
+  /** Folder slug to open, null to return to the blog list, undefined = untouched. */
+  openFolder?: string | null;
   filterTag?: string | null;
   newTheme?: ThemeId;
   toggleSfx?: boolean;
@@ -85,7 +95,8 @@ export const THEME_LABELS: Record<ThemeId, string> = {
 export function buildVFS(
   projects: Project[],
   blogPosts: BlogPost[],
-  skills: Record<string, string[]>
+  skills: Record<string, string[]>,
+  blogFolders?: BlogFolder[]
 ): VFSDirectory {
   const root: VFSDirectory = {
     type: "dir",
@@ -255,6 +266,7 @@ export function buildVFS(
           "# ARTICLES & NOTES",
           "Type 'cat <post-id>.md' to read an article inline.",
           "Type 'open <post-id>' to open in reader view.",
+          "Series folders: ls -d ./*/  then  cd <folder>/",
           "--------------------------------------------------",
         ].join("\n"),
       },
@@ -262,9 +274,15 @@ export function buildVFS(
     },
   };
 
-  blogPosts.forEach((post) => {
+  const folders = blogFolders ?? buildBlogFolders(blogPosts);
+  const memberIds = new Set<string>();
+  folders.forEach((folder) =>
+    folder.posts.forEach((post) => memberIds.add(post.id))
+  );
+
+  const makePostFile = (post: SeriesAwarePost): VFSFile => {
     const filename = `${post.id}.md`;
-    const postFile: VFSFile = {
+    return {
       type: "file",
       name: filename,
       size: post.body?.length || 2048,
@@ -281,9 +299,31 @@ export function buildVFS(
         post.body || "",
       ].join("\n\n"),
     };
-    blogDir.children[filename] = postFile;
-    postsDir.children[filename] = postFile;
+  };
+
+  // Individual posts sit at blog/ and posts/ — series members do not, they
+  // only live inside their folder, exactly like the blog page renders them.
+  blogPosts.forEach((post) => {
+    if (memberIds.has(post.id)) return;
+    const postFile = makePostFile(post);
+    blogDir.children[`${post.id}.md`] = postFile;
+    postsDir.children[`${post.id}.md`] = postFile;
   });
+
+  folders.forEach((folder) => {
+    const dir: VFSDirectory = {
+      type: "dir",
+      name: folder.slug,
+      date: folder.posts[0]?.date || "Sep 17 21:00",
+      section: "blog",
+      children: {},
+    };
+    folder.posts.forEach((post) => {
+      dir.children[`${post.id}.md`] = makePostFile(post);
+    });
+    blogDir.children[folder.slug] = dir;
+  });
+
   root.children["blog"] = blogDir;
   root.children["posts"] = postsDir;
 
@@ -447,7 +487,8 @@ export function getTabCompletion(
   currentPath: string,
   vfs: VFSDirectory,
   allCommands: string[],
-  blogPosts?: BlogPost[]
+  blogPosts?: BlogPost[],
+  blogFolders?: BlogFolder[]
 ): string | null {
   const trimmed = input.trimStart();
   const parts = trimmed.split(/\s+/);
@@ -466,6 +507,18 @@ export function getTabCompletion(
   if (blogPosts && blogPosts.length > 0) {
     const cmd = parts[0].toLowerCase();
     if (cmd === "blog" || cmd === "grep") {
+      // `blog -f <series>` completes folder slugs
+      const seriesFlagIdx = parts.findIndex((p) => p === "-f" || p === "--series");
+      if (cmd === "blog" && seriesFlagIdx !== -1 && parts.length > seriesFlagIdx + 1) {
+        const folders = blogFolders ?? buildBlogFolders(blogPosts);
+        const needle = parts[parts.length - 1].toLowerCase().replace(/\/$/, "");
+        const matched = folders.filter((folder) => folder.slug.startsWith(needle));
+        if (matched.length === 1) {
+          return `${parts.slice(0, -1).join(" ")} ${matched[0].slug} `;
+        }
+        return null;
+      }
+
       const allTags = Array.from(new Set(blogPosts.flatMap((p) => p.tags)));
       const lastPart = parts[parts.length - 1];
       const cleanTarget = lastPart.replace(/^(--tag=|-t|--tag|#)/, "").toLowerCase();
@@ -573,6 +626,7 @@ export async function executeTerminalCommand(
             filterTag: matchedTag,
             openPost: null,
             openProject: null,
+            openFolder: null,
           };
         }
 
@@ -613,12 +667,13 @@ export async function executeTerminalCommand(
         "    pwd                  Print current working directory",
         "    cat <file>           Read and display file contents inline",
         "    tree                 Display ASCII visual tree of portfolio files",
-        "    open <project|blog>  Navigate directly to project / article view",
+        "    open <project|series|post>  Open a project, series folder or article",
         "    grep [-t] <tag>      Filter blog posts by tag",
         "",
         "  SECTIONS & SHORTCUTS:",
         "    home | about | projects | skills | contact",
         "    blog [--tag <tag>]   Navigate to blog or filter by tag (e.g. blog -t ai)",
+        "    blog -f <series>     Open a series folder (e.g. blog -f ever-fundamentals)",
         "",
         "  SYSTEM & UTILITIES:",
         "    theme [name]         List or change theme (phosphor, ice, synthwave, c64, gruvbox)",
@@ -729,12 +784,21 @@ export async function executeTerminalCommand(
     const validSections: Section[] = ["home", "about", "projects", "skills", "blog", "contact"];
     const newSection = validSections.includes(topSection) ? topSection : "home";
 
+    // cd into (or out of) a series folder tracks the folder view.
+    const openFolder =
+      segs[0] === "blog" && segs.length === 2
+        ? (ctx.blogFolders ?? buildBlogFolders(ctx.blogPosts)).find(
+            (folder) => folder.slug === segs[1]
+          )?.slug ?? null
+        : null;
+
     return {
       output: [`> ${raw}`],
       newSection,
       newPath: absPath,
       openPost: null,
       openProject: null,
+      openFolder,
     };
   }
 
@@ -782,6 +846,17 @@ export async function executeTerminalCommand(
 
   // ── 7. TREE ──
   if (command === "tree") {
+    const seriesFolders = ctx.blogFolders ?? buildBlogFolders(ctx.blogPosts);
+    const seriesMemberIds = new Set(
+      seriesFolders.flatMap((f) => f.posts.map((p) => p.id))
+    );
+    const blogEntries = [
+      ...seriesFolders.map((f) => `${f.slug}/`),
+      ...ctx.blogPosts
+        .filter((b) => !seriesMemberIds.has(b.id))
+        .map((b) => `${b.id}.md`),
+    ].slice(0, 8);
+
     const outputLines = [
       `> ${raw}`,
       "  .",
@@ -799,10 +874,10 @@ export async function executeTerminalCommand(
       }),
       "  ├── blog/",
       "  │   ├── INDEX.txt",
-      ...ctx.blogPosts.slice(0, 6).map((b, idx, arr) => {
-        const isLast = idx === arr.length - 1;
-        return `  │   ${isLast ? "└──" : "├──"} ${b.id}.md`;
-      }),
+      ...blogEntries.map(
+        (name, idx, arr) =>
+          `  │   ${idx === arr.length - 1 ? "└──" : "├──"} ${name}`
+      ),
       "  ├── skills/",
       "  │   ├── languages.txt",
       "  │   ├── ml_ai.txt",
@@ -856,6 +931,26 @@ export async function executeTerminalCommand(
       };
     }
 
+    // Match a series folder ("super blog")
+    const seriesFolders = ctx.blogFolders ?? buildBlogFolders(ctx.blogPosts);
+    const cleanTarget = target.replace(/\/$/, "");
+    const matchedFolder = seriesFolders.find(
+      (folder) => folder.slug === cleanTarget || folder.name.toLowerCase() === cleanTarget
+    );
+    if (matchedFolder) {
+      return {
+        output: [
+          `> ${raw}`,
+          `  ✓ entering series: ${matchedFolder.name} (${matchedFolder.posts.length} ${matchedFolder.posts.length === 1 ? "post" : "posts"})`,
+        ],
+        newSection: "blog",
+        newPath: `~/blog/${matchedFolder.slug}`,
+        openPost: null,
+        openProject: null,
+        openFolder: matchedFolder.slug,
+      };
+    }
+
     return {
       output: [`> ${raw}`, `  open: item '${target}' not found. Check 'ls projects' or 'ls blog'.`],
     };
@@ -867,6 +962,50 @@ export async function executeTerminalCommand(
     const s = command as Section;
 
     if (s === "blog") {
+      // blog -f <series> / blog --series <series> jumps straight into a folder
+      const seriesFlagIdx = args.findIndex((a) => a === "-f" || a === "--series");
+      const inlineSeries = args.find((a) => a.startsWith("--series="));
+      const seriesArg =
+        seriesFlagIdx !== -1 && args[seriesFlagIdx + 1]
+          ? args[seriesFlagIdx + 1]
+          : inlineSeries
+            ? inlineSeries.split("=")[1] || null
+            : null;
+
+      if (seriesArg) {
+        const folders = ctx.blogFolders ?? buildBlogFolders(ctx.blogPosts);
+        const needle = seriesArg.toLowerCase().replace(/\/$/, "");
+        const matched = folders.find(
+          (folder) =>
+            folder.slug === slugify(seriesArg) || folder.name.toLowerCase() === needle
+        );
+        if (matched) {
+          return {
+            output: [
+              `> ${raw}`,
+              `  ✓ entering series: ${matched.name} (${matched.posts.length} ${matched.posts.length === 1 ? "post" : "posts"})`,
+            ],
+            newSection: "blog",
+            newPath: `~/blog/${matched.slug}`,
+            openPost: null,
+            openProject: null,
+            openFolder: matched.slug,
+          };
+        }
+        return {
+          output: [
+            `> ${raw}`,
+            `  blog: series '${seriesArg}' not found. Available: ${folders.map((f) => f.slug).join(", ") || "(none)"}`,
+          ],
+          newSection: "blog",
+          newPath: "~/blog",
+          filterTag: null,
+          openPost: null,
+          openProject: null,
+          openFolder: null,
+        };
+      }
+
       let filterTag: string | null = null;
       const tagFlagIdx = args.findIndex((a) => a === "-t" || a === "--tag");
       if (tagFlagIdx !== -1 && args[tagFlagIdx + 1]) {
@@ -902,6 +1041,7 @@ export async function executeTerminalCommand(
             filterTag: matched,
             openPost: null,
             openProject: null,
+            openFolder: null,
           };
         } else {
           return {
@@ -914,6 +1054,7 @@ export async function executeTerminalCommand(
             filterTag: null,
             openPost: null,
             openProject: null,
+            openFolder: null,
           };
         }
       }
@@ -968,6 +1109,7 @@ export async function executeTerminalCommand(
           filterTag: null,
           openPost: null,
           openProject: null,
+          openFolder: null,
         };
       }
 

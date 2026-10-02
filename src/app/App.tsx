@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, forwardRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
@@ -11,6 +11,7 @@ import { keyboardSound } from "./utils/sound";
 import { triggerHaptic } from "./utils/haptics";
 import { trackCommand, trackEasterEgg, trackEvent } from "./utils/analytics";
 import { executeTerminalCommand, getTabCompletion, buildVFS } from "./utils/terminalEngine";
+import { buildBlogFolders, listablePosts, slugify, type BlogFolder, type SeriesManifestEntry } from "./utils/blogSeries";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -90,6 +91,10 @@ interface BlogPost {
   readTime: string;
   excerpt: string;
   body: string;
+  /** Folder / super-blog this post belongs to, e.g. "Ever Fundamentals". */
+  series?: string;
+  /** Lesson position inside that folder (1, 2, 3 …). */
+  seriesOrder?: number;
 }
 
 interface Project {
@@ -107,9 +112,44 @@ interface Project {
 // ── Blog: file-based markdown loader ─────────────────────────────────────────
 
 const mdModules = import.meta.glob<string>(
-  "../content/blog/*.md",
+  "../content/blog/**/*.md",
   { eager: true, query: "?raw", import: "default" }
 );
+
+/**
+ * A sub-directory of src/content/blog/ IS a series:
+ *   ../content/blog/ml-fundamentals/post.md  ->  series "ml-fundamentals"
+ * Files sitting directly in blog/ are individual posts.
+ */
+function seriesFromPath(filepath: string): string | null {
+  const parts = filepath.split("/");
+  const file = parts.pop() ?? "";
+  if (!file.endsWith(".md")) return null;
+  const blogIdx = parts.lastIndexOf("blog");
+  if (blogIdx === -1) return null;
+  const subDirs = parts.slice(blogIdx + 1);
+  return subDirs.length > 0 ? subDirs[0] : null;
+}
+
+/**
+ * Blog dates must be ISO (YYYY-MM-DD) for the newest-first ordering to hold.
+ * Anything unparseable is coerced to "" so the post sinks to the bottom of the
+ * list instead of jumping to the top of it.
+ */
+function normalizeBlogDate(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+
+  const parsed = new Date(trimmed);
+  if (Number.isNaN(parsed.getTime())) {
+    console.warn(`[blog] unparseable date "${trimmed}" — sorting as oldest`);
+    return "";
+  }
+  console.warn(`[blog] non-ISO date "${trimmed}" — normalizing to YYYY-MM-DD`);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${parsed.getFullYear()}-${pad(parsed.getMonth() + 1)}-${pad(parsed.getDate())}`;
+}
 
 function parseBlogPost(raw: string, filepath: string): BlogPost {
   const id = filepath.split("/").pop()!.replace(/\.md$/, "");
@@ -132,14 +172,32 @@ function parseBlogPost(raw: string, filepath: string): BlogPost {
   const wordCount = body.replace(/<[^>]+>/g, "").split(/\s+/).filter(Boolean).length;
   const readTime = `${Math.max(1, Math.ceil(wordCount / 200))} min`;
 
+  // The folder on disk wins; `series:` in frontmatter is only a fallback for
+  // posts that stay at the top level of src/content/blog/.
+  const pathSeries = seriesFromPath(filepath);
+  const frontmatterSeries = fm.series?.trim() || undefined;
+  if (
+    import.meta.env.DEV &&
+    pathSeries &&
+    frontmatterSeries &&
+    slugify(pathSeries) !== slugify(frontmatterSeries)
+  ) {
+    console.warn(
+      `[blog] ${id} lives in "${pathSeries}/" but its frontmatter says series: ` +
+        `"${frontmatterSeries}" — the folder wins.`
+    );
+  }
+
   return {
     id,
     title: fm.title ?? id,
-    date: fm.date ?? "",
+    date: normalizeBlogDate(fm.date ?? ""),
     tags: fm.tags ? fm.tags.split(",").map((t) => t.trim()) : [],
     readTime,
     excerpt: fm.excerpt ?? "",
     body,
+    series: pathSeries ?? frontmatterSeries,
+    seriesOrder: fm.order ? Number.parseInt(fm.order, 10) : undefined,
   };
 }
 
@@ -150,12 +208,89 @@ const BLOG_POSTS: BlogPost[] = Object.entries(mdModules)
   .map(([path, raw]) => parseBlogPost(raw, path))
   .sort((a, b) => b.date.localeCompare(a.date));
 
-const ALL_BLOG_TAGS = Array.from(
-  new Set(BLOG_POSTS.flatMap((p) => p.tags))
-).map((tag) => ({
-  name: tag,
-  count: BLOG_POSTS.filter((p) => p.tags.includes(tag)).length,
-}));
+if (import.meta.env.DEV) {
+  const seen = new Map<string, string>();
+  BLOG_POSTS.forEach((post) => {
+    const prev = seen.get(post.id);
+    if (prev) {
+      console.warn(
+        `[blog] duplicate post id "${post.id}" — "${prev}" and ` +
+          `"${post.series ?? "blog"}/${post.id}". Post ids must be unique (they are the URL).`
+      );
+    }
+    seen.set(post.id, post.series ?? "blog");
+  });
+}
+
+// ── Blog folders ("super blogs") ─────────────────────────────────────────────
+// Membership = `series:` frontmatter, display metadata = _series.json.
+// The underscore prefix + .json extension keep the manifest out of the post list.
+const seriesManifestModules = import.meta.glob<unknown>("../content/blog/*.json", {
+  eager: true,
+  import: "default",
+});
+
+const SERIES_ENTRIES: SeriesManifestEntry[] = Object.values(
+  seriesManifestModules
+).flatMap((value) =>
+  Array.isArray(value)
+    ? (value as SeriesManifestEntry[])
+    : value && typeof value === "object"
+      ? [value as SeriesManifestEntry]
+      : []
+);
+
+const FOLDERS: BlogFolder<BlogPost>[] = buildBlogFolders(BLOG_POSTS, SERIES_ENTRIES);
+
+// Individual posts on the main blog page: members of a `hideMembers` folder
+// live only inside that folder.
+const LIST_POSTS: BlogPost[] = listablePosts(BLOG_POSTS, FOLDERS);
+
+if (import.meta.env.DEV) {
+  FOLDERS.forEach((folder) => {
+    if (BLOG_POSTS.some((post) => post.id === folder.slug)) {
+      console.warn(
+        `[blog] folder slug "${folder.slug}" collides with a post id — the post wins that URL`
+      );
+    }
+  });
+
+  // A manifest entry that matches no post's `series:` is silently ignored —
+  // this is the classic "I renamed the folder but the description disappeared".
+  const folderSlugs = new Set(FOLDERS.map((folder) => folder.slug));
+  SERIES_ENTRIES.forEach((entry) => {
+    const key = entry.slug?.trim()
+      ? slugify(entry.slug)
+      : slugify(entry.name ?? "");
+    if (key && !folderSlugs.has(key)) {
+      console.warn(
+        `[blog] _series.json entry "${entry.name}" matches no post's series: — its description/order are ignored. ` +
+          `Posts declare: ${[...folderSlugs].join(", ") || "(none)"}. ` +
+          `Fix the post frontmatter, or add "slug": "<folder-slug>" to the entry.`
+      );
+    }
+  });
+}
+
+/**
+ * Maps /blog/... onto view state. Post ids win over folder slugs on a
+ * collision so existing share links never break.
+ */
+function resolveBlogTarget(
+  segments: string[],
+  tagParam: string | null
+): { post: string | null; folder: string | null; tag: string | null } {
+  const key = segments[1];
+  if (!key) return { post: null, folder: null, tag: tagParam };
+  if (BLOG_POSTS.some((post) => post.id === key)) {
+    return { post: key, folder: null, tag: tagParam };
+  }
+  if (FOLDERS.some((folder) => folder.slug === key)) {
+    // Folder URLs carry no filter — tags belong to the list.
+    return { post: null, folder: key, tag: null };
+  }
+  return { post: null, folder: null, tag: null };
+}
 
 const projectMdModules = import.meta.glob<string>(
   "../content/projects/*.md",
@@ -232,6 +367,47 @@ const GREETINGS = [
 
 
 // ── Commands (Slash Palette) ──────────────────────────────────────────────────
+
+/**
+ * Reads the URL once, at module load, so a deep link renders the right view on
+ * the very first paint instead of mounting "home" and swapping into place.
+ */
+function readInitialLocation(): {
+  section: Section;
+  post: string | null;
+  folder: string | null;
+  project: string | null;
+  tag: string | null;
+} {
+  const path = window.location.pathname.replace(/^\//, "");
+  const segments = path.split("/");
+  const maybeSection = segments[0] as Section;
+  const validSections: Section[] = ["home", "about", "projects", "skills", "blog", "contact"];
+  const tag = new URLSearchParams(window.location.search).get("tag");
+
+  if (!path || path === "/") {
+    return { section: "home", post: null, folder: null, project: null, tag: null };
+  }
+  if (maybeSection === "blog") {
+    const target = resolveBlogTarget(segments, tag);
+    return {
+      section: "blog",
+      post: target.post,
+      folder: target.folder,
+      project: null,
+      tag: target.tag,
+    };
+  }
+  if (maybeSection === "projects" && segments[1]) {
+    return { section: "projects", post: null, folder: null, project: segments[1], tag: null };
+  }
+  if (validSections.includes(maybeSection)) {
+    return { section: maybeSection, post: null, folder: null, project: null, tag: null };
+  }
+  return { section: "home", post: null, folder: null, project: null, tag: null };
+}
+
+const INITIAL_LOCATION = readInitialLocation();
 
 const COMMANDS: Record<string, { desc: string; action?: string }> = {
   help: { desc: "show available commands" },
@@ -1081,163 +1257,451 @@ function SkillsSection() {
   );
 }
 
-function BlogListSection({
+// ── Blog: folder ("super blog") + shared list pieces ─────────────────────────
+
+const FolderCard = forwardRef<
+  HTMLButtonElement,
+  {
+    folder: BlogFolder<BlogPost>;
+    onOpen?: (slug: string) => void;
+  }
+>(({ folder, onOpen }, ref) => {
+  const latest = folder.posts.reduce(
+    (acc, post) => (post.date > acc ? post.date : acc),
+    ""
+  );
+  const tags = Array.from(new Set(folder.posts.flatMap((post) => post.tags)));
+
+  // Same card as a post — only the meta line says "series" instead of a read time.
+  return (
+    <motion.button
+      ref={ref}
+      type="button"
+      onClick={() => onOpen?.(folder.slug)}
+      layout
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.98 }}
+      transition={{ type: "spring", bounce: 0, duration: 0.2 }}
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.98 }}
+      className="w-full text-left border border-border p-3 sm:p-4 hover:border-primary hover:bg-secondary transition-colors group cursor-pointer block"
+    >
+      <div className="flex items-start justify-between gap-2 mb-1">
+        <span className="text-primary group-hover:underline font-semibold text-sm leading-snug">
+          {folder.name}
+        </span>
+        <span className="text-xs text-muted-foreground shrink-0">
+          series · {folder.posts.length} {folder.posts.length === 1 ? "post" : "posts"}
+        </span>
+      </div>
+      <div className="text-xs text-muted-foreground mb-2">{latest}</div>
+      <div className="text-xs text-muted-foreground mb-3">{folder.description}</div>
+      <div className="flex gap-2 flex-wrap">
+        {tags.map((tag) => (
+          <span
+            key={tag}
+            className="px-2 py-0.5 text-xs rounded border transition-all text-blue-400 border-blue-400/30"
+            title={`#${tag} — open the series to filter`}
+          >
+            #{tag}
+          </span>
+        ))}
+      </div>
+      <div className="flex items-center justify-end mt-2">
+        <ShareButton postId={folder.slug} />
+      </div>
+    </motion.button>
+  );
+});
+FolderCard.displayName = "FolderCard";
+
+const BlogPostCard = forwardRef<
+  HTMLButtonElement,
+  {
+    post: BlogPost;
+    selectedTag?: string | null;
+    onOpen: (id: string) => void;
+    /** Absent inside a super folder, where tags are display-only. */
+    onSelectTag?: (tag: string | null) => void;
+  }
+>(({ post, selectedTag, onOpen, onSelectTag }, ref) => {
+  return (
+    <motion.button
+      ref={ref}
+      layout
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.98 }}
+      transition={{ type: "spring", bounce: 0, duration: 0.2 }}
+      onClick={() => onOpen(post.id)}
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.98 }}
+      className="w-full text-left border border-border p-3 sm:p-4 hover:border-primary hover:bg-secondary transition-colors group cursor-pointer block"
+    >
+      <div className="flex items-start justify-between gap-2 mb-1">
+        <span className="text-primary group-hover:underline font-semibold text-sm leading-snug">
+          {post.title}
+        </span>
+        <span className="text-xs text-muted-foreground shrink-0">{post.readTime}</span>
+      </div>
+      <div className="text-xs text-muted-foreground mb-2">{post.date}</div>
+      <div className="text-xs text-muted-foreground mb-3">{post.excerpt}</div>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex gap-2 flex-wrap">
+          {post.tags.map((tag) => {
+            const isTagActive = selectedTag?.toLowerCase() === tag.toLowerCase();
+            const filterable = typeof onSelectTag === "function";
+            return (
+              <span
+                key={tag}
+                onClick={
+                  filterable
+                    ? (e) => {
+                        e.stopPropagation();
+                        onSelectTag?.(isTagActive ? null : tag);
+                      }
+                    : undefined
+                }
+                className={`px-2 py-0.5 text-xs rounded border transition-all ${
+                  filterable
+                    ? "cursor-pointer hover:border-blue-400 hover:bg-blue-400/10"
+                    : "cursor-default"
+                } ${
+                  isTagActive
+                    ? "text-primary border-primary bg-primary/20 font-semibold"
+                    : "text-blue-400 border-blue-400/30"
+                }`}
+                title={filterable ? `Filter by #${tag}` : `#${tag}`}
+              >
+                #{tag}
+              </span>
+            );
+          })}
+        </div>
+        <ShareButton postId={post.id} />
+      </div>
+    </motion.button>
+  );
+});
+BlogPostCard.displayName = "BlogPostCard";
+
+function BlogTagRibbon({
+  tags,
+  total,
+  matching,
   selectedTag,
   onSelectTag,
-  onOpen,
 }: {
+  tags: { name: string; count: number }[];
+  total: number;
+  matching: number;
   selectedTag: string | null;
   onSelectTag: (tag: string | null) => void;
-  onOpen: (id: string) => void;
 }) {
-  const filteredPosts = selectedTag
-    ? BLOG_POSTS.filter((post) =>
-        post.tags.some((t) => t.toLowerCase() === selectedTag.toLowerCase())
-      )
-    : BLOG_POSTS;
+  const COLLAPSED_COUNT = 10;
+  const [query, setQuery] = useState("");
+  const [expanded, setExpanded] = useState(false);
+
+  const sorted = [...tags].sort((a, b) => b.count - a.count);
+  const q = query.trim().toLowerCase();
+  const visible = q
+    ? sorted.filter((t) => t.name.toLowerCase().includes(q))
+    : expanded
+      ? sorted
+      : sorted.slice(0, COLLAPSED_COUNT);
+  const hiddenCount = sorted.length - COLLAPSED_COUNT;
 
   return (
-    <div className="space-y-5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-      {/* Dynamic CLI Prompt Line */}
-      <div className="text-muted-foreground text-sm flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <Prompt path="~/blog" />
-          {selectedTag ? (
-            <span>
-              ls ./posts/ | grep <span className="text-primary font-bold">--tag="{selectedTag}"</span>
-            </span>
-          ) : (
-            <span>ls -t ./posts/</span>
-          )}
+    <div className="border border-border p-2.5 sm:p-3.5 bg-card/40 space-y-2 text-xs">
+      <div className="flex items-center justify-between text-muted-foreground border-b border-border/50 pb-2">
+        <div className="flex items-center gap-2">
+          <span className="text-primary font-semibold tracking-wider">TAG_FLAGS:</span>
+          <span className="text-[11px] text-muted-foreground hidden sm:inline">
+            (click flag to filter / click active to clear)
+          </span>
         </div>
-        {selectedTag && (
+        <span className="text-[11px] font-mono text-muted-foreground">
+          matching: <span className="text-primary font-bold">{matching}</span>/{total}
+        </span>
+      </div>
+
+      <div
+        className="flex items-center gap-2 border border-border bg-background/60 px-2 py-1.5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <span className="text-primary font-mono whitespace-nowrap">filter:#</span>
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="type to narrow flags…"
+          className="flex-1 min-w-0 bg-transparent outline-none text-xs font-mono placeholder:text-muted-foreground/50"
+          style={{ fontFamily: "'JetBrains Mono', monospace" }}
+        />
+        {query && (
           <button
             type="button"
-            onClick={() => onSelectTag(null)}
-            className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 border border-border px-2 py-0.5 hover:border-primary bg-card/50 cursor-pointer"
-            title="Clear filter and show all posts"
+            onClick={() => setQuery("")}
+            className="text-muted-foreground hover:text-primary font-mono cursor-pointer"
           >
-            <span>[esc] clear filter</span>
+            esc
           </button>
         )}
       </div>
 
-      {/* Monospace Terminal Tag Ribbon / Selector Bar */}
-      <div className="border border-border p-2.5 sm:p-3.5 bg-card/40 space-y-2 text-xs">
-        <div className="flex items-center justify-between text-muted-foreground border-b border-border/50 pb-2">
-          <div className="flex items-center gap-2">
-            <span className="text-primary font-semibold tracking-wider">TAG_FLAGS:</span>
-            <span className="text-[11px] text-muted-foreground hidden sm:inline">
-              (click flag to filter / click active to clear)
-            </span>
-          </div>
-          <span className="text-[11px] font-mono text-muted-foreground">
-            matching: <span className="text-primary font-bold">{filteredPosts.length}</span>/{BLOG_POSTS.length}
-          </span>
-        </div>
-
-        <div className="flex flex-wrap gap-1.5 pt-1 items-center">
+      <div
+        className={`flex flex-wrap gap-1.5 pt-1 items-center ${
+          expanded || q ? "max-h-56 overflow-y-auto pr-1" : ""
+        }`}
+      >
+        <button
+          type="button"
+          onClick={() => onSelectTag(null)}
+          className={`px-2 py-1 text-xs border transition-all cursor-pointer font-mono ${
+            selectedTag === null
+              ? "border-primary bg-primary text-primary-foreground font-bold"
+              : "border-border text-muted-foreground hover:border-primary/60 hover:text-primary"
+          }`}
+        >
+          * ALL ({total})
+        </button>
+        {visible.map(({ name, count }) => {
+          const isActive = selectedTag?.toLowerCase() === name.toLowerCase();
+          return (
+            <button
+              key={name}
+              type="button"
+              onClick={() => onSelectTag(isActive ? null : name)}
+              className={`px-2 py-1 text-xs border transition-all cursor-pointer flex items-center gap-1.5 font-mono ${
+                isActive
+                  ? "border-primary bg-primary text-primary-foreground font-bold"
+                  : "border-border text-muted-foreground hover:border-primary/60 hover:text-primary"
+              }`}
+            >
+              <span>#{name}</span>
+              <span className="opacity-60 text-[10px]">[{count}]</span>
+            </button>
+          );
+        })}
+        {!q && hiddenCount > 0 && (
           <button
             type="button"
-            onClick={() => onSelectTag(null)}
-            className={`px-2 py-1 text-xs border transition-all cursor-pointer font-mono ${
-              selectedTag === null
-                ? "border-primary bg-primary/10 text-primary font-bold shadow-[0_0_8px_rgba(0,255,65,0.15)]"
-                : "border-border text-muted-foreground hover:border-primary/60 hover:text-primary"
-            }`}
+            onClick={() => setExpanded((v) => !v)}
+            className="px-2 py-1 text-xs border border-dashed border-border text-muted-foreground hover:border-primary/60 hover:text-primary transition-all cursor-pointer font-mono"
           >
-            * ALL ({BLOG_POSTS.length})
+            {expanded ? "[- collapse]" : `[+${hiddenCount} more]`}
           </button>
-          {ALL_BLOG_TAGS.map(({ name, count }) => {
-            const isActive = selectedTag?.toLowerCase() === name.toLowerCase();
-            return (
-              <button
-                key={name}
-                type="button"
-                onClick={() => onSelectTag(isActive ? null : name)}
-                className={`px-2 py-1 text-xs border transition-all cursor-pointer flex items-center gap-1.5 font-mono ${
-                  isActive
-                    ? "border-primary bg-primary/10 text-primary font-bold shadow-[0_0_8px_rgba(0,255,65,0.15)]"
-                    : "border-border text-muted-foreground hover:border-primary/60 hover:text-primary"
-                }`}
-              >
-                <span>#{name}</span>
-                <span className="opacity-60 text-[10px]">[{count}]</span>
-              </button>
-            );
-          })}
-        </div>
+        )}
       </div>
+    </div>
+  );
+}
 
-      {/* Posts List or Empty Filter State */}
-      {filteredPosts.length === 0 ? (
-        <div className="border border-dashed border-border p-6 text-center space-y-3 bg-card/20">
-          <div className="text-sm text-muted-foreground font-mono">
-            grep: ./posts/: No entries matching tag <span className="text-primary font-bold">"#{selectedTag}"</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => onSelectTag(null)}
-            className="px-3 py-1.5 text-xs border border-primary text-primary hover:bg-primary/10 transition-colors font-mono cursor-pointer"
-          >
-            [ reset filter: ls ./posts/ ]
-          </button>
-        </div>
-      ) : (
+interface BlogListSectionProps {
+  /** Directory cards ("super blogs") rendered above the post list. */
+  folders?: BlogFolder<BlogPost>[];
+  /** Posts to list, already in display order. */
+  posts?: BlogPost[];
+  /** Prompt path shown in front of every command in this view. */
+  pathLabel?: string;
+  /** Command rendered on the posts block header. */
+  listCommand?: string;
+  /** Extra block rendered above everything (series header card). */
+  header?: React.ReactNode;
+  /** Renders `cd .. # ← go back` when provided. */
+  onBack?: () => void;
+  /** Tag filtering is a list-only concern — super folders take no filter. */
+  selectedTag?: string | null;
+  onSelectTag?: (tag: string | null) => void;
+  onOpen: (id: string) => void;
+  onFolderOpen?: (slug: string) => void;
+}
+
+function BlogListSection({
+  folders = FOLDERS,
+  posts = LIST_POSTS,
+  pathLabel = "~/blog",
+  listCommand = "ls -t ./posts/",
+  header,
+  onBack,
+  selectedTag,
+  onSelectTag,
+  onOpen,
+  onFolderOpen,
+}: BlogListSectionProps) {
+  const filteredPosts = selectedTag
+    ? posts.filter((post) =>
+        post.tags.some((t) => t.toLowerCase() === selectedTag.toLowerCase())
+      )
+    : posts;
+
+  // Tag counts are scoped to whatever this list is showing.
+  const ribbonTags = Array.from(new Set(posts.flatMap((post) => post.tags))).map(
+    (tag) => ({
+      name: tag,
+      count: posts.filter((post) => post.tags.includes(tag)).length,
+    })
+  );
+
+  return (
+    <div className="space-y-5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+      {header}
+
+      {/* Block 1 — series / super blogs, i.e. directories only */}
+      {folders.length > 0 && (
         <div className="space-y-3">
-          <AnimatePresence mode="popLayout">
-            {filteredPosts.map((post) => (
-              <motion.button
-                key={post.id}
-                layout
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ type: "spring", bounce: 0, duration: 0.2 }}
-                onClick={() => onOpen(post.id)}
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full text-left border border-border p-3 sm:p-4 hover:border-primary hover:bg-secondary transition-colors group cursor-pointer block"
-              >
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <span className="text-primary group-hover:underline font-semibold text-sm leading-snug">
-                    {post.title}
-                  </span>
-                  <span className="text-xs text-muted-foreground shrink-0">{post.readTime}</span>
-                </div>
-                <div className="text-xs text-muted-foreground mb-2">{post.date}</div>
-                <div className="text-xs text-muted-foreground mb-3">{post.excerpt}</div>
-                <div className="flex gap-2 flex-wrap">
-                  {post.tags.map((tag) => {
-                    const isTagActive = selectedTag?.toLowerCase() === tag.toLowerCase();
-                    return (
-                      <span
-                        key={tag}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onSelectTag(isTagActive ? null : tag);
-                        }}
-                        className={`px-2 py-0.5 text-xs rounded border transition-all cursor-pointer ${
-                          isTagActive
-                            ? "text-primary border-primary bg-primary/20 font-semibold"
-                            : "text-blue-400 border-blue-400/30 hover:border-blue-400 hover:bg-blue-400/10"
-                        }`}
-                        title={`Filter by #${tag}`}
-                      >
-                        #{tag}
-                      </span>
-                    );
-                  })}
-                </div>
-                <div className="flex items-center justify-end mt-2">
-                  <ShareButton postId={post.id} />
-                </div>
-              </motion.button>
-            ))}
-          </AnimatePresence>
+          <div className="text-muted-foreground text-sm">
+            <Prompt path={pathLabel} />
+            ls -d ./*/
+          </div>
+          <div className="space-y-3">
+            <AnimatePresence mode="popLayout">
+              {folders.map((folder) => (
+                <FolderCard key={folder.slug} folder={folder} onOpen={onFolderOpen} />
+              ))}
+            </AnimatePresence>
+          </div>
         </div>
       )}
+
+      {/* Block 2 — individual posts, newest first (oldest at the bottom) */}
+      <div className="space-y-3">
+        <div className="text-muted-foreground text-sm flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <Prompt path={pathLabel} />
+            {selectedTag ? (
+              <span>
+                ls ./posts/ | grep <span className="text-primary font-bold">--tag="{selectedTag}"</span>
+              </span>
+            ) : (
+              <span>{listCommand}</span>
+            )}
+          </div>
+          {selectedTag && onSelectTag && (
+            <button
+              type="button"
+              onClick={() => onSelectTag(null)}
+              className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 border border-border px-2 py-0.5 hover:border-primary bg-card/50 cursor-pointer"
+              title="Clear filter and show all posts"
+            >
+              <span>[esc] clear filter</span>
+            </button>
+          )}
+        </div>
+
+        {onSelectTag && (
+          <BlogTagRibbon
+            tags={ribbonTags}
+            total={posts.length}
+            matching={filteredPosts.length}
+            selectedTag={selectedTag ?? null}
+            onSelectTag={onSelectTag}
+          />
+        )}
+
+        {filteredPosts.length === 0 ? (
+          selectedTag ? (
+            <div className="border border-dashed border-border p-6 text-center space-y-3 bg-card/20">
+              <div className="text-sm text-muted-foreground font-mono">
+                grep: ./posts/: No entries matching tag <span className="text-primary font-bold">"#{selectedTag}"</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => onSelectTag?.(null)}
+                className="px-3 py-1.5 text-xs border border-primary text-primary hover:bg-primary/10 transition-colors font-mono cursor-pointer"
+              >
+                [ reset filter: ls ./posts/ ]
+              </button>
+            </div>
+          ) : (
+            <div className="border border-dashed border-border p-6 text-center bg-card/20">
+              <div className="text-sm text-muted-foreground font-mono">
+                ls: no loose posts — everything is archived under{" "}
+                <span className="text-primary font-bold">./series/</span>
+              </div>
+            </div>
+          )
+        ) : (
+          <div className="space-y-3">
+            <AnimatePresence mode="popLayout">
+              {filteredPosts.map((post) => (
+                <BlogPostCard
+                  key={post.id}
+                  post={post}
+                  selectedTag={selectedTag}
+                  onOpen={onOpen}
+                  onSelectTag={onSelectTag}
+                />
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
+
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          className="text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer flex items-center gap-1.5"
+        >
+          <Prompt path="~/blog" />
+          cd .. # ← go back
+        </button>
+      )}
     </div>
+  );
+}
+
+function SeriesHeaderCard({ folder }: { folder: BlogFolder<BlogPost> }) {
+  const latest = folder.posts.reduce(
+    (acc, post) => (post.date > acc ? post.date : acc),
+    ""
+  );
+
+  // Same header treatment as BlogPostView: VT323 title, meta + share, rule.
+  return (
+    <div className="border border-border p-3 sm:p-4 space-y-4">
+      <div
+        className="text-[1.6rem] font-medium leading-none tracking-wider text-primary"
+        style={{ fontFamily: "'VT323', monospace" }}
+      >
+        {folder.name}
+      </div>
+      <div className="flex items-center justify-between flex-wrap gap-4 border-b border-border pb-3">
+        <div className="flex gap-4 text-xs text-muted-foreground">
+          <span>{folder.posts.length} {folder.posts.length === 1 ? "post" : "posts"}</span>
+          {latest && <span>updated {latest}</span>}
+        </div>
+        <ShareButton postId={folder.slug} />
+      </div>
+      {folder.description && (
+        <div className="text-sm text-muted-foreground">{folder.description}</div>
+      )}
+    </div>
+  );
+}
+
+function BlogFolderSection({
+  folder,
+  onOpen,
+  onBack,
+}: {
+  folder: BlogFolder<BlogPost>;
+  onOpen: (id: string) => void;
+  onBack: () => void;
+}) {
+  // Same list, scoped to this folder: identical cards and header.
+  // No tag filter here — that stays a list-only concern.
+  return (
+    <BlogListSection
+      folders={[]}
+      posts={folder.posts}
+      pathLabel={`~/blog/${folder.slug}`}
+      listCommand="ls ./posts/   # lesson order"
+      header={<SeriesHeaderCard folder={folder} />}
+      onBack={onBack}
+      onOpen={onOpen}
+    />
   );
 }
 
@@ -1512,10 +1976,11 @@ function ContactSection() {
 export default function App() {
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState<ThemeId>("phosphor");
-  const [section, setSection] = useState<Section>("home");
-  const [openPost, setOpenPost] = useState<string | null>(null);
-  const [openProject, setOpenProject] = useState<string | null>(null);
-  const [selectedBlogTag, setSelectedBlogTag] = useState<string | null>(null);
+  const [section, setSection] = useState<Section>(INITIAL_LOCATION.section);
+  const [openPost, setOpenPost] = useState<string | null>(INITIAL_LOCATION.post);
+  const [openProject, setOpenProject] = useState<string | null>(INITIAL_LOCATION.project);
+  const [openFolder, setOpenFolder] = useState<string | null>(INITIAL_LOCATION.folder);
+  const [selectedBlogTag, setSelectedBlogTag] = useState<string | null>(INITIAL_LOCATION.tag);
   const [snakeOpen, setSnakeOpen] = useState(false);
   const [matrixOpen, setMatrixOpen] = useState(false);
   const [sfxEnabled, setSfxEnabled] = useState(() => keyboardSound.enabled);
@@ -1535,7 +2000,7 @@ export default function App() {
   // Scroll to top on navigation
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [section, openPost, openProject]);
+  }, [section, openPost, openProject, openFolder]);
 
   // Konami Code Secret Listener (↑ ↑ ↓ ↓ ← → ← → B A)
   useEffect(() => {
@@ -1576,6 +2041,8 @@ export default function App() {
     });
   }, []);
 
+  // Deep links are handled by INITIAL_LOCATION above; this stays as a safety net
+  // for anything that mutates history before React hydrates.
   useEffect(() => {
     const path = window.location.pathname.replace(/^\//, "");
     const segments = path.split("/");
@@ -1586,13 +2053,13 @@ export default function App() {
 
     if (!path || path === "/") {
       // already home, do nothing
-    } else if (maybeSection === "blog" && segments[1]) {
-      setSection("blog");
-      setOpenPost(segments[1]);
     } else if (maybeSection === "blog") {
       setSection("blog");
-      if (tagParam) {
-        setSelectedBlogTag(tagParam);
+      const target = resolveBlogTarget(segments, tagParam);
+      setOpenPost(target.post);
+      setOpenFolder(target.folder);
+      if (target.tag) {
+        setSelectedBlogTag(target.tag);
       }
     } else if (maybeSection === "projects" && segments[1]) {
       setSection("projects");
@@ -1615,20 +2082,23 @@ export default function App() {
         setSection("home");
         setOpenPost(null);
         setOpenProject(null);
+        setOpenFolder(null);
         setSelectedBlogTag(null);
-      } else if (maybeSection === "blog" && segments[1]) {
-        setSection("blog");
-        setOpenPost(segments[1]);
       } else if (maybeSection === "blog") {
         setSection("blog");
-        setOpenPost(null);
-        setSelectedBlogTag(tagParam);
+        const target = resolveBlogTarget(segments, tagParam);
+        setOpenPost(target.post);
+        setOpenFolder(target.folder);
+        setSelectedBlogTag(target.tag);
       } else if (maybeSection === "projects" && segments[1]) {
         setSection("projects");
+        setOpenPost(null);
+        setOpenFolder(null);
         setOpenProject(segments[1]);
       } else if (validSections.includes(maybeSection)) {
         setSection(maybeSection);
         setOpenPost(null);
+        setOpenFolder(null);
         setOpenProject(null);
         setSelectedBlogTag(null);
       }
@@ -1654,11 +2124,54 @@ export default function App() {
     if (id) {
       history.pushState(null, "", `/blog/${id}`);
     } else {
+      // Leaving a post always lands on the list.
+      setOpenFolder(null);
       if (selectedBlogTag) {
         history.pushState(null, "", `/blog?tag=${encodeURIComponent(selectedBlogTag)}`);
       } else {
         history.pushState(null, "", "/blog");
       }
+    }
+  };
+
+  // Avoid stacking identical history entries when several handlers target /blog.
+  const pushUrl = (url: string) => {
+    if (window.location.pathname + window.location.search !== url) {
+      history.pushState(null, "", url);
+    }
+  };
+
+  const handleOpenFolder = (slug: string | null) => {
+    triggerHaptic("light");
+    keyboardSound.playNavClick();
+    setOpenPost(null);
+    setOpenFolder(slug);
+    if (slug) {
+      // A folder always opens on its full list, never on a leftover tag filter.
+      setSelectedBlogTag(null);
+      trackEvent("blog_folder_opened", { folder: slug });
+      pushUrl(`/blog/${slug}`);
+    } else if (selectedBlogTag) {
+      pushUrl(`/blog?tag=${encodeURIComponent(selectedBlogTag)}`);
+    } else {
+      pushUrl("/blog");
+    }
+  };
+
+  // Back out of a post: into its folder when it belongs to one, else the list.
+  const handleBackFromPost = () => {
+    const current = openPost ? BLOG_POSTS.find((post) => post.id === openPost) : null;
+    const slug = current?.series ? slugify(current.series) : null;
+    const target =
+      slug && FOLDERS.some((folder) => folder.slug === slug) ? slug : null;
+
+    if (target) {
+      triggerHaptic("light");
+      setOpenPost(null);
+      setOpenFolder(target);
+      pushUrl(`/blog/${target}`);
+    } else {
+      handleOpenPost(null);
     }
   };
 
@@ -1679,7 +2192,7 @@ export default function App() {
   const filteredCmds = isPaletteMode
     ? Object.entries(COMMANDS).filter(([k, v]) => {
       // Exclude command if it navigates to the current active section (unless in sub-view)
-      if (v.action && v.action === section && !openProject && !openPost) return false;
+      if (v.action && v.action === section && !openProject && !openPost && !openFolder) return false;
       const q = paletteQuery.toLowerCase();
       return k.startsWith(q) || v.desc.toLowerCase().includes(q);
     })
@@ -1705,6 +2218,8 @@ export default function App() {
     setSection(s);
     setOpenPost(null);
     setOpenProject(null);
+    // The blog nav entry always means "the list", never a folder you were in.
+    setOpenFolder(null);
     if (s !== "blog") {
       setSelectedBlogTag(null);
     }
@@ -1713,7 +2228,12 @@ export default function App() {
     history.pushState(null, "", s === "home" ? "/" : `/${s}`);
   }, []);
 
-  const currentPath = section === "home" ? "~" : `~/${section}`;
+  const currentPath =
+    section === "home"
+      ? "~"
+      : section === "blog" && openFolder && !openPost
+        ? `~/blog/${openFolder}`
+        : `~/${section}`;
 
   async function execCommand(raw: string) {
     const trimmed = raw.trim();
@@ -1734,6 +2254,7 @@ export default function App() {
       sfxEnabled,
       projects: PROJECTS,
       blogPosts: BLOG_POSTS,
+      blogFolders: FOLDERS,
       skills: SKILLS,
       history: cmdHistory,
       selectedTag: selectedBlogTag,
@@ -1774,7 +2295,9 @@ export default function App() {
     }
 
     if (result.filterTag !== undefined) {
+      // Tag filters are a list-level concern: drop out of any open folder.
       setSelectedBlogTag(result.filterTag);
+      setOpenFolder(null);
       if (result.filterTag) {
         history.pushState(null, "", `/blog?tag=${encodeURIComponent(result.filterTag)}`);
       } else if (result.newSection === "blog" || section === "blog") {
@@ -1788,6 +2311,8 @@ export default function App() {
         handleOpenProject(result.openProject);
       } else if (result.openPost) {
         handleOpenPost(result.openPost);
+      } else if (result.openFolder !== undefined && result.filterTag === undefined) {
+        handleOpenFolder(result.openFolder);
       }
       setInlineLog(result.output);
       return;
@@ -1797,6 +2322,8 @@ export default function App() {
       handleOpenProject(result.openProject);
     } else if (result.openPost) {
       handleOpenPost(result.openPost);
+    } else if (result.openFolder !== undefined && result.filterTag === undefined) {
+      handleOpenFolder(result.openFolder);
     }
 
     if (result.output.length > 0) {
@@ -1842,13 +2369,13 @@ export default function App() {
         execCommand(cmdInput);
       } else if (e.key === "Tab") {
         e.preventDefault();
-        const vfs = buildVFS(PROJECTS, BLOG_POSTS, SKILLS);
+        const vfs = buildVFS(PROJECTS, BLOG_POSTS, SKILLS, FOLDERS);
         const allCliCommands = [
           "help", "whoami", "about", "projects", "skills", "blog", "contact",
           "game", "clear", "ls", "cd", "cat", "pwd", "tree", "open", "grep",
           "theme", "sfx", "neofetch", "weather", "date", "uptime", "history", "cowsay"
         ];
-        const completion = getTabCompletion(cmdInput, currentPath, vfs, allCliCommands, BLOG_POSTS);
+        const completion = getTabCompletion(cmdInput, currentPath, vfs, allCliCommands, BLOG_POSTS, FOLDERS);
         if (completion) {
           setCmdInput(completion);
         }
@@ -1869,6 +2396,12 @@ export default function App() {
   }
 
   const post = openPost ? BLOG_POSTS.find((p) => p.id === openPost) ?? null : null;
+  const folder = openFolder ? FOLDERS.find((f) => f.slug === openFolder) ?? null : null;
+
+  // Entering / leaving a folder animates like a section change; posts stay instant.
+  const viewKey = section === "blog" && openFolder && !openPost
+    ? `blog/${openFolder}`
+    : section;
 
   return (
     <div
@@ -2039,7 +2572,7 @@ export default function App() {
         {/* Section content */}
         <AnimatePresence mode="wait">
           <motion.div
-            key={section}
+            key={viewKey}
             initial={reducedMotion ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={reducedMotion ? undefined : { opacity: 0, y: -4 }}
@@ -2058,17 +2591,24 @@ export default function App() {
               (post ? (
                 <BlogPostView
                   post={post}
-                  onBack={() => handleOpenPost(null)}
+                  onBack={handleBackFromPost}
                   onSelectTag={(tag) => {
                     handleSelectBlogTag(tag);
                     handleOpenPost(null);
                   }}
+                />
+              ) : folder ? (
+                <BlogFolderSection
+                  folder={folder}
+                  onOpen={handleOpenPost}
+                  onBack={() => handleOpenFolder(null)}
                 />
               ) : (
                 <BlogListSection
                   selectedTag={selectedBlogTag}
                   onSelectTag={handleSelectBlogTag}
                   onOpen={handleOpenPost}
+                  onFolderOpen={handleOpenFolder}
                 />
               ))}
             {section === "contact" && <ContactSection />}
