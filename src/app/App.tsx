@@ -1733,10 +1733,12 @@ function BlogPostView({
   post,
   onBack,
   onSelectTag,
+  onOpen,
 }: {
   post: BlogPost;
   onBack: () => void;
   onSelectTag?: (tag: string) => void;
+  onOpen: (id: string) => void;
 }) {
   const handlePostClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const btn = (e.target as HTMLElement).closest(".copy-code-btn") as HTMLButtonElement | null;
@@ -1752,6 +1754,24 @@ function BlogPostView({
           btn.style.color = "";
         }, 1500);
       }).catch(() => {});
+      return;
+    }
+    const link = (e.target as HTMLElement).closest("a");
+    if (link) {
+      const href = link.getAttribute("href") ?? "";
+      const match = href.match(/^\/blog\/([^/?#]+)/);
+      const opensInNewTab =
+        e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button !== 0;
+      if (match && !opensInNewTab) {
+        e.preventDefault();
+        e.stopPropagation();
+        const target = BLOG_POSTS.find((p) => p.id === match[1]);
+        if (target) {
+          onOpen(target.id);
+        } else {
+          window.location.href = href;
+        }
+      }
     }
   };
 
@@ -2592,6 +2612,7 @@ export default function App() {
                 <BlogPostView
                   post={post}
                   onBack={handleBackFromPost}
+                  onOpen={handleOpenPost}
                   onSelectTag={(tag) => {
                     handleSelectBlogTag(tag);
                     handleOpenPost(null);

@@ -1,6 +1,8 @@
 ---
 title: "ML Fundamentals #2: Linear Regression - Fitting the Best Straight Line Through Your Data"
 date: "2026-10-03"
+series: "ML Fundamentals"
+order: 2
 tags: "ml, fundamentals, guide"
 readTime: "8 min"
 excerpt: "How does a computer draw the best straight line through messy data? Start with runners and shoe sizes, then understand squared error, gradient descent, and where a straight line breaks."
@@ -10,7 +12,7 @@ excerpt: "How does a computer draw the best straight line through messy data? St
 
 **Linear regression finds the straight line that gets closest to all your data points at once.**
 
-This is lesson 2 of 11 in Machine Learning Fundamentals. If terms like model, training, features, or labels are new, refer to lesson 1. Here we build the first real model.
+This is lesson 2 of 11 in Machine Learning Fundamentals. If terms like model, training, features, or labels are new, refer to [lesson 1](/blog/ml-fundamentals-1-what-machine-learning-actually-is). Here we build the first real model.
 
 It predicts a number from other numbers you already know:
 
@@ -18,7 +20,7 @@ It predicts a number from other numbers you already know:
 - a shoe size from a height
 - tomorrow's sales from today's ad spend
 
-It is a `supervised learning` model (see lesson 1): every training example comes with the correct answer attached.
+It is a `supervised learning` model (see [lesson 1](/blog/ml-fundamentals-1-what-machine-learning-actually-is)): every training example comes with the correct answer attached.
 
 ## Why do we need it?
 
@@ -172,14 +174,14 @@ Read it line by line:
 - `coef_` holds the learned slopes. `intercept_` holds the starting value.
 - `predict(...)` turns new inputs into predicted numbers.
 
-This is the same fit-then-predict loop from lesson 1. The data variables need to be prepared first.
+This is the same fit-then-predict loop from [lesson 1](/blog/ml-fundamentals-1-what-machine-learning-actually-is). The data variables need to be prepared first.
 
 ## How do you know if the line is any good?
 
 Two checks.
 
 - **R-squared** is a score from 0 to 1 for how much of the variation in the output the line explains. An R-squared of 0.8 on the runner data would mean height explains about 80% of why shoe sizes differ, and the other 20% comes from things the line does not know about.
-- **Performance on new data**, as in lesson 1. A low error on the training points does not prove the line will work on points it has never seen.
+- **Performance on new data**, as in [lesson 1](/blog/ml-fundamentals-1-what-machine-learning-actually-is). A low error on the training points does not prove the line will work on points it has never seen.
 
 Always check on held-out examples. A line can fit the points it was trained on and still miss on new ones.
 
