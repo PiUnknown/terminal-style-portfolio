@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 import { marked } from "marked";
+import { BlogMarkdown } from "./components/blog/BlogMarkdown";
 import { SpotifyWidget } from "./components/SpotifyWidget";
 import { TerminalSnakeModal } from "./components/TerminalSnakeModal";
 import { MatrixRainBackground } from "./components/MatrixRainBackground";
@@ -1814,10 +1815,9 @@ function BlogPostView({
           ))}
         </div>
         <div className="border-t border-border pt-4">
-          <div
-            className="prose-terminal text-sm leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: renderMarkdown(post.body) }}
-          />
+          <div className="prose-terminal text-sm leading-relaxed">
+            <BlogMarkdown html={renderMarkdown(post.body)} />
+          </div>
         </div>
       </div>
 

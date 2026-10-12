@@ -14,7 +14,7 @@ excerpt: "How can a computer learn a pattern without someone writing every rule?
 
 Traditional programming writes rules by hand. Machine learning learns patterns from data instead.
 
-That is the starting point for this series: Machine Learning Fundamentals, lesson 1 of 11.
+This is lesson 1 of the Machine Learning Fundamentals series.
 
 
 ### Traditional Programming vs. Supervised Learning

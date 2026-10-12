@@ -10,7 +10,7 @@ excerpt: "How does a model answer yes or no instead of a number? Start with hour
 
 **Logistic regression predicts the probability that something is a yes, then turns that probability into a yes or no answer.**
 
-This is lesson 3 of 11 in Machine Learning Fundamentals. It builds on [Lesson 2: Linear Regression](https://www.piunknown.dev/blog/ml-fundamentals-2-linear-regression-fitting-the-best-straight-line), which covers slope, intercept, loss, and gradient descent. If terms like model, training, or labels are new, start with [Lesson 1](https://www.piunknown.dev/blog/ml-fundamentals-1-what-machine-learning-actually-is).
+This is lesson 3 of the Machine Learning Fundamentals series. It uses slope, intercept, loss, and gradient descent, explained in [lesson 2](https://www.piunknown.dev/blog/ml-fundamentals-2-linear-regression-fitting-the-best-straight-line). If those terms are new, give it a read first.
 
 It answers questions with two possible outcomes:
 

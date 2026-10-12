@@ -1,0 +1,28 @@
+/* Uses only the portfolio's theme tokens. No video surface or nested card. */
+.decision-tree { margin: 1.7rem 0; padding: 1rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); color: var(--foreground); font-family: 'JetBrains Mono', monospace; }
+.dt-heading { color: var(--primary); font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; }
+.dt-example { margin-top: .55rem; color: var(--foreground); font-size: .75rem; line-height: 1.7; }
+.dt-example span { color: var(--muted-foreground); margin-right: .4rem; }
+.decision-tree svg { display: block; width: 100%; height: auto; margin: 1.2rem 0 .8rem; overflow: visible; }
+.dt-edge path { stroke: var(--muted-foreground); stroke-width: 1; fill: none; opacity: .35; }
+.dt-edge text { fill: var(--muted-foreground); font-size: 12px; }
+.dt-edge.dt-selected path { stroke: var(--primary); opacity: .8; }
+.dt-edge.dt-selected text { fill: var(--primary); }
+.dt-node rect { fill: var(--card); stroke: var(--border); stroke-width: 1; }
+.dt-node text { fill: var(--muted-foreground); font-size: 14px; }
+.dt-node.dt-selected rect { fill: color-mix(in srgb, var(--primary) 9%, var(--background)); stroke: var(--primary); }
+.dt-node.dt-selected text { fill: var(--foreground); }
+.dt-point circle, .dt-node .dt-leaf-marker { fill: var(--primary); }
+.decision-tree figcaption { display: flex; gap: .75rem; min-height: 3rem; color: var(--muted-foreground); font-size: .75rem; line-height: 1.7; }
+.dt-step { color: var(--primary); white-space: nowrap; }
+@media (max-width: 560px) { .dt-heading { font-size: .7rem; } }
+
+.dt-narrow .dt-node text { font-size: 16px; }
+
+.dt-edge .dt-branch-label { paint-order: stroke fill; stroke: var(--background); stroke-width: 7px; stroke-linejoin: round; }
+
+.dt-topline { display: flex; align-items: center; justify-content: space-between; gap: .4rem; }
+.dt-toggle { display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; border: 1px solid var(--border); color: var(--primary); background: transparent; cursor: pointer; }
+.dt-toggle:hover { border-color: var(--primary); background: var(--card); }
+.dt-toggle:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.decision-tree .dt-toggle svg { width: 18px; height: 18px; margin: 0; fill: none; stroke: currentColor; stroke-width: 1.5; }
