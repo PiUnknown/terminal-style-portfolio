@@ -1,6 +1,8 @@
 ---
 title: "ML Fundamentals #3: Logistic Regression - Predicting Yes or No With a Probability"
 date: "2026-10-04"
+series: "ML Fundamentals"
+order: 3
 tags: "ml, fundamentals, guide"
 readTime: "9 min"
 excerpt: "How does a model answer yes or no instead of a number? Start with hours studied and exam results, then understand the sigmoid, log loss, and where the 0.5 cutoff comes from."
