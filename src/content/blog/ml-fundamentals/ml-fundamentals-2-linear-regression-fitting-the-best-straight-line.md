@@ -3,7 +3,7 @@ title: "ML Fundamentals #2: Linear Regression - Fitting the Best Straight Line T
 date: "2026-10-03"
 series: "ML Fundamentals"
 order: 2
-tags: "ml, fundamentals, guide"
+tags: "ml, fundamentals, notes"
 readTime: "8 min"
 excerpt: "How does a computer draw the best straight line through messy data? Start with runners and shoe sizes, then understand squared error, gradient descent, and where a straight line breaks."
 ---

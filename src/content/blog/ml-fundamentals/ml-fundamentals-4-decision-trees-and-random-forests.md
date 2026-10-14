@@ -3,7 +3,7 @@ title: "ML Fundamentals #4: Decision Trees and Random Forests - A Flowchart, The
 date: "2026-10-12"
 series: "ML Fundamentals"
 order: 4
-tags: "ml, fundamentals, guide"
+tags: "ml, fundamentals, notes"
 readTime: "11 min"
 excerpt: "What if a model could explain itself as a simple flowchart of yes/no questions? Start with a restaurant decision, then see how a crowd of slightly different trees combines its predictions."
 ---

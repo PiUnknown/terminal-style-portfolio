@@ -1,0 +1,45 @@
+/* Scoped lesson 5 SVG visuals. All live colours inherit portfolio theme tokens. */
+.cl-figure { margin: 1.7rem 0; padding: 1rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); color: var(--foreground); font-family: 'JetBrains Mono', monospace; }
+.cl-top { display:flex; align-items:center; justify-content:space-between; gap:.5rem; }
+.cl-heading { color:var(--primary); font-size:.75rem; text-transform:uppercase; letter-spacing:.06em; line-height:1.7; }
+.cl-meta { color:var(--muted-foreground); font-size:.75rem; line-height:1.7; margin-top:.5rem; }
+.cl-toggle { display:grid; place-items:center; width:44px; height:44px; flex-shrink:0; border:1px solid var(--border); color:var(--primary); background:transparent; cursor:pointer; }
+.cl-toggle:hover {border-color:var(--primary);background:var(--card);}
+.cl-toggle:focus-visible {outline:2px solid var(--primary);outline-offset:3px;}
+.cl-toggle svg {width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.5;}
+.cl-figure .cl-diagram {display:block;width:100%;height:auto;margin:1rem 0;overflow:visible;}
+.cl-diagram text {fill:var(--foreground);font-size:12px;font-family:inherit;}
+.cl-diagram .cl-axis {fill:var(--muted-foreground);font-size:11px;}
+.cl-rule {stroke:var(--border);fill:none;stroke-width:1;}
+.cl-grid {stroke:var(--border);stroke-dasharray:3 5;fill:none;stroke-width:1;}
+.cl-group-0 {fill:var(--primary);stroke:var(--primary);}
+.cl-group-1 {fill:var(--foreground);stroke:var(--foreground);}
+.cl-unassigned {fill:var(--muted-foreground);stroke:none;}
+.cl-noise {stroke:var(--muted-foreground);fill:none;stroke-width:1.5;}
+.cl-assignment {fill:none;stroke-width:1;opacity:.4;}
+.cl-centre path {stroke-width:2;fill:none;}
+.cl-centre text {stroke:none;fill:var(--foreground);}
+.cl-neighbourhood {stroke:var(--primary);fill:var(--primary);fill-opacity:.07;stroke-dasharray:4 4;}
+.cl-core-ring {fill:none;stroke-width:1;}
+.cl-merge {fill:none;stroke:var(--border);stroke-width:1.5;}
+.cl-merge.cl-shown,.cl-curve {stroke:var(--primary);stroke-width:2;fill:none;}
+.cl-legend {display:flex;flex-wrap:wrap;gap:.35rem 1rem;font-size:.7rem;color:var(--muted-foreground);line-height:1.7;}
+.cl-key-a {color:var(--primary);}.cl-key-b {color:var(--foreground);}
+.cl-figure figcaption {display:flex;gap:.75rem;margin-top:.9rem;min-height:3rem;font-size:.75rem;line-height:1.7;color:var(--muted-foreground);}
+.cl-step {color:var(--primary);white-space:nowrap;}
+.cl-figure .cl-loop {list-style:none;margin:1rem 0 0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;}
+.cl-loop li {border:1px solid var(--border);padding:.6rem;font-size:.7rem;line-height:1.7;color:var(--muted-foreground);}
+.cl-loop li span {display:block;font-size:.65rem;}.cl-loop li.cl-active {border-color:var(--primary);color:var(--foreground);background:color-mix(in srgb,var(--primary) 7%,var(--background));}
+.cl-figure .cl-flow {list-style:none;margin:1rem 0;padding:0;display:grid;gap:1.2rem;}
+.cl-flow li {display:flex;gap:.8rem;position:relative;}.cl-flow li:not(:last-child)::after {content:'↓';position:absolute;left:.4rem;bottom:-1.1rem;color:var(--primary);}
+.cl-flow-index {color:var(--primary);font-size:.75rem;}.cl-flow strong {display:block;font-size:.8rem;font-weight:500;}.cl-flow li div>span {display:block;font-size:.75rem;color:var(--muted-foreground);line-height:1.7;}
+@media(max-width:560px) { .cl-figure .cl-loop {grid-template-columns:repeat(2,1fr);} }
+.cl-cut {stroke:var(--muted-foreground);stroke-width:1;stroke-dasharray:4 4;fill:none;}
+.cl-compare {display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+@media(max-width:560px){.cl-compare{grid-template-columns:1fr;gap:0;}}
+
+/* Elbow labels stay at blog-caption scale, independent of desktop SVG width. */
+.cl-elbow .cl-axis-title {font-size:.75rem;line-height:1.7;color:var(--muted-foreground);margin-top:.55rem;}
+.cl-elbow .cl-diagram {margin:.35rem 0 0;}
+.cl-elbow .cl-diagram .cl-axis {font-size:12px;}
+.cl-elbow figcaption {margin-top:.6rem;min-height:0;}

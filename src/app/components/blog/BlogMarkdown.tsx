@@ -1,5 +1,6 @@
 import { Component, Fragment, type ReactNode } from "react";
 import { DecisionTreeAnimation } from "./DecisionTreeAnimation";
+import { KMeansAnimation, DBSCANAnimation, HierarchicalAnimation, ElbowChart, CrescentComparison, ClusteringFlow } from "./ClusteringVisuals";
 
 class AnimationFallback extends Component<{ children: ReactNode; poster: string }, { failed: boolean }> {
   state = { failed: false };
@@ -8,7 +9,15 @@ class AnimationFallback extends Component<{ children: ReactNode; poster: string 
 }
 
 // A deliberately small allowlist. Markdown cannot import or execute components.
-const animations = { "decision-tree": DecisionTreeAnimation };
+const animations = {
+  "decision-tree": DecisionTreeAnimation,
+  "k-means": KMeansAnimation,
+  "dbscan": DBSCANAnimation,
+  "hierarchical": HierarchicalAnimation,
+  "elbow-chart": ElbowChart,
+  "crescent-comparison": CrescentComparison,
+  "clustering-flow": ClusteringFlow,
+};
 
 /** Replace only registered, block-level placeholders after Markdown rendering.
  * Unknown names retain their supplied poster. Normal Markdown uses the old renderer.

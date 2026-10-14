@@ -972,7 +972,7 @@ function AboutSection() {
         </p>
         <p>
           Moving fast forward to today.<br />
-          I design agentic LLM pipelines, train and fine-tune models, optimize local RAG systems, and build resource-constrained projects. I'm an AI generalist, but if you want to know my usual tech stack, check my GitHub.
+          I design agentic LLM pipelines, train and fine-tune models, optimize local RAG systems, and build resource-constrained projects. I'm an AI generalist, but if you want to know my usual tech stack, check my <a href="https://github.com/PiUnknown" target="_blank" rel="noreferrer" className="text-primary hover:underline">GitHub</a>.
         </p>
         <p className="text-muted-foreground">
           Currently: Building <a href="https://gnosis.piunknown.dev/" target="_blank" rel="noreferrer" className="text-primary hover:underline">Gnosis</a><br />
