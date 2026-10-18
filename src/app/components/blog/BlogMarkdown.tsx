@@ -1,5 +1,6 @@
 import { Component, Fragment, type ReactNode } from "react";
 import { DecisionTreeAnimation } from "./DecisionTreeAnimation";
+import { FeaturePrepAnimation } from "./FeaturePrepAnimation";
 import { KMeansAnimation, DBSCANAnimation, HierarchicalAnimation, ElbowChart, CrescentComparison, ClusteringFlow } from "./ClusteringVisuals";
 
 class AnimationFallback extends Component<{ children: ReactNode; poster: string }, { failed: boolean }> {
@@ -11,6 +12,7 @@ class AnimationFallback extends Component<{ children: ReactNode; poster: string 
 // A deliberately small allowlist. Markdown cannot import or execute components.
 const animations = {
   "decision-tree": DecisionTreeAnimation,
+  "feature-prep": FeaturePrepAnimation,
   "k-means": KMeansAnimation,
   "dbscan": DBSCANAnimation,
   "hierarchical": HierarchicalAnimation,

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" role="img" aria-labelledby="title desc">
+  <title id="title">Feature preparation before a model</title>
+  <desc id="desc">A country is one-hot encoded, area and bedrooms are scaled to 0 to 1, and a binary garage flag is left unchanged.</desc>
+  <style>
+    text{font:13px 'JetBrains Mono',monospace;fill:#d1d5db}.muted{font-size:11px;fill:#9ca3af}.box{fill:#0d1a0d;stroke:#24502e;stroke-width:1.2}.gate{stroke:#00ff41}.lane{stroke:#9ca3af;stroke-dasharray:3 4;opacity:.65}.on{fill:#00ff41;stroke:#00ff41}.off{fill:none;stroke:#9ca3af}.dark{fill:#0a0f0a}.bar{fill:#00ff41;opacity:.85}.track{fill:none;stroke:#9ca3af}
+  </style>
+  <text class="muted" x="10" y="22">raw column</text><text class="muted" x="330" y="22">prep</text><text class="muted" x="560" y="22">ready for the model</text>
+  <path class="lane" d="M10 70H750M10 190H750M10 262H750"/>
+  <rect class="box" x="10" y="52" width="130" height="36" rx="4"/><text x="22" y="75">country: India</text>
+  <rect class="box gate" x="330" y="48" width="110" height="44" rx="4"/><text x="345" y="75">one-hot</text>
+  <rect class="on" x="560" y="52" width="52" height="36" rx="4"/><text class="dark" x="586" y="75" text-anchor="middle">1</text><text class="muted" x="586" y="104" text-anchor="middle">India</text>
+  <rect class="off" x="622" y="52" width="52" height="36" rx="4"/><text x="648" y="75" text-anchor="middle">0</text><text class="muted" x="648" y="104" text-anchor="middle">USA</text>
+  <rect class="off" x="684" y="52" width="52" height="36" rx="4"/><text x="710" y="75" text-anchor="middle">0</text><text class="muted" x="710" y="104" text-anchor="middle">Russia</text>
+  <rect class="bar" x="10" y="160" width="150" height="12"/><text class="muted" x="168" y="171">area_sqft 1,200</text><rect class="bar" x="10" y="182" width="9" height="12"/><text class="muted" x="168" y="193">bedrooms 3</text>
+  <rect class="box gate" x="330" y="158" width="110" height="44" rx="4"/><text x="345" y="185">scale</text>
+  <rect class="track" x="560" y="160" width="180" height="12"/><rect class="track" x="560" y="182" width="180" height="12"/><rect class="bar" x="560" y="160" width="108" height="12"/><rect class="bar" x="560" y="182" width="72" height="12"/><text class="muted" x="560" y="212">area_sqft 0.6</text><text class="muted" x="650" y="212">bedrooms 0.4</text>
+  <rect class="box" x="10" y="244" width="130" height="36" rx="4"/><text x="22" y="267">has_garage: 1</text><rect class="box gate" x="330" y="240" width="110" height="44" rx="4"/><text x="345" y="267">leave as is</text><rect class="on" x="560" y="244" width="130" height="36" rx="4"/><text class="dark" x="572" y="267">has_garage: 1</text>
+</svg>
