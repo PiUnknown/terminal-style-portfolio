@@ -222,4 +222,4 @@ Then go deeper:
 - [One-hot encoding (Wikipedia)](https://en.wikipedia.org/wiki/One-hot) - how the 0/1 columns work.
 - [scikit-learn: Preprocessing data](https://scikit-learn.org/stable/modules/preprocessing.html) - the standard scalers and encoders, with runnable examples.
 
-Until the next one, keep noticing patterns.
+### until the next one, keep noticing patterns.
