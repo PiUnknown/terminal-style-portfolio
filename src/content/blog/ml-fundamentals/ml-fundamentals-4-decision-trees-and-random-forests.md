@@ -279,6 +279,8 @@ You have built a tree by hand. Training a tree means choosing those questions fr
 
 Then go deeper:
 
+- [Decision Trees (MLU-Explain)](https://mlu-explain.github.io/decision-tree/) - a visual, scroll-through walkthrough of how a tree picks its splits
+- [Random Forest (MLU-Explain)](https://mlu-explain.github.io/random-forest/) - a visual walkthrough of bootstrapping, random feature choices and combined predictions
 - [Decision tree learning (Wikipedia)](https://en.wikipedia.org/wiki/Decision_tree_learning) - for splits, impurity and the tree-learning process
 - [Random forest (Wikipedia)](https://en.wikipedia.org/wiki/Random_forest) - for bootstrapping, random feature choices and combined predictions
 - [scikit-learn: Decision Trees](https://scikit-learn.org/stable/modules/tree.html) - for training a tree and controlling its depth and leaf size
