@@ -42,8 +42,64 @@ function dev404Fallback() {
   }
 }
 
+function devApiMiddleware() {
+  return {
+    name: 'dev-api-middleware',
+    configureServer(server: ViteDevServer) {
+      server.middlewares.use(async (req: Connect.IncomingMessage, res: ServerResponse, next: Connect.NextFunction) => {
+        if (req.url && req.url.startsWith('/api/views')) {
+          try {
+            const apiModule = await server.ssrLoadModule('/api/views.js');
+            const handler = apiModule.default;
+            const fullUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+            const query: Record<string, string> = {};
+            fullUrl.searchParams.forEach((v, k) => {
+              query[k] = v;
+            });
+
+            let bodyStr = '';
+            if (req.method === 'POST') {
+              req.on('data', (chunk) => {
+                bodyStr += chunk;
+              });
+              await new Promise<void>((resolve) => req.on('end', () => resolve()));
+            }
+
+            const enhancedReq = Object.assign(req, {
+              query,
+              body: bodyStr,
+            });
+
+            const enhancedRes = Object.assign(res, {
+              status(code: number) {
+                res.statusCode = code;
+                return {
+                  json(data: unknown) {
+                    res.setHeader('Content-Type', 'application/json');
+                    res.end(JSON.stringify(data));
+                  },
+                  end() {
+                    res.end();
+                  },
+                };
+              },
+            });
+
+            await handler(enhancedReq, enhancedRes);
+            return;
+          } catch (err) {
+            console.error('[dev-api] Error handling /api/views:', err);
+          }
+        }
+        next();
+      });
+    },
+  };
+}
+
 export default defineConfig({
   plugins: [
+    devApiMiddleware(),
     figmaAssetResolver(),
     dev404Fallback(),
     // The React and Tailwind plugins are both required for Make, even if

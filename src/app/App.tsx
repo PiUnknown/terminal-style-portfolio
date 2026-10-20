@@ -13,6 +13,7 @@ import { triggerHaptic } from "./utils/haptics";
 import { trackCommand, trackEasterEgg, trackEvent } from "./utils/analytics";
 import { executeTerminalCommand, getTabCompletion, buildVFS } from "./utils/terminalEngine";
 import { buildBlogFolders, listablePosts, slugify, type BlogFolder, type SeriesManifestEntry } from "./utils/blogSeries";
+import { useBlogViews, formatViewCount } from "./utils/blogViews";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -595,6 +596,42 @@ function ShareButton({ postId }: { postId: string }) {
         </>
       )}
     </button>
+  );
+}
+
+function ViewCounter({ count, title }: { count?: number; title?: string }) {
+  const hasCount = typeof count === "number" && !isNaN(count);
+  const displayCount = hasCount ? formatViewCount(count) : "--";
+
+  return (
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="text-xs px-2 py-0.5 border border-border text-muted-foreground shrink-0 flex items-center gap-1.5 select-none transition-colors"
+      style={{ fontFamily: "'JetBrains Mono', monospace" }}
+      title={
+        title ||
+        (hasCount
+          ? `${count.toLocaleString()} unique ${count === 1 ? "reader" : "readers"}`
+          : "Loading unique views...")
+      }
+    >
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="opacity-70 text-primary shrink-0"
+        aria-hidden="true"
+      >
+        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+      <span>{displayCount}</span>
+    </div>
   );
 }
 
@@ -1267,6 +1304,8 @@ const FolderCard = forwardRef<
     onOpen?: (slug: string) => void;
   }
 >(({ folder, onOpen }, ref) => {
+  const { views } = useBlogViews();
+  const totalViews = folder.posts.reduce((sum, p) => sum + (views[p.id] || 0), 0);
   const latest = folder.posts.reduce(
     (acc, post) => (post.date > acc ? post.date : acc),
     ""
@@ -1309,7 +1348,11 @@ const FolderCard = forwardRef<
           </span>
         ))}
       </div>
-      <div className="flex items-center justify-end mt-2">
+      <div className="flex items-center justify-end gap-1.5 mt-2">
+        <ViewCounter
+          count={totalViews}
+          title={`${totalViews.toLocaleString()} total series readers`}
+        />
         <ShareButton postId={folder.slug} />
       </div>
     </motion.button>
@@ -1327,6 +1370,8 @@ const BlogPostCard = forwardRef<
     onSelectTag?: (tag: string | null) => void;
   }
 >(({ post, selectedTag, onOpen, onSelectTag }, ref) => {
+  const { views } = useBlogViews();
+
   return (
     <motion.button
       ref={ref}
@@ -1380,7 +1425,10 @@ const BlogPostCard = forwardRef<
             );
           })}
         </div>
-        <ShareButton postId={post.id} />
+        <div className="flex items-center gap-1.5 shrink-0">
+          <ViewCounter count={views[post.id]} />
+          <ShareButton postId={post.id} />
+        </div>
       </div>
     </motion.button>
   );
@@ -1654,6 +1702,8 @@ function BlogListSection({
 }
 
 function SeriesHeaderCard({ folder }: { folder: BlogFolder<BlogPost> }) {
+  const { views } = useBlogViews();
+  const totalViews = folder.posts.reduce((sum, p) => sum + (views[p.id] || 0), 0);
   const latest = folder.posts.reduce(
     (acc, post) => (post.date > acc ? post.date : acc),
     ""
@@ -1673,7 +1723,13 @@ function SeriesHeaderCard({ folder }: { folder: BlogFolder<BlogPost> }) {
           <span>{folder.posts.length} {folder.posts.length === 1 ? "post" : "posts"}</span>
           {latest && <span>updated {latest}</span>}
         </div>
-        <ShareButton postId={folder.slug} />
+        <div className="flex items-center gap-1.5 shrink-0">
+          <ViewCounter
+            count={totalViews}
+            title={`${totalViews.toLocaleString()} total series readers`}
+          />
+          <ShareButton postId={folder.slug} />
+        </div>
       </div>
       {folder.description && (
         <div className="text-sm text-muted-foreground">{folder.description}</div>
@@ -1741,6 +1797,12 @@ function BlogPostView({
   onSelectTag?: (tag: string) => void;
   onOpen: (id: string) => void;
 }) {
+  const { views, recordView } = useBlogViews();
+
+  useEffect(() => {
+    recordView(post.id);
+  }, [post.id, recordView]);
+
   const handlePostClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const btn = (e.target as HTMLElement).closest(".copy-code-btn") as HTMLButtonElement | null;
     if (btn && btn.dataset.code) {
@@ -1795,7 +1857,10 @@ function BlogPostView({
             <span>{post.date}</span>
             <span>{post.readTime} read</span>
           </div>
-          <ShareButton postId={post.id} />
+          <div className="flex items-center gap-1.5 shrink-0">
+            <ViewCounter count={views[post.id]} />
+            <ShareButton postId={post.id} />
+          </div>
         </div>
         <div className="flex gap-2 flex-wrap">
           {post.tags.map((tag) => (
