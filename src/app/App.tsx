@@ -600,8 +600,8 @@ function ShareButton({ postId }: { postId: string }) {
 }
 
 function ViewCounter({ count, title, postId }: { count?: number; title?: string; postId?: string }) {
-  const hasCount = typeof count === "number" && !isNaN(count) && count > 0;
-  const effectiveCount = hasCount ? count : (postId ? getBaselineViews(postId) : 100);
+  const hasCount = typeof count === "number" && !isNaN(count);
+  const effectiveCount = hasCount ? count : (postId ? getBaselineViews(postId) : 0);
   const displayCount = formatViewCount(effectiveCount);
 
   return (

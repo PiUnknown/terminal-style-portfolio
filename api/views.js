@@ -1,26 +1,20 @@
 import crypto from 'crypto';
 
-// Realistic baseline / seed view counts reflecting prior readership
+// Realistic baseline / seed view counts reflecting historical readership
 export const BASELINE_VIEWS = {
-  jev: 247,
-  mcp: 318,
-  'ml-fundamentals-1-what-machine-learning-actually-is': 412,
-  'ml-fundamentals-2-linear-regression-fitting-the-best-straight-line': 289,
-  'ml-fundamentals-3-logistic-regression-predicting-yes-or-no': 214,
-  'ml-fundamentals-4-decision-trees-and-random-forests': 186,
-  'ml-fundamentals-5-clustering-finding-groups-in-data-nobody-labeled': 163,
-  'ml-fundamentals-6-feature-engineering-the-inputs-you-choose': 142,
+  jev: 124,
+  mcp: 168,
+  'ml-fundamentals-1-what-machine-learning-actually-is': 68,
+  'ml-fundamentals-2-linear-regression-fitting-the-best-straight-line': 54,
+  'ml-fundamentals-3-logistic-regression-predicting-yes-or-no': 43,
+  'ml-fundamentals-4-decision-trees-and-random-forests': 35,
+  'ml-fundamentals-5-clustering-finding-groups-in-data-nobody-labeled': 27,
+  'ml-fundamentals-6-feature-engineering-the-inputs-you-choose': 21,
 };
 
-// Deterministic baseline for any future or unlisted post so views are never 0 or NA
+// Any future or new blog post starts at 0 views
 export function getBaselineViews(id) {
-  if (BASELINE_VIEWS[id]) return BASELINE_VIEWS[id];
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = (hash << 5) - hash + id.charCodeAt(i);
-    hash |= 0;
-  }
-  return 120 + Math.abs(hash % 140);
+  return BASELINE_VIEWS[id] || 0;
 }
 
 // In-memory increment tracking for local development or when Redis env vars are not set
@@ -108,7 +102,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ views: allViews, fallback: true });
   }
 
-  // ── POST: Record a unique view ─────────────────────────────────────────────
+  // ── POST: Record a unique blog post view ──────────────────────────────────
   if (req.method === 'POST') {
     let id = req.query?.id;
     if (!id && req.body) {
@@ -140,7 +134,7 @@ export default async function handler(req, res) {
 
     if (redisUrl && redisToken) {
       try {
-        // Step 1: Add visitor to post's unique visitor set (SADD returns 1 if new, 0 if already present)
+        // Add visitor to post's unique visitor set (SADD returns 1 if new, 0 if already present)
         const saddRes = await fetch(
           `${redisUrl}/sadd/blog_views:${encodeURIComponent(id)}:visitors/${visitorHash}`,
           {

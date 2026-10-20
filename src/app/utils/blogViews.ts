@@ -1,29 +1,23 @@
 import { useEffect, useState, useCallback } from 'react';
 
-// Realistic baseline / seed view counts reflecting prior readership
+// Realistic baseline / seed view counts reflecting historical readership
 export const BASELINE_VIEWS: Record<string, number> = {
-  jev: 247,
-  mcp: 318,
-  'ml-fundamentals-1-what-machine-learning-actually-is': 412,
-  'ml-fundamentals-2-linear-regression-fitting-the-best-straight-line': 289,
-  'ml-fundamentals-3-logistic-regression-predicting-yes-or-no': 214,
-  'ml-fundamentals-4-decision-trees-and-random-forests': 186,
-  'ml-fundamentals-5-clustering-finding-groups-in-data-nobody-labeled': 163,
-  'ml-fundamentals-6-feature-engineering-the-inputs-you-choose': 142,
+  jev: 124,
+  mcp: 168,
+  'ml-fundamentals-1-what-machine-learning-actually-is': 68,
+  'ml-fundamentals-2-linear-regression-fitting-the-best-straight-line': 54,
+  'ml-fundamentals-3-logistic-regression-predicting-yes-or-no': 43,
+  'ml-fundamentals-4-decision-trees-and-random-forests': 35,
+  'ml-fundamentals-5-clustering-finding-groups-in-data-nobody-labeled': 27,
+  'ml-fundamentals-6-feature-engineering-the-inputs-you-choose': 21,
 };
 
-// Deterministic baseline for any future or unlisted post so views are never 0 or NA
+// Any future or new blog post starts at 0 views
 export function getBaselineViews(id: string): number {
-  if (BASELINE_VIEWS[id]) return BASELINE_VIEWS[id];
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = (hash << 5) - hash + id.charCodeAt(i);
-    hash |= 0;
-  }
-  return 120 + Math.abs(hash % 140);
+  return BASELINE_VIEWS[id] || 0;
 }
 
-// In-memory cache pre-seeded with baseline counts so cards NEVER render empty/NA/0
+// In-memory cache pre-seeded with baseline counts so cards render immediately
 let cachedViews: Record<string, number> = { ...BASELINE_VIEWS };
 let fetchPromise: Promise<Record<string, number>> | null = null;
 const listeners = new Set<(views: Record<string, number>) => void>();
@@ -34,7 +28,7 @@ function notifyListeners() {
 
 /**
  * Format view count into a compact terminal-friendly string
- * e.g. 42 -> "42", 1250 -> "1.3k", 10400 -> "10k"
+ * e.g. 0 -> "0", 42 -> "42", 1250 -> "1.3k", 10400 -> "10k"
  */
 export function formatViewCount(count: number): string {
   if (typeof count !== 'number' || isNaN(count) || count < 0) return '0';
@@ -81,6 +75,7 @@ export async function fetchAllBlogViews(): Promise<Record<string, number>> {
 
 /**
  * Record a unique view when reading a blog post
+ * Only called from BlogPostView when a visitor actually reads a post
  * Deduplicates in browser via localStorage so repeat visits don't spam POST requests
  */
 export async function recordBlogView(postId: string): Promise<number | null> {
@@ -118,7 +113,7 @@ export async function recordBlogView(postId: string): Promise<number | null> {
     }
   } catch {
     // Graceful offline/dev fallback: increment locally
-    const current = cachedViews[postId] || getBaselineViews(postId);
+    const current = cachedViews[postId] ?? getBaselineViews(postId);
     cachedViews[postId] = current + 1;
     notifyListeners();
     return cachedViews[postId];
