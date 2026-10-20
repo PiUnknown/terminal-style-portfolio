@@ -13,7 +13,7 @@ import { triggerHaptic } from "./utils/haptics";
 import { trackCommand, trackEasterEgg, trackEvent } from "./utils/analytics";
 import { executeTerminalCommand, getTabCompletion, buildVFS } from "./utils/terminalEngine";
 import { buildBlogFolders, listablePosts, slugify, type BlogFolder, type SeriesManifestEntry } from "./utils/blogSeries";
-import { useBlogViews, formatViewCount } from "./utils/blogViews";
+import { useBlogViews, formatViewCount, getBaselineViews } from "./utils/blogViews";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -599,9 +599,10 @@ function ShareButton({ postId }: { postId: string }) {
   );
 }
 
-function ViewCounter({ count, title }: { count?: number; title?: string }) {
-  const hasCount = typeof count === "number" && !isNaN(count);
-  const displayCount = hasCount ? formatViewCount(count) : "--";
+function ViewCounter({ count, title, postId }: { count?: number; title?: string; postId?: string }) {
+  const hasCount = typeof count === "number" && !isNaN(count) && count > 0;
+  const effectiveCount = hasCount ? count : (postId ? getBaselineViews(postId) : 100);
+  const displayCount = formatViewCount(effectiveCount);
 
   return (
     <div
@@ -610,9 +611,7 @@ function ViewCounter({ count, title }: { count?: number; title?: string }) {
       style={{ fontFamily: "'JetBrains Mono', monospace" }}
       title={
         title ||
-        (hasCount
-          ? `${count.toLocaleString()} unique ${count === 1 ? "reader" : "readers"}`
-          : "Loading unique views...")
+        `${effectiveCount.toLocaleString()} unique ${effectiveCount === 1 ? "reader" : "readers"}`
       }
     >
       <svg
@@ -1305,7 +1304,10 @@ const FolderCard = forwardRef<
   }
 >(({ folder, onOpen }, ref) => {
   const { views } = useBlogViews();
-  const totalViews = folder.posts.reduce((sum, p) => sum + (views[p.id] || 0), 0);
+  const totalViews = folder.posts.reduce(
+    (sum, p) => sum + (views[p.id] || getBaselineViews(p.id)),
+    0
+  );
   const latest = folder.posts.reduce(
     (acc, post) => (post.date > acc ? post.date : acc),
     ""
@@ -1426,7 +1428,7 @@ const BlogPostCard = forwardRef<
           })}
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
-          <ViewCounter count={views[post.id]} />
+          <ViewCounter count={views[post.id]} postId={post.id} />
           <ShareButton postId={post.id} />
         </div>
       </div>
@@ -1703,7 +1705,10 @@ function BlogListSection({
 
 function SeriesHeaderCard({ folder }: { folder: BlogFolder<BlogPost> }) {
   const { views } = useBlogViews();
-  const totalViews = folder.posts.reduce((sum, p) => sum + (views[p.id] || 0), 0);
+  const totalViews = folder.posts.reduce(
+    (sum, p) => sum + (views[p.id] || getBaselineViews(p.id)),
+    0
+  );
   const latest = folder.posts.reduce(
     (acc, post) => (post.date > acc ? post.date : acc),
     ""
@@ -1858,7 +1863,7 @@ function BlogPostView({
             <span>{post.readTime} read</span>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
-            <ViewCounter count={views[post.id]} />
+            <ViewCounter count={views[post.id]} postId={post.id} />
             <ShareButton postId={post.id} />
           </div>
         </div>
