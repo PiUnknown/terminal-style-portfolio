@@ -1,6 +1,7 @@
 import { Component, Fragment, type ReactNode } from "react";
 import { DecisionTreeAnimation } from "./DecisionTreeAnimation";
 import { FeaturePrepAnimation } from "./FeaturePrepAnimation";
+import { OverfitFitAnimation, ComplexityCurveAnimation, CrossValidationAnimation } from "./EvaluationVisuals";
 import { KMeansAnimation, DBSCANAnimation, HierarchicalAnimation, ElbowChart, CrescentComparison, ClusteringFlow } from "./ClusteringVisuals";
 
 class AnimationFallback extends Component<{ children: ReactNode; poster: string }, { failed: boolean }> {
@@ -19,6 +20,9 @@ const animations = {
   "elbow-chart": ElbowChart,
   "crescent-comparison": CrescentComparison,
   "clustering-flow": ClusteringFlow,
+  "overfit-fit": OverfitFitAnimation,
+  "complexity-error": ComplexityCurveAnimation,
+  "cv-folds": CrossValidationAnimation,
 };
 
 /** Replace only registered, block-level placeholders after Markdown rendering.
