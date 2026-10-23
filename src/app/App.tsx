@@ -21,6 +21,15 @@ type Section = "home" | "about" | "projects" | "skills" | "blog" | "contact";
 
 type ThemeId = "phosphor" | "ice" | "synthwave" | "c64" | "gruvbox";
 
+const SECTION_TITLES: Record<Section, string> = {
+  home: "Home — Om Kumar Jha",
+  about: "About",
+  projects: "Projects",
+  skills: "Skills",
+  blog: "Blog",
+  contact: "Contact",
+};
+
 const THEMES: Record<ThemeId, { label: string; dot: string; vars: Record<string, string> }> = {
   phosphor: {
     label: "phosphor",
@@ -548,11 +557,11 @@ function Cursor({ visible = true }: { visible?: boolean }) {
 
 function Prompt({ user = "visitor", path = "~" }: { user?: string; path?: string }) {
   return (
-    <span className="select-none">
-      <span className="text-primary">{user}</span>
-      <span className="text-muted-foreground">@</span>
-      <span className="text-accent">portfolio</span>
-      <span className="text-muted-foreground">:</span>
+    <span className="select-none mobile-prompt">
+      <span className="text-primary mobile-prompt-identity">{user}</span>
+      <span className="text-muted-foreground mobile-prompt-identity">@</span>
+      <span className="text-accent mobile-prompt-identity">portfolio</span>
+      <span className="text-muted-foreground mobile-prompt-identity">:</span>
       <span className="text-blue-400">{path}</span>
       <span className="text-muted-foreground">$ </span>
     </span>
@@ -579,11 +588,12 @@ function ShareButton({ postId }: { postId: string }) {
   return (
     <button
       onClick={handleShare}
+      aria-label={`Copy a link to ${postId}`}
       className={`text-xs px-2 py-0.5 border transition-colors shrink-0 flex items-center gap-1.5 ${
         copied
           ? "border-primary text-primary"
           : "border-border text-muted-foreground hover:border-primary hover:text-primary"
-      }`}
+      } mobile-min-hit-area`}
       style={{ fontFamily: "'JetBrains Mono', monospace" }}
     >
       {copied ? (
@@ -676,7 +686,7 @@ function StatusBar({ section, theme }: { section: Section; theme: ThemeId }) {
   const fmt = time.toLocaleTimeString("en-US", { hour12: false });
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-between px-3 sm:px-4 text-xs border-t border-border select-none"
+      className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-between px-3 sm:px-4 text-xs border-t border-border select-none mobile-status-bar"
       style={{
         background: `color-mix(in srgb, ${THEMES[theme].vars["--primary"]} 8%, var(--background))`,
         fontFamily: "'JetBrains Mono', monospace",
@@ -685,10 +695,10 @@ function StatusBar({ section, theme }: { section: Section; theme: ThemeId }) {
         paddingTop: 0,
       }}
     >
-      <span className="text-muted-foreground flex items-center">
+      <span className="text-muted-foreground flex items-center mobile-status-track">
         <SpotifyWidget />
       </span>
-      <span className="text-muted-foreground flex items-center">
+      <span className="text-muted-foreground flex items-center shrink-0 whitespace-nowrap mobile-status-state">
         <span className="text-primary">[{section}]</span> &nbsp;{fmt}
       </span>
     </div>
@@ -723,7 +733,7 @@ function SlashPalette({ commands, activeIdx, onSelect, onHover, reducedMotion }:
     >
       {/* Palette header */}
       <div
-        className="flex items-center justify-between px-3 py-1.5 border-b border-border"
+        className="flex items-center justify-between px-3 py-1.5 border-b border-border cmd-palette-header"
         style={{ background: "rgba(0,255,65,0.04)" }}
       >
         <span className="text-xs text-muted-foreground">
@@ -742,7 +752,7 @@ function SlashPalette({ commands, activeIdx, onSelect, onHover, reducedMotion }:
             initial={reducedMotion ? false : { opacity: 0, x: -4 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ type: "spring", bounce: 0, duration: 0.2, delay: reducedMotion ? 0 : i * 0.028 }}
-            className={`w-full flex items-center gap-4 px-3 py-2 text-left transition-colors border-l-2 ${isActive ? "bg-primary/10 border-primary" : "border-transparent"}`}
+            className={`w-full flex items-center gap-4 px-3 py-2 text-left transition-colors border-l-2 cmd-palette-option ${isActive ? "bg-primary/10 border-primary" : "border-transparent"}`}
             onMouseEnter={() => onHover(i)}
             onMouseDown={(e) => {
               e.preventDefault();
@@ -750,7 +760,7 @@ function SlashPalette({ commands, activeIdx, onSelect, onHover, reducedMotion }:
             }}
           >
             <span
-              className={`text-sm w-24 shrink-0 font-semibold ${isActive ? "text-primary" : "text-muted-foreground"}`}
+              className={`text-sm w-24 shrink-0 font-semibold cmd-palette-command ${isActive ? "text-primary" : "text-muted-foreground"}`}
             >
               /{cmd}
             </span>
@@ -890,13 +900,14 @@ function HomeSection() {
 
   return (
     <div className="space-y-6 pt-2">
-      <div className="border border-border p-3 sm:p-4" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+      <div className="border border-border p-3 sm:p-4 mobile-home-card" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
         <div className="flex items-center gap-2 text-muted-foreground text-xs mb-4">
           <span>┌─ whoami</span>
           <div className="flex-1 h-px bg-border" />
         </div>
         <div
           className="text-2xl sm:text-4xl font-bold mb-2"
+          aria-hidden="true"
           style={{ fontFamily: "'VT323', monospace", color: "#00ff41", letterSpacing: "0.05em" }}
         >
           {line1.displayed}
@@ -929,7 +940,7 @@ function HomeSection() {
           <div className="text-muted-foreground">
             <span className="text-primary">$</span> ls ./quick-links/
           </div>
-          <div className="grid grid-cols-2 gap-2 mt-2 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 mt-2 sm:grid-cols-4 mobile-quick-links">
             {[
               { label: "github.com/PiUnknown", icon: "⌥", url: "https://github.com/PiUnknown", type: "github" },
               { label: "linkedin/omkumarjha043", icon: "⌘", url: "https://linkedin.com/in/omkumarjha043", type: "linkedin" },
@@ -952,10 +963,13 @@ function HomeSection() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
                 transition={{ type: "spring", bounce: 0, duration: 0.2 }}
-                className="border border-border px-3 py-2 text-xs hover:border-primary hover:bg-secondary transition-colors group"
+                className="border border-border px-3 py-2 text-xs hover:border-primary hover:bg-secondary transition-colors group mobile-min-hit-area"
               >
-                <span className="text-muted-foreground mr-1">{link.icon}</span>
-                <span className="group-hover:text-primary transition-colors">{link.label}</span>
+                <span className="text-muted-foreground mr-1 mobile-quick-link-glyph" aria-hidden="true">{link.icon}</span>
+                <span className="mobile-quick-link-badge" aria-hidden="true">
+                  {link.type === "github" ? "GH" : link.type === "linkedin" ? "in" : link.type === "email" ? "@" : "PDF"}
+                </span>
+                <span className="group-hover:text-primary transition-colors mobile-quick-link-label">{link.label}</span>
               </motion.a>
             ))}
           </div>
@@ -994,7 +1008,7 @@ function HomeSection() {
 function AboutSection() {
   return (
     <div className="space-y-5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-      <div className="text-muted-foreground text-sm">
+      <div className="text-muted-foreground text-sm mobile-terminal-command-line">
         <Prompt path="~/about" />
         cat about.txt
       </div>
@@ -1107,14 +1121,14 @@ function ProjectCard({ p, onClick }: { p: Project; onClick: () => void }) {
       whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 0.98 }}
       transition={{ type: "spring", bounce: 0, duration: 0.2 }}
-      className="w-full text-left block border border-border p-3 sm:p-4 hover:border-primary hover:bg-secondary transition-colors group touch-manipulation"
+      className="w-full text-left block border border-border p-3 sm:p-4 hover:border-primary hover:bg-secondary transition-colors group touch-manipulation mobile-project-card"
     >
       <div className="flex items-center justify-between mb-1">
-        <span className="text-primary group-hover:underline font-semibold">{p.name}</span>
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+        <span className="text-primary group-hover:underline font-semibold mobile-project-name">{p.name}</span>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground mobile-project-meta">
           <span>★ {stars}</span>
           <span
-            className="px-2 py-0.5 border text-xs"
+            className="px-2 py-0.5 border text-xs mobile-project-status"
             style={{ color: statusColor[p.status], borderColor: statusColor[p.status] + "44" }}
           >
             {p.status}
@@ -1147,6 +1161,7 @@ function ProjectDetailView({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-3 mb-4">
           <span
             className="text-2xl font-bold"
+            aria-hidden="true"
             style={{ fontFamily: "'VT323', monospace", color: "var(--primary)", letterSpacing: "0.03em" }}
           >
             {project.name}
@@ -1157,7 +1172,7 @@ function ProjectDetailView({
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="text-xs px-2 py-0.5 border border-border hover:border-primary hover:text-primary transition-colors text-muted-foreground"
+              className="text-xs px-2 py-0.5 border border-border hover:border-primary hover:text-primary transition-colors text-muted-foreground mobile-min-hit-area"
             >
               ↗ github
             </a>
@@ -1167,7 +1182,7 @@ function ProjectDetailView({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="text-xs px-2 py-0.5 border border-border hover:border-primary hover:text-primary transition-colors text-muted-foreground"
+                className="text-xs px-2 py-0.5 border border-border hover:border-primary hover:text-primary transition-colors text-muted-foreground mobile-min-hit-area"
               >
                 ↗ live link
               </a>
@@ -1187,7 +1202,7 @@ function ProjectDetailView({
 
       <button
         onClick={onBack}
-        className="text-sm text-muted-foreground hover:text-primary transition-colors"
+        className="text-sm text-muted-foreground hover:text-primary transition-colors mobile-min-hit-area"
       >
         <Prompt path="~/projects" />
         cd .. # ← go back
@@ -1297,7 +1312,7 @@ function SkillsSection() {
 // ── Blog: folder ("super blog") + shared list pieces ─────────────────────────
 
 const FolderCard = forwardRef<
-  HTMLButtonElement,
+  HTMLDivElement,
   {
     folder: BlogFolder<BlogPost>;
     onOpen?: (slug: string) => void;
@@ -1316,10 +1331,8 @@ const FolderCard = forwardRef<
 
   // Same card as a post — only the meta line says "series" instead of a read time.
   return (
-    <motion.button
+    <motion.div
       ref={ref}
-      type="button"
-      onClick={() => onOpen?.(folder.slug)}
       layout
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
@@ -1327,8 +1340,9 @@ const FolderCard = forwardRef<
       transition={{ type: "spring", bounce: 0, duration: 0.2 }}
       whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 0.98 }}
-      className="w-full text-left border border-border p-3 sm:p-4 hover:border-primary hover:bg-secondary transition-colors group cursor-pointer block"
+      className="w-full border border-border hover:border-primary hover:bg-secondary transition-colors group"
     >
+      <button type="button" onClick={() => onOpen?.(folder.slug)} aria-label={`Open ${folder.name} series`} className="w-full text-left block px-3 pt-3 sm:px-4 sm:pt-4">
       <div className="flex items-start justify-between gap-2 mb-1">
         <span className="text-primary group-hover:underline font-semibold text-sm leading-snug">
           {folder.name}
@@ -1350,20 +1364,21 @@ const FolderCard = forwardRef<
           </span>
         ))}
       </div>
-      <div className="flex items-center justify-end gap-1.5 mt-2">
+      </button>
+      <div className="flex items-center justify-end gap-1.5 mt-2 px-3 pb-3 sm:px-4 sm:pb-4">
         <ViewCounter
           count={totalViews}
           title={`${totalViews.toLocaleString()} total series readers`}
         />
         <ShareButton postId={folder.slug} />
       </div>
-    </motion.button>
+    </motion.div>
   );
 });
 FolderCard.displayName = "FolderCard";
 
 const BlogPostCard = forwardRef<
-  HTMLButtonElement,
+  HTMLDivElement,
   {
     post: BlogPost;
     selectedTag?: string | null;
@@ -1375,18 +1390,18 @@ const BlogPostCard = forwardRef<
   const { views } = useBlogViews();
 
   return (
-    <motion.button
+    <motion.div
       ref={ref}
       layout
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.98 }}
       transition={{ type: "spring", bounce: 0, duration: 0.2 }}
-      onClick={() => onOpen(post.id)}
       whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 0.98 }}
-      className="w-full text-left border border-border p-3 sm:p-4 hover:border-primary hover:bg-secondary transition-colors group cursor-pointer block"
+      className="w-full border border-border hover:border-primary hover:bg-secondary transition-colors group"
     >
+      <button type="button" onClick={() => onOpen(post.id)} aria-label={`Read ${post.title}`} className="w-full text-left block px-3 pt-3 sm:px-4 sm:pt-4">
       <div className="flex items-start justify-between gap-2 mb-1">
         <span className="text-primary group-hover:underline font-semibold text-sm leading-snug">
           {post.title}
@@ -1395,33 +1410,34 @@ const BlogPostCard = forwardRef<
       </div>
       <div className="text-xs text-muted-foreground mb-2">{post.date}</div>
       <div className="text-xs text-muted-foreground mb-3">{post.excerpt}</div>
-      <div className="flex items-center justify-between gap-2">
+      </button>
+      <div className="flex items-center justify-between gap-2 px-3 pb-3 sm:px-4 sm:pb-4">
         <div className="flex gap-2 flex-wrap">
           {post.tags.map((tag) => {
             const isTagActive = selectedTag?.toLowerCase() === tag.toLowerCase();
             const filterable = typeof onSelectTag === "function";
-            return (
-              <span
+            const tagClasses = `px-2 py-0.5 text-xs rounded border transition-all ${
+              filterable
+                ? "cursor-pointer hover:border-blue-400 hover:bg-blue-400/10"
+                : "cursor-default"
+            } ${
+              isTagActive
+                ? "text-primary border-primary bg-primary/20 font-semibold"
+                : "text-blue-400 border-blue-400/30"
+            }`;
+            return filterable ? (
+              <button
                 key={tag}
-                onClick={
-                  filterable
-                    ? (e) => {
-                        e.stopPropagation();
-                        onSelectTag?.(isTagActive ? null : tag);
-                      }
-                    : undefined
-                }
-                className={`px-2 py-0.5 text-xs rounded border transition-all ${
-                  filterable
-                    ? "cursor-pointer hover:border-blue-400 hover:bg-blue-400/10"
-                    : "cursor-default"
-                } ${
-                  isTagActive
-                    ? "text-primary border-primary bg-primary/20 font-semibold"
-                    : "text-blue-400 border-blue-400/30"
-                }`}
-                title={filterable ? `Filter by #${tag}` : `#${tag}`}
+                type="button"
+                onClick={() => onSelectTag?.(isTagActive ? null : tag)}
+                aria-pressed={isTagActive}
+                className={`${tagClasses} mobile-min-hit-area mobile-tag-chip`}
+                title={`Filter by #${tag}`}
               >
+                #{tag}
+              </button>
+            ) : (
+              <span key={tag} className={tagClasses} title={`#${tag}`}>
                 #{tag}
               </span>
             );
@@ -1432,7 +1448,7 @@ const BlogPostCard = forwardRef<
           <ShareButton postId={post.id} />
         </div>
       </div>
-    </motion.button>
+    </motion.div>
   );
 });
 BlogPostCard.displayName = "BlogPostCard";
@@ -1485,15 +1501,16 @@ function BlogTagRibbon({
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          aria-label="Filter blog posts by tag"
           placeholder="type to narrow flags…"
-          className="flex-1 min-w-0 bg-transparent outline-none text-xs font-mono placeholder:text-muted-foreground/50"
+          className="flex-1 min-w-0 bg-transparent outline-none text-xs font-mono placeholder:text-muted-foreground/50 mobile-text-entry"
           style={{ fontFamily: "'JetBrains Mono', monospace" }}
         />
         {query && (
           <button
             type="button"
             onClick={() => setQuery("")}
-            className="text-muted-foreground hover:text-primary font-mono cursor-pointer"
+            className="text-muted-foreground hover:text-primary font-mono cursor-pointer mobile-min-hit-area"
           >
             esc
           </button>
@@ -1508,7 +1525,8 @@ function BlogTagRibbon({
         <button
           type="button"
           onClick={() => onSelectTag(null)}
-          className={`px-2 py-1 text-xs border transition-all cursor-pointer font-mono ${
+          aria-pressed={selectedTag === null}
+          className={`px-2 py-1 text-xs border transition-all cursor-pointer font-mono mobile-min-hit-area mobile-tag-chip ${
             selectedTag === null
               ? "border-primary bg-primary text-primary-foreground font-bold"
               : "border-border text-muted-foreground hover:border-primary/60 hover:text-primary"
@@ -1523,7 +1541,8 @@ function BlogTagRibbon({
               key={name}
               type="button"
               onClick={() => onSelectTag(isActive ? null : name)}
-              className={`px-2 py-1 text-xs border transition-all cursor-pointer flex items-center gap-1.5 font-mono ${
+              aria-pressed={isActive}
+              className={`px-2 py-1 text-xs border transition-all cursor-pointer flex items-center gap-1.5 font-mono mobile-min-hit-area mobile-tag-chip ${
                 isActive
                   ? "border-primary bg-primary text-primary-foreground font-bold"
                   : "border-border text-muted-foreground hover:border-primary/60 hover:text-primary"
@@ -1538,7 +1557,7 @@ function BlogTagRibbon({
           <button
             type="button"
             onClick={() => setExpanded((v) => !v)}
-            className="px-2 py-1 text-xs border border-dashed border-border text-muted-foreground hover:border-primary/60 hover:text-primary transition-all cursor-pointer font-mono"
+            className="px-2 py-1 text-xs border border-dashed border-border text-muted-foreground hover:border-primary/60 hover:text-primary transition-all cursor-pointer font-mono mobile-min-hit-area mobile-tag-chip"
           >
             {expanded ? "[- collapse]" : `[+${hiddenCount} more]`}
           </button>
@@ -1853,6 +1872,7 @@ function BlogPostView({
       <div className="border border-border p-3 sm:p-4 space-y-4" onClick={handlePostClick}>
         <div
           className="text-[1.6rem] font-medium leading-none tracking-wider text-primary"
+          aria-hidden="true"
           style={{ fontFamily: "'VT323', monospace" }}
         >
           {post.title}
@@ -1877,7 +1897,7 @@ function BlogPostView({
                   onSelectTag(tag);
                 }
               }}
-              className="px-2 py-0.5 text-xs rounded border text-blue-400 border-blue-400/30 hover:border-blue-400 hover:bg-blue-400/10 transition-colors cursor-pointer"
+              className="px-2 py-0.5 text-xs rounded border text-blue-400 border-blue-400/30 hover:border-blue-400 hover:bg-blue-400/10 transition-colors cursor-pointer mobile-min-hit-area"
               title={`View posts tagged #${tag}`}
             >
               #{tag}
@@ -1893,7 +1913,7 @@ function BlogPostView({
 
       <button
         onClick={onBack}
-        className="text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer flex items-center gap-1.5"
+        className="text-sm text-muted-foreground hover:text-primary transition-colors cursor-pointer flex items-center gap-1.5 mobile-min-hit-area"
       >
         <Prompt path="~/blog" />
         cd .. # ← go back
@@ -1956,34 +1976,36 @@ function ContactSection() {
         ./send-message.sh --interactive
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5" onClick={(e) => e.stopPropagation()}>
+      <form onSubmit={handleSubmit} className="space-y-5" aria-label="Send a message" onClick={(e) => e.stopPropagation()}>
         {[
           { label: "name", key: "name", type: "text", placeholder: "your name" },
           { label: "email", key: "email", type: "email", placeholder: "you@example.com" },
         ].map(({ label, key, type, placeholder }) => (
           <div key={key} className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
-            <span className="text-primary text-xs sm:shrink-0 sm:w-20 sm:text-right select-none">--{label}</span>
+            <label htmlFor={`contact-${key}`} className="text-primary text-xs sm:shrink-0 sm:w-20 sm:text-right select-none">--{label}</label>
             <input
+              id={`contact-${key}`}
               type={type}
               required
               placeholder={placeholder}
               value={form[key as keyof typeof form]}
               onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-              className="w-full sm:flex-1 bg-transparent border-b border-border text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors pb-1"
+              className="w-full sm:flex-1 bg-transparent border-b border-border text-base lg:text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors pb-1 mobile-text-entry"
               style={{ fontFamily: "'JetBrains Mono', monospace" }}
             />
           </div>
         ))}
 
         <div className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-3">
-          <span className="text-primary text-xs sm:shrink-0 sm:w-20 sm:text-right select-none sm:pt-1">--message</span>
+          <label htmlFor="contact-message" className="text-primary text-xs sm:shrink-0 sm:w-20 sm:text-right select-none sm:pt-1">--message</label>
           <textarea
+            id="contact-message"
             required
             rows={4}
             placeholder="what's on your mind?"
             value={form.message}
             onChange={(e) => setForm({ ...form, message: e.target.value })}
-            className="w-full sm:flex-1 bg-transparent border-b border-border text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors resize-none pb-1"
+            className="w-full sm:flex-1 bg-transparent border-b border-border text-base lg:text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors resize-none pb-1 mobile-text-entry"
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           />
         </div>
@@ -1992,7 +2014,7 @@ function ContactSection() {
           <span className="hidden sm:block w-20 shrink-0" />
           <button
             type="submit"
-            className="text-sm text-muted-foreground hover:text-primary transition-colors"
+            className="text-sm text-muted-foreground hover:text-primary transition-colors mobile-min-hit-area"
           >
             <span className="text-primary mr-1">$</span>
             {loading ? "sending..." : <>./send.sh <span className="text-muted-foreground">↵</span></>}
@@ -2001,15 +2023,15 @@ function ContactSection() {
       </form>
 
       <div className="space-y-2 pt-1">
-        <div className="text-muted-foreground text-xs flex items-center justify-between flex-wrap gap-2">
+        <div className="text-muted-foreground text-xs flex items-center justify-between flex-wrap gap-2 mobile-contact-heading">
           <div className="flex items-center gap-1.5">
-            <Prompt path="~/contact" />
-            <span>cat ./channels.env</span>
+            <span className="hidden sm:inline-flex items-center gap-1.5"><Prompt path="~/contact" /><span>cat ./channels.env</span></span>
+            <span className="sm:hidden text-primary font-semibold">Direct channels</span>
           </div>
-          <span className="text-[10px] text-muted-foreground/70 font-mono">[DIRECT_CHANNELS]</span>
+          <span className="hidden sm:inline text-[10px] text-muted-foreground/70 font-mono">[DIRECT_CHANNELS]</span>
         </div>
 
-        <div className="border border-border bg-card/40 p-3 sm:p-4 text-xs font-mono space-y-2.5">
+        <div className="border border-border bg-card/40 p-3 sm:p-4 text-xs font-mono space-y-2.5 mobile-contact-panel">
           {[
             {
               key: "email",
@@ -2030,10 +2052,10 @@ function ContactSection() {
               badge: "NETWORK",
             },
           ].map(({ key, val, href, badge }) => (
-            <div key={key} className="flex items-center justify-between flex-wrap gap-2 group">
-              <div className="flex items-center gap-2">
-                <span className="text-primary font-semibold w-16 sm:w-20 shrink-0">{key}</span>
-                <span className="text-muted-foreground">::</span>
+            <div key={key} className="flex items-center justify-between flex-wrap gap-2 group mobile-contact-channel-row">
+              <div className="flex items-center gap-2 mobile-contact-channel-info">
+                <span className="text-primary font-semibold w-16 sm:w-20 shrink-0 mobile-contact-channel-key">{key}</span>
+                <span className="text-muted-foreground mobile-contact-channel-separator">::</span>
                 <a
                   href={href}
                   target={href.startsWith("mailto") ? undefined : "_blank"}
@@ -2042,15 +2064,15 @@ function ContactSection() {
                     triggerHaptic("light");
                     trackEvent("contact_link_clicked", { channel: key, url: href });
                   }}
-                  className="text-foreground hover:text-primary hover:underline transition-colors flex items-center gap-1 cursor-pointer"
+                  className="text-foreground hover:text-primary hover:underline transition-colors flex items-center gap-1 cursor-pointer mobile-min-hit-area mobile-contact-channel-link"
                 >
-                  <span>{val}</span>
+                  <span className="mobile-contact-channel-value">{val}</span>
                   {!href.startsWith("mailto") && (
                     <span className="text-[10px] text-muted-foreground group-hover:text-primary transition-colors">↗</span>
                   )}
                 </a>
               </div>
-              <span className="text-[10px] text-muted-foreground border border-border/60 px-1.5 py-0.5 rounded bg-background/50">
+              <span className="text-[10px] text-muted-foreground border border-border/60 px-1.5 py-0.5 rounded bg-background/50 mobile-contact-channel-badge">
                 {badge}
               </span>
             </div>
@@ -2083,14 +2105,28 @@ export default function App() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const reducedMotion = useReducedMotion();
   const inputRef = useRef<HTMLInputElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputWrapRef = useRef<HTMLDivElement>(null);
   const logoClicksRef = useRef<{ count: number; timer: ReturnType<typeof setTimeout> | null }>({ count: 0, timer: null });
 
   // Scroll to top on navigation
   useEffect(() => {
-    window.scrollTo(0, 0);
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      mainRef.current?.scrollTo(0, 0);
+    } else {
+      window.scrollTo(0, 0);
+    }
   }, [section, openPost, openProject, openFolder]);
+
+  useEffect(() => {
+    if (!mobileNavOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileNavOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [mobileNavOpen]);
 
   // Konami Code Secret Listener (↑ ↑ ↓ ↓ ← → ← → B A)
   useEffect(() => {
@@ -2314,7 +2350,11 @@ export default function App() {
       setSelectedBlogTag(null);
     }
     setInlineLog([]);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
     history.pushState(null, "", s === "home" ? "/" : `/${s}`);
   }, []);
 
@@ -2487,6 +2527,11 @@ export default function App() {
 
   const post = openPost ? BLOG_POSTS.find((p) => p.id === openPost) ?? null : null;
   const folder = openFolder ? FOLDERS.find((f) => f.slug === openFolder) ?? null : null;
+  const pageHeading = post?.title ?? folder?.name ?? (
+    section === "projects" && openProject
+      ? openProject
+      : SECTION_TITLES[section]
+  );
 
   // Entering / leaving a folder animates like a section change; posts stay instant.
   const viewKey = section === "blog" && openFolder && !openPost
@@ -2495,16 +2540,27 @@ export default function App() {
 
   return (
     <div
-      className="min-h-screen bg-background text-foreground flex flex-col"
+      className="min-h-screen bg-background text-foreground flex flex-col mobile-app-shell"
       style={{ fontFamily: "'JetBrains Mono', monospace", ...THEMES[theme].vars }}
-      onClick={() => inputRef.current?.focus()}
+      onClick={(event) => {
+        const target = event.target;
+        if (
+          mobileNavOpen &&
+          target instanceof Element &&
+          !target.closest("[data-mobile-navigation]") &&
+          !target.closest("[data-mobile-menu-toggle]")
+        ) {
+          setMobileNavOpen(false);
+        }
+        if (window.matchMedia("(pointer: fine)").matches) inputRef.current?.focus();
+      }}
     >
       <BootLoader visible={loading} />
       <ScanlineOverlay />
 
       {/* Header */}
       <header
-        className="sticky top-0 z-30 border-b border-border px-4 py-2"
+        className="sticky top-0 z-30 border-b border-border px-4 py-2 mobile-site-header"
         style={{ background: "rgba(10,15,10,0.96)", backdropFilter: "blur(4px)" }}
       >
         <div className="flex items-center justify-between">
@@ -2514,6 +2570,7 @@ export default function App() {
                 e.stopPropagation();
                 triggerHaptic("light");
                 navigate("home");
+                setMobileNavOpen(false);
                 logoClicksRef.current.count += 1;
                 if (logoClicksRef.current.timer) clearTimeout(logoClicksRef.current.timer);
                 if (logoClicksRef.current.count >= 5) {
@@ -2526,7 +2583,7 @@ export default function App() {
                   }, 1500);
                 }
               }}
-              className="text-sm sm:text-base font-bold hover:opacity-80 transition-opacity flex items-center gap-1"
+              className="text-sm lg:text-base font-bold hover:opacity-80 transition-opacity flex items-center gap-1 mobile-logo-button"
               style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--primary)" }}
               title="~ localhost"
             >
@@ -2534,8 +2591,8 @@ export default function App() {
               <span>localhost</span>
             </button>
             <div className="flex items-center gap-2">
-              <span className="text-muted-foreground text-xs hidden sm:inline">{VERSION} ·</span>
-              <div className="hidden sm:flex items-center gap-2 ml-1">
+              <span className="text-muted-foreground text-xs hidden lg:inline">{VERSION} ·</span>
+              <div className="hidden lg:flex items-center gap-2 ml-1">
                 {(Object.keys(THEMES) as ThemeId[]).map((id) => (
                   <button
                     key={id}
@@ -2546,6 +2603,8 @@ export default function App() {
                       trackEvent("theme_changed", { theme: id });
                     }}
                     title={THEMES[id].label}
+                    aria-label={`Use ${THEMES[id].label} theme`}
+                    aria-pressed={theme === id}
                     className="flex items-center gap-1 text-xs transition-colors px-1"
                     style={{ color: theme === id ? THEMES[id].dot : "var(--muted-foreground)" }}
                   >
@@ -2566,6 +2625,8 @@ export default function App() {
                     if (next) keyboardSound.playNavClick();
                   }}
                   title={sfxEnabled ? "Mute mechanical keyboard sounds" : "Enable mechanical keyboard sounds"}
+                  aria-label={sfxEnabled ? "Mute keyboard sounds" : "Enable keyboard sounds"}
+                  aria-pressed={sfxEnabled}
                   className="flex items-center gap-1 text-xs transition-colors px-1.5 py-0.5 border border-border hover:border-primary ml-1"
                   style={{ color: sfxEnabled ? "var(--primary)" : "var(--muted-foreground)" }}
                 >
@@ -2575,7 +2636,7 @@ export default function App() {
             </div>
           </div>
 
-          <nav className="hidden sm:flex gap-1">
+          <nav className="hidden lg:flex gap-1" aria-label="Primary navigation">
             {(["home", "about", "projects", "skills", "blog", "contact"] as Section[]).map((s) => (
               <motion.button
                 key={s}
@@ -2586,6 +2647,7 @@ export default function App() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: "spring", bounce: 0, duration: 0.15 }}
+                aria-current={section === s ? "page" : undefined}
                 className={`px-2 py-1 text-xs transition-colors ${section === s
                   ? "text-primary border border-primary bg-secondary"
                   : "text-muted-foreground hover:text-primary border border-transparent"
@@ -2597,15 +2659,26 @@ export default function App() {
           </nav>
 
           <button
-            className="sm:hidden text-muted-foreground hover:text-primary transition-colors px-2 py-1 text-lg"
+            type="button"
+            data-mobile-menu-toggle
+            aria-label={mobileNavOpen ? "Close site navigation" : "Open site navigation"}
+            aria-expanded={mobileNavOpen}
+            aria-controls="mobile-primary-navigation"
+            className="lg:hidden text-muted-foreground hover:text-primary transition-colors px-2 py-1 text-lg mobile-menu-toggle"
             onClick={(e) => { e.stopPropagation(); setMobileNavOpen((v) => !v); }}
           >
-            {mobileNavOpen ? "✕" : "☰"}
+            <span aria-hidden="true">{mobileNavOpen ? "✕" : "☰"}</span>
           </button>
         </div>
 
-        {mobileNavOpen && (
-          <nav className="sm:hidden border-t border-border mt-2 pt-2 flex flex-wrap gap-1">
+        <nav
+          id="mobile-primary-navigation"
+          data-mobile-navigation
+          aria-label="Primary navigation"
+          hidden={!mobileNavOpen}
+          className={`lg:hidden border-t border-border mt-2 pt-3 mobile-nav-panel ${mobileNavOpen ? "block" : "hidden"}`}
+        >
+          <div className="mobile-nav-grid">
             {(["home", "about", "projects", "skills", "blog", "contact"] as Section[]).map((s) => (
               <motion.button
                 key={s}
@@ -2614,10 +2687,10 @@ export default function App() {
                   navigate(s);
                   setMobileNavOpen(false);
                 }}
-                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: "spring", bounce: 0, duration: 0.15 }}
-                className={`px-3 py-1.5 text-xs transition-colors ${section === s
+                aria-current={section === s ? "page" : undefined}
+                className={`mobile-nav-item px-3 py-1.5 text-xs border transition-colors ${section === s
                   ? "text-primary border border-primary bg-secondary"
                   : "text-muted-foreground hover:text-primary border border-transparent"
                   }`}
@@ -2625,14 +2698,18 @@ export default function App() {
                 {s}
               </motion.button>
             ))}
-            <div className="flex items-center gap-2 px-1 pt-2 border-t border-border mt-1 w-full">
-              <span className="text-muted-foreground text-xs">theme:</span>
+          </div>
+          <div className="mobile-menu-settings" role="group" aria-label="Appearance and sound settings">
+            <span className="mobile-menu-setting-label">Theme</span>
+            <div className="mobile-theme-grid">
               {(Object.keys(THEMES) as ThemeId[]).map((id) => (
                 <button
                   key={id}
                   onClick={(e) => { e.stopPropagation(); setTheme(id); }}
                   title={THEMES[id].label}
-                  className="flex items-center gap-1 text-xs transition-colors px-1"
+                  aria-label={`Use ${THEMES[id].label} theme`}
+                  aria-pressed={theme === id}
+                  className="mobile-theme-choice"
                   style={{ color: theme === id ? THEMES[id].dot : "var(--muted-foreground)" }}
                 >
                   <span
@@ -2642,20 +2719,38 @@ export default function App() {
                   <span>{THEMES[id].label}</span>
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const next = !sfxEnabled;
+                  setSfxEnabled(next);
+                  keyboardSound.setEnabled(next);
+                  if (next) keyboardSound.playNavClick();
+                }}
+                title={sfxEnabled ? "Mute mechanical keyboard sounds" : "Enable mechanical keyboard sounds"}
+                aria-label={sfxEnabled ? "Mute keyboard sounds" : "Enable keyboard sounds"}
+                aria-pressed={sfxEnabled}
+                className="mobile-sound-choice"
+              >
+                <span aria-hidden="true">⌨</span>
+                <span>sounds {sfxEnabled ? "on" : "off"}</span>
+              </button>
             </div>
-          </nav>
-        )}
+          </div>
+        </nav>
       </header>
 
       {/* Terminal body */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-24 sm:pb-20">
+      <main ref={mainRef} className="flex-1 max-w-5xl w-full mx-auto px-3 lg:px-4 py-4 lg:py-6 pb-28 lg:pb-20 mobile-main">
+        <h1 className="sr-only">{pageHeading}</h1>
         {/* Boot message */}
-        <div className="text-muted-foreground text-xs mb-6 space-y-0.5">
-          <div className="text-muted-foreground">
+        <div className="text-muted-foreground text-xs mb-6 space-y-0.5 mobile-boot-info">
+          <div className="text-muted-foreground mobile-boot-version">
             localhost {VERSION} ({theme}) #1 SMP {new Date().toDateString()}
           </div>
           <div className="text-muted-foreground">
-            Type <span className="text-primary">/</span> to open the command palette, or use the nav above.
+            Type <span className="text-primary">/</span><span className="hidden sm:inline"> to open the command palette, or use the nav above.</span><span className="sm:hidden"> for commands · menu for sections.</span>
           </div>
         </div>
 
@@ -2713,7 +2808,7 @@ export default function App() {
       </main>
 
       <div
-        className="fixed left-0 right-0 z-40 border-t border-border px-3 sm:px-4 py-2"
+        className="fixed left-0 right-0 z-40 border-t border-border px-3 sm:px-4 py-2 mobile-command-dock"
         style={{
           bottom: "calc(28px + env(safe-area-inset-bottom))",
           background: "var(--background)",
@@ -2733,7 +2828,8 @@ export default function App() {
             )}
           </AnimatePresence>
           <div className="flex items-center gap-2">
-            <Prompt path={currentPath} />
+            <span className="inline-flex lg:hidden text-primary shrink-0" aria-hidden="true">$</span>
+            <span className="hidden lg:inline-flex"><Prompt path={currentPath} /></span>
             <input
               ref={inputRef}
               value={cmdInput}
@@ -2744,9 +2840,11 @@ export default function App() {
               onKeyDown={handleKey}
               onClick={(e) => e.stopPropagation()}
               placeholder="type / for commands..."
-              className="flex-1 bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground caret-primary"
+              className="flex-1 min-w-0 bg-transparent border-none outline-none text-base lg:text-sm text-foreground placeholder:text-muted-foreground caret-primary mobile-command-input"
               style={{ fontFamily: "'JetBrains Mono', monospace" }}
               autoComplete="off"
+              aria-label="Terminal command"
+              enterKeyHint="go"
               spellCheck={false}
             />
           </div>

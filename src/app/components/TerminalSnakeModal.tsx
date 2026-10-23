@@ -450,7 +450,10 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
           transition={{ duration: 0.2 }}
-          className="w-full max-w-lg border border-primary/40 bg-card text-foreground shadow-2xl overflow-hidden flex flex-col"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Terminal Snake game"
+          className="w-full max-w-lg border border-primary/40 bg-card text-foreground shadow-2xl overflow-hidden flex flex-col mobile-game-panel"
           style={{ fontFamily: "'JetBrains Mono', monospace" }}
         >
           {/* Header Bar */}
@@ -481,6 +484,8 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
                   setSoundMuted(nextMute);
                   sfx.enabled = !nextMute;
                 }}
+                aria-label={soundMuted ? "Unmute snake game sound" : "Mute snake game sound"}
+                aria-pressed={!soundMuted}
                 className="text-xs text-muted-foreground hover:text-primary transition-colors"
                 title={soundMuted ? "Unmute sound" : "Mute sound"}
               >
@@ -488,6 +493,7 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
               </button>
               <button
                 onClick={onClose}
+                aria-label="Close Terminal Snake"
                 className="text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 px-2 py-0.5 border border-border transition-colors"
               >
                 ESC / ✕
@@ -689,14 +695,16 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
             <div className="flex flex-col items-center gap-1 sm:hidden">
               <button
                 onClick={() => handleDirectionPress("UP")}
-                className="w-12 h-9 border border-border bg-secondary active:bg-primary active:text-black text-xs font-bold"
+                aria-label="Move up"
+                className="w-12 h-11 border border-border bg-secondary active:bg-primary active:text-black text-xs font-bold"
               >
                 ▲
               </button>
               <div className="flex gap-2">
                 <button
                   onClick={() => handleDirectionPress("LEFT")}
-                  className="w-12 h-9 border border-border bg-secondary active:bg-primary active:text-black text-xs font-bold"
+                  aria-label="Move left"
+                  className="w-12 h-11 border border-border bg-secondary active:bg-primary active:text-black text-xs font-bold"
                 >
                   ◀
                 </button>
@@ -706,20 +714,23 @@ export function TerminalSnakeModal({ isOpen, onClose }: TerminalSnakeModalProps)
                     else if (gameState === "PAUSED") setGameState("PLAYING");
                     else startGame();
                   }}
-                  className="w-12 h-9 border border-primary/50 bg-primary/10 text-primary active:bg-primary active:text-black text-[10px] font-bold"
+                  aria-label={gameState === "PLAYING" ? "Pause game" : gameState === "PAUSED" ? "Resume game" : "Start game"}
+                  className="w-12 h-11 border border-primary/50 bg-primary/10 text-primary active:bg-primary active:text-black text-[10px] font-bold"
                 >
                   {gameState === "PLAYING" ? "❚❚" : "▶"}
                 </button>
                 <button
                   onClick={() => handleDirectionPress("RIGHT")}
-                  className="w-12 h-9 border border-border bg-secondary active:bg-primary active:text-black text-xs font-bold"
+                  aria-label="Move right"
+                  className="w-12 h-11 border border-border bg-secondary active:bg-primary active:text-black text-xs font-bold"
                 >
                   ▶
                 </button>
               </div>
               <button
                 onClick={() => handleDirectionPress("DOWN")}
-                className="w-12 h-9 border border-border bg-secondary active:bg-primary active:text-black text-xs font-bold"
+                aria-label="Move down"
+                className="w-12 h-11 border border-border bg-secondary active:bg-primary active:text-black text-xs font-bold"
               >
                 ▼
               </button>
