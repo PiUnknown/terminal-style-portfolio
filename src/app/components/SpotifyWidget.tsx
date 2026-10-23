@@ -34,6 +34,19 @@ export function SpotifyWidget() {
     return () => clearInterval(interval);
   }, []);
 
+  const hasTrack = data.url.startsWith("https://open.spotify.com/track/");
+  const mobileLabel = hasTrack
+    ? `${data.isPlaying ? "Now playing" : "Last played"} · ${data.song}`
+    : data.song === "Loading..."
+      ? "Loading Spotify…"
+      : data.song === "Setup Required"
+        ? "Spotify setup required"
+        : data.song === "Silence"
+          ? "No recent track"
+          : data.song === "Podcast/Other"
+            ? "Spotify is playing another format"
+            : "Spotify unavailable";
+
   return (
     <a
       href={data.url}
@@ -41,8 +54,8 @@ export function SpotifyWidget() {
       rel="noopener noreferrer"
       className="group flex items-center gap-2 hover:text-primary transition-colors cursor-pointer pointer-events-auto mobile-spotify-link"
       style={{ fontFamily: "'JetBrains Mono', monospace" }}
-      title="Listen on Spotify"
-      aria-label={data.isPlaying ? `Now playing ${data.song} by ${data.artist} on Spotify` : `Listen to ${data.song} on Spotify`}
+      title={hasTrack ? `${data.isPlaying ? "Now playing" : "Last played"}: ${data.song}` : mobileLabel}
+      aria-label={hasTrack ? `${data.isPlaying ? "Now playing" : "Last played"} ${data.song} by ${data.artist} on Spotify` : mobileLabel}
     >
       <span className="text-primary text-center inline-block hidden sm:inline-block">
         [♫]
@@ -56,7 +69,7 @@ export function SpotifyWidget() {
         <span className="text-foreground">{data.song}</span>
       </span>
       <span className="sm:hidden mobile-spotify-compact">
-        {data.isPlaying ? `Now playing · ${data.song}` : "Listen on Spotify"}
+        {mobileLabel}
       </span>
     </a>
   );

@@ -527,10 +527,11 @@ function useGithubStars(url: string, fallback: number): number {
 }
 
 function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
+  const [reduced, setReduced] = useState(() =>
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduced(mq.matches);
     const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
@@ -889,7 +890,7 @@ function InlineLog({ lines, path }: { lines: string[]; path: string }) {
 
 // ── Sections ──────────────────────────────────────────────────────────────────
 
-function HomeSection() {
+function HomeSection({ mobileMotion }: { mobileMotion: boolean }) {
   const line1 = useTypewriter("Om Kumar Jha", 60);
   const line2 = useTypewriter("Engineering Intelligence into Software • Student", 40, [line1.done]);
   const line3 = useTypewriter(
@@ -940,13 +941,18 @@ function HomeSection() {
           <div className="text-muted-foreground">
             <span className="text-primary">$</span> ls ./quick-links/
           </div>
-          <div className="grid grid-cols-2 gap-2 mt-2 sm:grid-cols-4 mobile-quick-links">
+          <motion.div
+            className="grid grid-cols-2 gap-2 mt-2 sm:grid-cols-4 mobile-quick-links"
+            initial={mobileMotion ? { opacity: 0, y: 12 } : false}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", bounce: 0.08, duration: 0.38 }}
+          >
             {[
               { label: "github.com/PiUnknown", icon: "⌥", url: "https://github.com/PiUnknown", type: "github" },
               { label: "linkedin/omkumarjha043", icon: "⌘", url: "https://linkedin.com/in/omkumarjha043", type: "linkedin" },
               { label: "reachomjha@gmail.com", icon: "✉", url: "mailto:reachomjha@gmail.com", type: "email" },
               { label: "resume.pdf", icon: "↓", url: "/resume.pdf", type: "resume" },
-            ].map((link) => (
+            ].map((link, index) => (
               <motion.a
                 key={link.label}
                 href={link.url}
@@ -960,9 +966,11 @@ function HomeSection() {
                     trackEvent("quick_link_clicked", { link: link.label, url: link.url });
                   }
                 }}
+                initial={mobileMotion ? { opacity: 0, y: 8, scale: 0.98 } : false}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
                 whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ type: "spring", bounce: 0, duration: 0.2 }}
+                whileTap={{ scale: 0.97, transition: { type: "spring", bounce: 0, duration: 0.16 } }}
+                transition={{ type: "spring", bounce: 0.04, duration: 0.3, delay: mobileMotion ? index * 0.045 : 0 }}
                 className="border border-border px-3 py-2 text-xs hover:border-primary hover:bg-secondary transition-colors group mobile-min-hit-area"
               >
                 <span className="text-muted-foreground mr-1 mobile-quick-link-glyph" aria-hidden="true">{link.icon}</span>
@@ -972,7 +980,7 @@ function HomeSection() {
                 <span className="group-hover:text-primary transition-colors mobile-quick-link-label">{link.label}</span>
               </motion.a>
             ))}
-          </div>
+          </motion.div>
         </div>
       )}
 
@@ -981,24 +989,29 @@ function HomeSection() {
           <div className="text-muted-foreground">
             <span className="text-primary">$</span> cat ./status.txt
           </div>
-          <div className="mt-2 border border-border p-3 space-y-1">
-            <div>
-              <span className="text-muted-foreground">currently &nbsp;::</span>{" "}
-              <span className="text-primary">B.Tech IT @ GGSIPU (3rd Year)</span>
+          <motion.div
+            className="mt-2 border border-border p-3 space-y-1 mobile-home-status"
+            initial={mobileMotion ? { opacity: 0, y: 12, scale: 0.99 } : false}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ type: "spring", bounce: 0.08, duration: 0.4, delay: mobileMotion ? 0.08 : 0 }}
+          >
+            <div className="mobile-home-status-row">
+              <span className="text-muted-foreground mobile-home-status-label">currently&nbsp;&nbsp;::</span>{" "}
+              <span className="text-primary mobile-home-status-value">B.Tech IT @ GGSIPU (3rd Year)</span>
             </div>
-            <div>
-              <span className="text-muted-foreground">learning &nbsp; ::</span>{" "}
-              <span className="text-accent">Transformers, attention & model training</span>
+            <div className="mobile-home-status-row">
+              <span className="text-muted-foreground mobile-home-status-label">learning&nbsp;&nbsp;::</span>{" "}
+              <span className="text-accent mobile-home-status-value">Transformers, attention &amp; model training</span>
             </div>
-            <div>
-              <span className="text-muted-foreground">open for &nbsp; ::</span>{" "}
-              <span className="text-accent">Remote Internships</span>
+            <div className="mobile-home-status-row">
+              <span className="text-muted-foreground mobile-home-status-label">open for&nbsp;&nbsp;::</span>{" "}
+              <span className="text-accent mobile-home-status-value">Remote Internships</span>
             </div>
-            <div>
-              <span className="text-muted-foreground">location &nbsp; ::</span>{" "}
-              <span className="text-foreground">Delhi, IN</span>
+            <div className="mobile-home-status-row">
+              <span className="text-muted-foreground mobile-home-status-label">location&nbsp;&nbsp;::</span>{" "}
+              <span className="text-foreground mobile-home-status-value">Delhi, IN</span>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
     </div>
@@ -2103,12 +2116,22 @@ export default function App() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [paletteIdx, setPaletteIdx] = useState(0);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(() => window.matchMedia("(max-width: 1023px)").matches);
   const reducedMotion = useReducedMotion();
+  const mobileMotion = isMobileViewport && !reducedMotion;
   const inputRef = useRef<HTMLInputElement>(null);
   const mainRef = useRef<HTMLElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputWrapRef = useRef<HTMLDivElement>(null);
   const logoClicksRef = useRef<{ count: number; timer: ReturnType<typeof setTimeout> | null }>({ count: 0, timer: null });
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 1023px)");
+    const updateViewport = (event: MediaQueryListEvent) => setIsMobileViewport(event.matches);
+    setIsMobileViewport(mediaQuery.matches);
+    mediaQuery.addEventListener("change", updateViewport);
+    return () => mediaQuery.removeEventListener("change", updateViewport);
+  }, []);
 
   // Scroll to top on navigation
   useEffect(() => {
@@ -2663,7 +2686,7 @@ export default function App() {
             data-mobile-menu-toggle
             aria-label={mobileNavOpen ? "Close site navigation" : "Open site navigation"}
             aria-expanded={mobileNavOpen}
-            aria-controls="mobile-primary-navigation"
+            aria-controls={mobileNavOpen ? "mobile-primary-navigation" : undefined}
             className="lg:hidden text-muted-foreground hover:text-primary transition-colors px-2 py-1 text-lg mobile-menu-toggle"
             onClick={(e) => { e.stopPropagation(); setMobileNavOpen((v) => !v); }}
           >
@@ -2671,74 +2694,88 @@ export default function App() {
           </button>
         </div>
 
-        <nav
-          id="mobile-primary-navigation"
-          data-mobile-navigation
-          aria-label="Primary navigation"
-          hidden={!mobileNavOpen}
-          className={`lg:hidden border-t border-border mt-2 pt-3 mobile-nav-panel ${mobileNavOpen ? "block" : "hidden"}`}
-        >
-          <div className="mobile-nav-grid">
-            {(["home", "about", "projects", "skills", "blog", "contact"] as Section[]).map((s) => (
-              <motion.button
-                key={s}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(s);
-                  setMobileNavOpen(false);
-                }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ type: "spring", bounce: 0, duration: 0.15 }}
-                aria-current={section === s ? "page" : undefined}
-                className={`mobile-nav-item px-3 py-1.5 text-xs border transition-colors ${section === s
-                  ? "text-primary border border-primary bg-secondary"
-                  : "text-muted-foreground hover:text-primary border border-transparent"
-                  }`}
-              >
-                {s}
-              </motion.button>
-            ))}
-          </div>
-          <div className="mobile-menu-settings" role="group" aria-label="Appearance and sound settings">
-            <span className="mobile-menu-setting-label">Theme</span>
-            <div className="mobile-theme-grid">
-              {(Object.keys(THEMES) as ThemeId[]).map((id) => (
-                <button
-                  key={id}
-                  onClick={(e) => { e.stopPropagation(); setTheme(id); }}
-                  title={THEMES[id].label}
-                  aria-label={`Use ${THEMES[id].label} theme`}
-                  aria-pressed={theme === id}
-                  className="mobile-theme-choice"
-                  style={{ color: theme === id ? THEMES[id].dot : "var(--muted-foreground)" }}
-                >
-                  <span
-                    className="inline-block w-2 h-2 rounded-full"
-                    style={{ background: THEMES[id].dot, opacity: theme === id ? 1 : 0.35 }}
-                  />
-                  <span>{THEMES[id].label}</span>
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const next = !sfxEnabled;
-                  setSfxEnabled(next);
-                  keyboardSound.setEnabled(next);
-                  if (next) keyboardSound.playNavClick();
-                }}
-                title={sfxEnabled ? "Mute mechanical keyboard sounds" : "Enable mechanical keyboard sounds"}
-                aria-label={sfxEnabled ? "Mute keyboard sounds" : "Enable keyboard sounds"}
-                aria-pressed={sfxEnabled}
-                className="mobile-sound-choice"
-              >
-                <span aria-hidden="true">⌨</span>
-                <span>sounds {sfxEnabled ? "on" : "off"}</span>
-              </button>
-            </div>
-          </div>
-        </nav>
+        <AnimatePresence>
+          {mobileNavOpen && (
+            <motion.nav
+              id="mobile-primary-navigation"
+              data-mobile-navigation
+              aria-label="Primary navigation"
+              initial={mobileMotion ? { opacity: 0, y: -10, scale: 0.99 } : false}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={mobileMotion ? { opacity: 0, y: -8, scale: 0.99 } : undefined}
+              transition={mobileMotion ? { type: "spring", bounce: 0.08, duration: 0.3 } : { duration: 0 }}
+              style={{ transformOrigin: "top center" }}
+              className="lg:hidden border-t border-border mt-2 pt-3 mobile-nav-panel"
+            >
+              <div className="mobile-nav-grid">
+                {(["home", "about", "projects", "skills", "blog", "contact"] as Section[]).map((s, index) => (
+                  <motion.button
+                    key={s}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(s);
+                      setMobileNavOpen(false);
+                    }}
+                    whileTap={{ scale: 0.95 }}
+                    initial={mobileMotion ? { opacity: 0, y: 6 } : false}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ type: "spring", bounce: 0, duration: 0.24, delay: mobileMotion ? index * 0.035 : 0 }}
+                    aria-current={section === s ? "page" : undefined}
+                    className={`mobile-nav-item px-3 py-1.5 text-xs border transition-colors ${section === s
+                      ? "text-primary border border-primary bg-secondary"
+                      : "text-muted-foreground hover:text-primary border border-transparent"
+                      }`}
+                  >
+                    {s}
+                  </motion.button>
+                ))}
+              </div>
+              <div className="mobile-menu-settings" role="group" aria-label="Appearance and sound settings">
+                <span className="mobile-menu-setting-label">Theme</span>
+                <div className="mobile-theme-grid">
+                  {(Object.keys(THEMES) as ThemeId[]).map((id) => (
+                    <motion.button
+                      key={id}
+                      onClick={(e) => { e.stopPropagation(); setTheme(id); }}
+                      title={THEMES[id].label}
+                      aria-label={`Use ${THEMES[id].label} theme`}
+                      aria-pressed={theme === id}
+                      className="mobile-theme-choice"
+                      style={{ color: theme === id ? THEMES[id].dot : "var(--muted-foreground)" }}
+                      whileTap={mobileMotion ? { scale: 0.975 } : undefined}
+                      transition={{ type: "spring", bounce: 0, duration: 0.18 }}
+                    >
+                      <span
+                        className="inline-block w-2 h-2 rounded-full"
+                        style={{ background: THEMES[id].dot, opacity: theme === id ? 1 : 0.35 }}
+                      />
+                      <span>{THEMES[id].label}</span>
+                    </motion.button>
+                  ))}
+                  <motion.button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const next = !sfxEnabled;
+                      setSfxEnabled(next);
+                      keyboardSound.setEnabled(next);
+                      if (next) keyboardSound.playNavClick();
+                    }}
+                    title={sfxEnabled ? "Mute mechanical keyboard sounds" : "Enable mechanical keyboard sounds"}
+                    aria-label={sfxEnabled ? "Mute keyboard sounds" : "Enable keyboard sounds"}
+                    aria-pressed={sfxEnabled}
+                    className="mobile-sound-choice"
+                    whileTap={mobileMotion ? { scale: 0.975 } : undefined}
+                    transition={{ type: "spring", bounce: 0, duration: 0.18 }}
+                  >
+                    <span aria-hidden="true">⌨</span>
+                    <span>sounds {sfxEnabled ? "on" : "off"}</span>
+                  </motion.button>
+                </div>
+              </div>
+            </motion.nav>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* Terminal body */}
@@ -2758,12 +2795,12 @@ export default function App() {
         <AnimatePresence mode="wait">
           <motion.div
             key={viewKey}
-            initial={reducedMotion ? false : { opacity: 0, y: 8 }}
+            initial={reducedMotion ? false : { opacity: 0, y: isMobileViewport ? 14 : 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={reducedMotion ? undefined : { opacity: 0, y: -4 }}
-            transition={{ type: "spring", bounce: 0, duration: 0.35 }}
+            exit={reducedMotion ? undefined : { opacity: 0, y: isMobileViewport ? -8 : -4 }}
+            transition={{ type: "spring", bounce: 0, duration: isMobileViewport ? 0.4 : 0.35 }}
           >
-            {section === "home" && <HomeSection />}
+            {section === "home" && <HomeSection mobileMotion={mobileMotion} />}
             {section === "about" && <AboutSection />}
             {section === "projects" && (
               <ProjectsSection
