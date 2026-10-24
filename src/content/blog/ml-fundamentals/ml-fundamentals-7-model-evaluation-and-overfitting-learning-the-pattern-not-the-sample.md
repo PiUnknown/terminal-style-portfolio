@@ -1,6 +1,7 @@
 ---
 title: "ML Fundamentals #7: Model Evaluation and Overfitting - Learning the Pattern, Not the Sample"
 date: "2026-10-21"
+published: true
 series: "ML Fundamentals"
 order: 7
 tags: "ml, fundamentals, notes"

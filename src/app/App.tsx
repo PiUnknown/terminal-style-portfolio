@@ -102,6 +102,7 @@ interface BlogPost {
   readTime: string;
   excerpt: string;
   body: string;
+  published: boolean;
   /** Folder / super-blog this post belongs to, e.g. "Ever Fundamentals". */
   series?: string;
   /** Lesson position inside that folder (1, 2, 3 …). */
@@ -199,6 +200,15 @@ function parseBlogPost(raw: string, filepath: string): BlogPost {
     );
   }
 
+  let published = true;
+  if (fm.published !== undefined) {
+    const pubVal = fm.published.toLowerCase().trim();
+    published = pubVal === "true" || pubVal === "yes" || pubVal === "1";
+  } else if (fm.draft !== undefined) {
+    const draftVal = fm.draft.toLowerCase().trim();
+    published = !(draftVal === "true" || draftVal === "yes" || draftVal === "1");
+  }
+
   return {
     id,
     title: fm.title ?? id,
@@ -207,6 +217,7 @@ function parseBlogPost(raw: string, filepath: string): BlogPost {
     readTime,
     excerpt: fm.excerpt ?? "",
     body,
+    published,
     series: pathSeries ?? frontmatterSeries,
     seriesOrder: fm.order ? Number.parseInt(fm.order, 10) : undefined,
   };
@@ -214,12 +225,18 @@ function parseBlogPost(raw: string, filepath: string): BlogPost {
 
 // ── Data ─────────────────────────────────────────────────────────────────────
 
-const BLOG_POSTS: BlogPost[] = Object.entries(mdModules)
+const ALL_BLOG_POSTS: BlogPost[] = Object.entries(mdModules)
   .filter(([path]) => !path.includes("template") && !path.split("/").pop()?.startsWith("_"))
-  .map(([path, raw]) => parseBlogPost(raw, path))
+  .map(([path, raw]) => parseBlogPost(raw, path));
+
+const BLOG_POSTS: BlogPost[] = ALL_BLOG_POSTS
+  .filter((post) => post.published)
   .sort((a, b) => b.date.localeCompare(a.date));
 
 if (import.meta.env.DEV) {
+  ALL_BLOG_POSTS.filter((post) => !post.published).forEach((post) => {
+    console.info(`[blog] hidden unpublished post "${post.id}" (published: false)`);
+  });
   const seen = new Map<string, string>();
   BLOG_POSTS.forEach((post) => {
     const prev = seen.get(post.id);

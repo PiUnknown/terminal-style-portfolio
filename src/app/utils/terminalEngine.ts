@@ -12,6 +12,7 @@ export interface BlogPost {
   readTime: string;
   excerpt: string;
   body: string;
+  published?: boolean;
   /** Folder / super-blog this post belongs to, e.g. "Ever Fundamentals". */
   series?: string;
   /** Lesson position inside that folder (1, 2, 3 …). */

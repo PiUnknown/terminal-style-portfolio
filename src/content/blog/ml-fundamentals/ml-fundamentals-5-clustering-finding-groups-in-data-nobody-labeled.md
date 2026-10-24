@@ -1,6 +1,7 @@
 ---
 title: "ML Fundamentals #5: Clustering - Finding Groups in Data Nobody Labeled"
 date: "2026-10-13"
+published: true
 series: "ML Fundamentals"
 order: 5
 tags: "ml, fundamentals, notes"

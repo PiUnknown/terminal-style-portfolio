@@ -14,6 +14,7 @@ export interface SeriesAwarePost {
   readTime: string;
   excerpt: string;
   body: string;
+  published?: boolean;
   series?: string;
   seriesOrder?: number;
 }

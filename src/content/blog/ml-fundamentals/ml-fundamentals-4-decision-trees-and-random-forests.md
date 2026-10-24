@@ -1,6 +1,7 @@
 ---
 title: "ML Fundamentals #4: Decision Trees and Random Forests - A Flowchart, Then a Crowd of Flowcharts"
 date: "2026-10-12"
+published: true
 series: "ML Fundamentals"
 order: 4
 tags: "ml, fundamentals, notes"

@@ -1,6 +1,7 @@
 ---
 title: "Jev: What is a System One Model?"
 date: "2026-09-21"
+published: true
 tags: "jev, ai, guide"
 readTime: "5 min"
 excerpt: "Jev is a new kind of AI model that makes decisions instead of writing text. What it is, why it is suddenly everywhere, and where to start."

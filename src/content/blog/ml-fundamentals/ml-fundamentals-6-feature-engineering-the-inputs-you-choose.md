@@ -1,6 +1,7 @@
 ---
 title: "ML Fundamentals #6: Feature Engineering - The Inputs You Choose Matter as Much as the Model"
 date: "2026-10-19"
+published: true
 series: "ML Fundamentals"
 order: 6
 tags: "ml, fundamentals, notes"

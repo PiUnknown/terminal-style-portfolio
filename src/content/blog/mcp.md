@@ -1,6 +1,7 @@
 ---
 title: "MCP: The Protocol Behind AI Tools"
 date: "2026-09-29"
+published: true
 tags: "mcp, ai, guide"
 readTime: "3 min"
 excerpt: "MCP is how AI apps connect to your tools and data. What it actually is, how it differs from an API, and where to start."

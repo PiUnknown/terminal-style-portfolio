@@ -1,6 +1,7 @@
 ---
 title: "ML Fundamentals #2: Linear Regression - Fitting the Best Straight Line Through Your Data"
 date: "2026-10-03"
+published: true
 series: "ML Fundamentals"
 order: 2
 tags: "ml, fundamentals, notes"

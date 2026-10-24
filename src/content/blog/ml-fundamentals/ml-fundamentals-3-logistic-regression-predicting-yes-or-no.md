@@ -1,6 +1,7 @@
 ---
 title: "ML Fundamentals #3: Logistic Regression - Predicting Yes or No With a Probability"
 date: "2026-10-04"
+published: true
 series: "ML Fundamentals"
 order: 3
 tags: "ml, fundamentals, notes"

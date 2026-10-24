@@ -38,6 +38,18 @@ function parseFrontmatter(content) {
   return fm;
 }
 
+function isPublished(fm) {
+  if (fm.published !== undefined) {
+    const pubVal = String(fm.published).toLowerCase().trim();
+    return pubVal === "true" || pubVal === "yes" || pubVal === "1";
+  }
+  if (fm.draft !== undefined) {
+    const draftVal = String(fm.draft).toLowerCase().trim();
+    return !(draftVal === "true" || draftVal === "yes" || draftVal === "1");
+  }
+  return true;
+}
+
 // Recursively collect posts. A sub-directory of blog/ IS a series, so paths
 // come back relative (e.g. "ml-fundamentals/lesson-01.md").
 function collectPostFiles(dir, rel = "") {
@@ -66,6 +78,11 @@ for (const file of files) {
   const filePath = path.join(blogDir, file);
   const content = fs.readFileSync(filePath, 'utf8');
   const fm = parseFrontmatter(content);
+
+  if (!isPublished(fm)) {
+    console.log(`- Skipping unpublished post: ${file}`);
+    continue;
+  }
   
   if (fm.title) {
     const title = fm.title;
@@ -149,6 +166,7 @@ for (const file of files) {
     const parts = file.split("/");
     const dirName = parts.length > 1 ? parts[0] : null;
     const fm = parseFrontmatter(fs.readFileSync(path.join(blogDir, file), "utf8"));
+    if (!isPublished(fm)) return;
     const seriesLabel =
       dirName || (fm.series && fm.series.trim() ? fm.series.trim() : null);
     if (!seriesLabel) return;
@@ -175,10 +193,16 @@ for (const file of files) {
   });
 
   const postSlugs = new Set(
-    files.map((f) => path.basename(f).replace(/\.md$/, ""))
+    files
+      .filter((file) => {
+        const fm = parseFrontmatter(fs.readFileSync(path.join(blogDir, file), "utf8"));
+        return isPublished(fm);
+      })
+      .map((f) => path.basename(f).replace(/\.md$/, ""))
   );
 
   folders.forEach((folder, slug) => {
+    if (folder.count === 0) return;
     if (postSlugs.has(slug)) {
       console.warn(`! Skipping series OG page /blog/${slug} — a post owns that URL`);
       return;
