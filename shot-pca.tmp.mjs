@@ -1,0 +1,10 @@
+﻿import puppeteer from "puppeteer-core";
+const browser = await puppeteer.launch({ executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe", headless: true, args: ["--no-sandbox"] });
+const page = await browser.newPage();
+await page.setViewport({ width: 1280, height: 900 });
+await page.goto("http://localhost:5199/blog/ml-fundamentals", { waitUntil: "domcontentloaded", timeout: 90000 });
+await new Promise((r) => setTimeout(r, 3500));
+console.log((await page.evaluate(() => document.body.innerText)).slice(0, 500));
+const links = await page.evaluate(() => [...document.querySelectorAll("a")].map((a) => ({ href: a.getAttribute("href"), text: (a.textContent || "").trim().slice(0, 70) })).filter((x) => x.href));
+console.log(JSON.stringify(links, null, 2));
+await browser.close();

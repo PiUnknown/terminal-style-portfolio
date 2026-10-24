@@ -1,0 +1,71 @@
+.pca-figure {
+  --pca-main: var(--primary, #00ff41);
+  --pca-accent: var(--status-progress, #ffcc00);
+  --pca-fg: var(--foreground, #d1d5db);
+  --pca-muted: var(--muted-foreground, #9ca3af);
+  --pca-card: var(--card, #0d1a0d);
+  position: relative;
+  width: 100%;
+  max-width: 760px;
+  margin: 1.7rem auto;
+  padding: 3rem 0 1rem;
+  border-top: 1px solid var(--border, rgba(0, 255, 65, .15));
+  border-bottom: 1px solid var(--border, rgba(0, 255, 65, .15));
+  color: var(--pca-fg);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.pca-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.pca-svg text { fill: var(--pca-fg); font-family: inherit; font-size: 13px; }
+.pca-svg .pca-kicker { fill: var(--pca-fg); font-size: 12px; font-weight: 600; letter-spacing: .025em; }
+.pca-svg .pca-small, .pca-svg .pca-tick { fill: var(--pca-muted); font-size: 11px; }
+.pca-svg .pca-axis { stroke: var(--pca-muted); stroke-width: 1.15; opacity: .72; }
+.pca-svg .pca-direction { stroke: var(--pca-main); stroke-width: 2; }
+.pca-svg .pca-direction-search { stroke-dasharray: 7 5; }
+.pca-svg .pca-arrowhead { fill: var(--pca-main); }
+.pca-svg .pca-direction-label, .pca-svg .pca-result { fill: var(--pca-main); font-size: 12px; font-weight: 600; paint-order: stroke fill; stroke: var(--background, #0a0f0a); stroke-width: 4px; stroke-linejoin: round; }
+.pca-svg .pca-song { fill: var(--pca-main); stroke: var(--background, #0a0f0a); stroke-width: 2; }
+.pca-svg .pca-projection-line { stroke: var(--pca-accent); stroke-width: 1.35; stroke-dasharray: 4 4; opacity: .9; }
+.pca-svg .pca-foot { fill: var(--pca-accent); stroke: var(--background, #0a0f0a); stroke-width: 1.5; }
+.pca-svg .pca-residual-label, .pca-svg .pca-target-label { fill: var(--pca-accent); }
+.pca-svg .pca-step { paint-order: stroke fill; stroke: var(--background, #0a0f0a); stroke-width: 4px; stroke-linejoin: round; }
+.pca-svg .pca-grid { stroke: var(--border, rgba(0, 255, 65, .15)); stroke-width: 1; }
+.pca-svg .pca-bar, .pca-svg .pca-bar-swatch { fill: color-mix(in srgb, var(--pca-main) 27%, var(--background, #0a0f0a)); stroke: var(--pca-main); stroke-opacity: .72; stroke-width: 1; }
+.pca-svg .pca-value { fill: var(--pca-fg); font-size: 10.5px; paint-order: stroke fill; stroke: var(--background, #0a0f0a); stroke-width: 3px; stroke-linejoin: round; }
+.pca-svg .pca-component { font-size: 10px; }
+.pca-svg .pca-cumulative, .pca-svg .pca-legend-line { fill: none; stroke: var(--pca-accent); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.pca-svg .pca-cumulative-dot { fill: var(--pca-accent); stroke: var(--background, #0a0f0a); stroke-width: 1.5; }
+.pca-svg .pca-cross-ring { fill: none; stroke: var(--pca-accent); stroke-width: 1.7; }
+.pca-svg .pca-target, .pca-svg .pca-legend-target { stroke: var(--pca-accent); stroke-width: 1.4; stroke-dasharray: 5 4; }
+.pca-svg .pca-cross-guide { stroke: var(--pca-accent); stroke-width: 1; stroke-dasharray: 3 4; opacity: .72; }
+.pca-svg .pca-callout { fill: var(--pca-card); stroke: var(--pca-accent); stroke-width: 1; }
+.pca-svg .pca-callout-text { fill: var(--pca-accent); font-size: 10.5px; font-weight: 600; }
+.pca-caption { margin-top: .6rem; color: var(--pca-muted); font-size: .72rem; line-height: 1.6; }
+
+.pca-toggle {
+  position: absolute;
+  z-index: 1;
+  top: .25rem;
+  right: .25rem;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--border, rgba(0, 255, 65, .2));
+  color: var(--pca-main);
+  background: var(--background, #0a0f0a);
+  cursor: pointer;
+}
+.pca-toggle:focus-visible { outline: 2px solid var(--pca-main); outline-offset: 3px; }
+.pca-toggle svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+@media (hover: hover) and (pointer: fine) {
+  .pca-toggle:hover { border-color: var(--pca-main); background: var(--pca-card); }
+}
+
+.pca-compact .pca-svg text { font-size: 12px; }
+.pca-compact .pca-svg .pca-small, .pca-compact .pca-svg .pca-tick { font-size: 10px; }
+.pca-compact .pca-svg .pca-kicker { font-size: 11px; }
+.pca-compact .pca-svg .pca-value { font-size: 9px; }
+.pca-compact .pca-svg .pca-callout-text { font-size: 9.5px; }
+

@@ -3,6 +3,8 @@ import { DecisionTreeAnimation } from "./DecisionTreeAnimation";
 import { FeaturePrepAnimation } from "./FeaturePrepAnimation";
 import { OverfitFitAnimation, ComplexityCurveAnimation, CrossValidationAnimation } from "./EvaluationVisuals";
 import { KMeansAnimation, DBSCANAnimation, HierarchicalAnimation, ElbowChart, CrescentComparison, ClusteringFlow } from "./ClusteringVisuals";
+import { VotingFlowAnimation, BoostingRoundsAnimation } from "./EnsembleVisuals";
+import { ProjectionAnimation, VarianceCurveAnimation } from "./PCAVisuals";
 
 class AnimationFallback extends Component<{ children: ReactNode; poster: string }, { failed: boolean }> {
   state = { failed: false };
@@ -23,6 +25,10 @@ const animations = {
   "overfit-fit": OverfitFitAnimation,
   "complexity-error": ComplexityCurveAnimation,
   "cv-folds": CrossValidationAnimation,
+  "ensemble-vote": VotingFlowAnimation,
+  "boosting-rounds": BoostingRoundsAnimation,
+  "pca-projection": ProjectionAnimation,
+  "pca-variance": VarianceCurveAnimation,
 };
 
 /** Replace only registered, block-level placeholders after Markdown rendering.

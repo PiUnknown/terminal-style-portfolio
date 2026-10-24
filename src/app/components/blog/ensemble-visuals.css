@@ -1,0 +1,55 @@
+/* Theme tokens only (same set the other blog figures use). Corrections and residuals use --status-progress. */
+.ens-figure {
+  --ens-main: var(--primary, #00ff41);
+  --ens-corr: var(--status-progress, #ffcc00);
+  --ens-fg: var(--foreground, #d1d5db);
+  --ens-muted: var(--muted-foreground, #9ca3af);
+  --ens-card: var(--card, #0d1a0d);
+  position: relative;
+  width: 100%;
+  max-width: 760px;
+  margin: 1.7rem auto;
+  padding: 3rem 0 1rem; /* top strip holds the pause button */
+  border-top: 1px solid var(--border, rgba(0, 255, 65, .15));
+  border-bottom: 1px solid var(--border, rgba(0, 255, 65, .15));
+  color: var(--ens-fg);
+  font-family: 'JetBrains Mono', monospace;
+}
+.ens-diagram { display: block; width: 100%; height: auto; overflow: visible; }
+.ens-diagram text { fill: var(--ens-fg); font-size: 13px; font-family: inherit; }
+.ens-diagram .ens-small { fill: var(--ens-muted); font-size: 11.5px; }
+.ens-diagram .ens-label { font-size: 12.5px; paint-order: stroke fill; stroke: var(--background, #0a0f0a); stroke-width: 5px; stroke-linejoin: round; }
+.ens-diagram .ens-num { fill: var(--ens-fg); font-size: 15px; font-weight: 600; }
+.ens-diagram .ens-num-out { fill: var(--ens-main); font-size: 17px; }
+.ens-diagram .ens-pending { fill: var(--ens-muted); font-size: 15px; }
+.ens-diagram .ens-arrival { fill: none; stroke: var(--ens-main); stroke-width: 1.2; }
+.ens-diagram .ens-progress { paint-order: stroke fill; stroke: var(--background, #0a0f0a); stroke-width: 5px; stroke-linejoin: round; }
+.ens-diagram .ens-label-truth { fill: var(--ens-main); }
+.ens-diagram .ens-label-hop { fill: var(--ens-corr); }
+.ens-diagram .ens-label-total { fill: var(--ens-fg); }
+.ens-diagram .ens-box { fill: color-mix(in srgb, var(--ens-main) 8%, var(--background, #0a0f0a)); stroke: var(--ens-main); stroke-opacity: .5; stroke-width: 1.2; }
+.ens-diagram .ens-box-out { fill: color-mix(in srgb, var(--ens-main) 16%, var(--background, #0a0f0a)); stroke-opacity: .9; }
+.ens-diagram .ens-wire { fill: none; stroke: var(--ens-muted); stroke-width: 1.2; stroke-dasharray: 3 4; opacity: .7; }
+.ens-diagram .ens-pulse { fill: var(--ens-main); }
+.ens-diagram .ens-combiner { fill: var(--background, #0a0f0a); stroke: var(--ens-main); stroke-width: 1.6; }
+.ens-diagram .ens-combiner-text { fill: var(--ens-main); font-size: 13px; }
+.ens-diagram .ens-axis { stroke: var(--ens-muted); stroke-width: 1.2; opacity: .8; }
+.ens-diagram .ens-truth { stroke: var(--ens-main); stroke-width: 1.4; stroke-dasharray: 5 4; }
+.ens-diagram .ens-hop { fill: none; stroke: var(--ens-corr); stroke-width: 1.6; stroke-dasharray: 4 3; }
+.ens-diagram .ens-dot { fill: var(--ens-main); stroke: var(--background, #0a0f0a); stroke-width: 2; }
+.ens-diagram .ens-bar { fill: color-mix(in srgb, var(--ens-corr) 24%, var(--background, #0a0f0a)); stroke: var(--ens-corr); stroke-opacity: .6; stroke-width: 1; }
+.ens-caption { margin-top: .6rem; color: var(--ens-muted); font-size: .72rem; line-height: 1.6; }
+
+.ens-compact .ens-diagram text { font-size: 14px; }
+.ens-compact .ens-diagram .ens-small { font-size: 12px; }
+.ens-compact .ens-diagram .ens-label { font-size: 13px; }
+
+.ens-toggle {
+  position: absolute; z-index: 1; top: .25rem; right: .25rem;
+  display: grid; place-items: center; width: 40px; height: 40px; padding: 0;
+  border: 1px solid var(--border, rgba(0, 255, 65, .2)); color: var(--ens-main);
+  background: var(--background, #0a0f0a); cursor: pointer;
+}
+.ens-toggle:hover { border-color: var(--ens-main); background: var(--ens-card); }
+.ens-toggle:focus-visible { outline: 2px solid var(--ens-main); outline-offset: 3px; }
+.ens-toggle svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }

@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="ens-diagram" viewBox="0 0 720 400" width="720" height="400" role="img" aria-label="Boosting rounds on the fest footfall. A marker starts at the base guess 600, far from the actual 890. Round by round it hops closer: +240 to 840, then +35 to 875, then +12 to 887. The leftover residual shrinks each round: 290, then 50, then 15, then 3."><style>
+svg.ens-diagram{--ens-main:#00ff41;--ens-corr:#ffcc00;--ens-fg:#d1d5db;--ens-muted:#9ca3af;--background:#0a0f0a;font-family:'JetBrains Mono',monospace;background:var(--background)}
+.ens-diagram { display:block;width:100%;height:auto }
+.ens-diagram text { fill: var(--ens-fg); font-size: 13px; font-family: inherit; }
+.ens-diagram .ens-small { fill: var(--ens-muted); font-size: 11.5px; }
+.ens-diagram .ens-label { font-size: 12.5px; paint-order: stroke fill; stroke: var(--background); stroke-width: 5px; stroke-linejoin: round; }
+.ens-diagram .ens-label-truth { fill: var(--ens-main); }
+.ens-diagram .ens-label-hop { fill: var(--ens-corr); }
+.ens-diagram .ens-label-total { fill: var(--ens-fg); }
+.ens-diagram .ens-axis { stroke: var(--ens-muted); stroke-width: 1.2; opacity: .8; }
+.ens-diagram .ens-truth { stroke: var(--ens-main); stroke-width: 1.4; stroke-dasharray: 5 4; }
+.ens-diagram .ens-hop { fill: none; stroke: var(--ens-corr); stroke-width: 1.6; stroke-dasharray: 4 3; }
+.ens-diagram .ens-dot { fill: var(--ens-main); stroke: var(--background); stroke-width: 2; }
+.ens-diagram .ens-bar { fill: rgba(255,204,0,.24); stroke: var(--ens-corr); stroke-opacity: .6; stroke-width: 1; }
+</style>
+<line class="ens-axis" x1="60" x2="672" y1="110" y2="110"/>
+<line class="ens-axis" x1="156.6" x2="156.6" y1="105" y2="115"/><text class="ens-small" x="156.6" y="132" text-anchor="middle">600</text>
+<line class="ens-axis" x1="317.7" x2="317.7" y1="105" y2="115"/><text class="ens-small" x="317.7" y="132" text-anchor="middle">700</text>
+<line class="ens-axis" x1="478.7" x2="478.7" y1="105" y2="115"/><text class="ens-small" x="478.7" y="132" text-anchor="middle">800</text>
+<line class="ens-truth" x1="623.8" x2="623.8" y1="76" y2="144"/>
+<text class="ens-label ens-label-truth" x="617.8" y="68" text-anchor="end">actual: 890</text>
+<path class="ens-hop" d="M156.6 110 Q349.9 76 543.2 110"/>
+<text class="ens-label ens-label-hop" x="349.9" y="70" text-anchor="middle">+240</text>
+<path class="ens-hop" d="M543.2 110 Q571.5 76 599.7 110"/>
+<text class="ens-label ens-label-hop" x="571.5" y="88" text-anchor="middle">+35</text>
+<path class="ens-hop" d="M599.7 110 Q607 76 614.2 110"/>
+<text class="ens-label ens-label-hop" x="607" y="92" text-anchor="middle">+12</text>
+<text class="ens-label ens-label-total" x="156.6" y="156" text-anchor="middle">600</text>
+<text class="ens-label ens-label-total" x="543.2" y="156" text-anchor="middle">840</text>
+<text class="ens-label ens-label-total" x="599.7" y="156" text-anchor="middle">875</text>
+<text class="ens-label ens-label-total" x="614.2" y="176" text-anchor="middle">887</text>
+<text class="ens-label ens-label-total" x="156.6" y="94" text-anchor="middle">base guess</text>
+<circle class="ens-dot" cx="614.2" cy="110" r="7"/>
+<text class="ens-small" x="60" y="212">residual left after each round</text>
+<rect class="ens-bar" x="76" y="230" width="60" height="130" rx="3"/>
+<text class="ens-label ens-label-hop" x="106" y="222" text-anchor="middle">290</text>
+<text class="ens-small" x="106" y="378" text-anchor="middle">base</text>
+<rect class="ens-bar" x="182" y="306" width="60" height="54" rx="3"/>
+<text class="ens-label ens-label-hop" x="212" y="298" text-anchor="middle">50</text>
+<text class="ens-small" x="212" y="378" text-anchor="middle">round 1</text>
+<rect class="ens-bar" x="288" y="330" width="60" height="30" rx="3"/>
+<text class="ens-label ens-label-hop" x="318" y="322" text-anchor="middle">15</text>
+<text class="ens-small" x="318" y="378" text-anchor="middle">round 2</text>
+<rect class="ens-bar" x="394" y="347" width="60" height="13" rx="3"/>
+<text class="ens-label ens-label-hop" x="424" y="339" text-anchor="middle">3</text>
+<text class="ens-small" x="424" y="378" text-anchor="middle">round 3</text>
+<text class="ens-small" x="672" y="380" text-anchor="end">combined: 887 · miss: 3</text>
+</svg>

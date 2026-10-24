@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="ens-diagram" viewBox="0 0 720 430" width="720" height="430" role="img" aria-label="Five small trees, each trained on a different bootstrap sample, predict the fest footfall: 820, 940, 710, 1010 and 880. Their predictions flow into an averaging step that outputs 872. The actual turnout is 890, so the ensemble misses by 18, while the average single-model miss is 86."><style>
+svg.ens-diagram{--ens-main:#00ff41;--ens-corr:#ffcc00;--ens-fg:#d1d5db;--ens-muted:#9ca3af;--background:#0a0f0a;font-family:'JetBrains Mono',monospace;background:var(--background)}
+.ens-diagram { display:block;width:100%;height:auto }
+.ens-diagram text { fill: var(--ens-fg); font-size: 13px; font-family: inherit; }
+.ens-diagram .ens-small { fill: var(--ens-muted); font-size: 11.5px; }
+.ens-diagram .ens-num { fill: var(--ens-fg); font-size: 15px; font-weight: 600; }
+.ens-diagram .ens-num-out { fill: var(--ens-main); font-size: 17px; font-weight: 600; }
+.ens-diagram .ens-box { fill: rgba(0,255,65,.08); stroke: var(--ens-main); stroke-opacity: .5; stroke-width: 1.2; }
+.ens-diagram .ens-box-out { fill: rgba(0,255,65,.16); stroke-opacity: .9; }
+.ens-diagram .ens-wire { fill: none; stroke: var(--ens-muted); stroke-width: 1.2; stroke-dasharray: 3 4; opacity: .7; }
+.ens-diagram .ens-combiner { fill: var(--background); stroke: var(--ens-main); stroke-width: 1.6; }
+.ens-diagram .ens-combiner-text { fill: var(--ens-main); font-size: 13px; }
+</style>
+<path class="ens-wire" d="M198 92 Q334 92 440 207"/>
+<path class="ens-wire" d="M198 164 Q334 164 440 207"/>
+<path class="ens-wire" d="M198 236 Q334 236 440 207"/>
+<path class="ens-wire" d="M198 308 Q334 308 440 207"/>
+<path class="ens-wire" d="M198 380 Q334 380 440 207"/>
+<g><rect class="ens-box" x="30" y="69" width="168" height="46" rx="6"/><text class="ens-small" x="40" y="86">tree 1 · sample A</text><text class="ens-num" x="40" y="105">820</text></g>
+<g><rect class="ens-box" x="30" y="141" width="168" height="46" rx="6"/><text class="ens-small" x="40" y="158">tree 2 · sample B</text><text class="ens-num" x="40" y="177">940</text></g>
+<g><rect class="ens-box" x="30" y="213" width="168" height="46" rx="6"/><text class="ens-small" x="40" y="230">tree 3 · sample C</text><text class="ens-num" x="40" y="249">710</text></g>
+<g><rect class="ens-box" x="30" y="285" width="168" height="46" rx="6"/><text class="ens-small" x="40" y="302">tree 4 · sample D</text><text class="ens-num" x="40" y="321">1010</text></g>
+<g><rect class="ens-box" x="30" y="357" width="168" height="46" rx="6"/><text class="ens-small" x="40" y="374">tree 5 · sample E</text><text class="ens-num" x="40" y="393">880</text></g>
+<circle class="ens-combiner" cx="470" cy="207" r="30"/><text class="ens-combiner-text" x="470" y="211" text-anchor="middle">avg</text>
+<line class="ens-wire" x1="500" y1="207" x2="568" y2="207"/>
+<rect class="ens-box ens-box-out" x="568" y="183" width="112" height="48" rx="6"/>
+<text class="ens-small" x="624" y="201" text-anchor="middle">ensemble</text>
+<text class="ens-num-out" x="624" y="223" text-anchor="middle">872</text>
+<text class="ens-small" x="700" y="259" text-anchor="end">actual: 890 · ensemble miss: 18</text>
+<text class="ens-small" x="700" y="277" text-anchor="end">average single-model miss: 86</text>
+</svg>
