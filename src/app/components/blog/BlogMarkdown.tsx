@@ -5,6 +5,7 @@ import { OverfitFitAnimation, ComplexityCurveAnimation, CrossValidationAnimation
 import { KMeansAnimation, DBSCANAnimation, HierarchicalAnimation, ElbowChart, CrescentComparison, ClusteringFlow } from "./ClusteringVisuals";
 import { VotingFlowAnimation, BoostingRoundsAnimation } from "./EnsembleVisuals";
 import { ProjectionAnimation, VarianceCurveAnimation } from "./PCAVisuals";
+import { IsolationAnimation, ReconstructionAnimation, ThresholdAnimation } from "./AnomalyVisuals";
 
 class AnimationFallback extends Component<{ children: ReactNode; poster: string }, { failed: boolean }> {
   state = { failed: false };
@@ -29,6 +30,9 @@ const animations = {
   "boosting-rounds": BoostingRoundsAnimation,
   "pca-projection": ProjectionAnimation,
   "pca-variance": VarianceCurveAnimation,
+  "isolation-cuts": IsolationAnimation,
+  "reconstruction-error": ReconstructionAnimation,
+  "threshold-tradeoff": ThresholdAnimation,
 };
 
 /** Replace only registered, block-level placeholders after Markdown rendering.

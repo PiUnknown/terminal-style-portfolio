@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 500" width="720" height="500" role="img" aria-label="Bars show explained variance shares of 42, 26, 14, 7, 4, 3, 2, 1, 0.5 and 0.5 percent. The cumulative curve reaches 96 percent at component 6, the first component count above the 95 percent target.">
 <style>
 svg{--main:#00ff41;--accent:#ffcc00;--fg:#d1d5db;--muted:#9ca3af;--bg:#0a0f0a;--card:#0d1a0d;background:var(--bg);font-family:'JetBrains Mono',monospace}
-text{fill:var(--fg);font-size:12px}.small{fill:var(--muted);font-size:11px}.grid{stroke:rgba(0,255,65,.14);stroke-width:1}.bar{fill:rgba(0,255,65,.2);stroke:var(--main);stroke-opacity:.72;stroke-width:1}.curve{fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}.dot{fill:var(--accent);stroke:var(--bg);stroke-width:1.5}.target{stroke:var(--accent);stroke-width:1.4;stroke-dasharray:5 4}.guide{stroke:var(--accent);stroke-width:1;stroke-dasharray:3 4;opacity:.72}.accent{fill:var(--accent)}.callout{fill:var(--card);stroke:var(--accent);stroke-width:1}.result{fill:var(--main);font-weight:600}
+text{fill:var(--fg);font-size:12px;paint-order:stroke;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round}.small{fill:var(--muted);font-size:11px}.grid{stroke:rgba(0,255,65,.14);stroke-width:1}.bar{fill:rgba(0,255,65,.2);stroke:var(--main);stroke-opacity:.72;stroke-width:1}.curve{fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}.dot{fill:var(--accent);stroke:var(--bg);stroke-width:1.5}.target{stroke:var(--accent);stroke-width:1.4;stroke-dasharray:5 4}.guide{stroke:var(--accent);stroke-width:1;stroke-dasharray:3 4;opacity:.72}.accent{fill:var(--accent)}.callout{fill:var(--card);stroke:var(--accent);stroke-width:1}.result{fill:var(--main);font-weight:600}
 </style>
 <text x="360" y="31" text-anchor="middle" font-weight="600">each component's share adds to the running total</text>
 <text class="small" x="62" y="104">variance (%)</text>
@@ -24,7 +24,7 @@ text{fill:var(--fg);font-size:12px}.small{fill:var(--muted);font-size:11px}.grid
   <rect class="bar" x="557" y="392" width="28" height="2" rx="1"/><text x="571" y="383" text-anchor="middle">0.5%</text>
   <rect class="bar" x="617" y="392" width="28" height="2" rx="1"/><text x="631" y="383" text-anchor="middle">0.5%</text>
 </g>
-<line class="target" x1="62" x2="662" y1="132" y2="132"/><text class="accent" x="660" y="124" text-anchor="end">95% target</text>
+<line class="target" x1="62" x2="662" y1="132" y2="132"/><text class="accent" x="660" y="148" text-anchor="end">95% target</text>
 <path class="curve" d="M90 278 L150 206 L210 168 L270 148 L331 137 L391 129 L451 123 L511 121 L571 119 L631 118"/>
 <g>
   <circle class="dot" cx="90" cy="278" r="3"/><circle class="dot" cx="150" cy="206" r="3"/><circle class="dot" cx="210" cy="168" r="3"/><circle class="dot" cx="270" cy="148" r="3"/><circle class="dot" cx="331" cy="137" r="3"/><circle class="dot" cx="391" cy="129" r="4.5"/><circle class="dot" cx="451" cy="123" r="3"/><circle class="dot" cx="511" cy="121" r="3"/><circle class="dot" cx="571" cy="119" r="3"/><circle class="dot" cx="631" cy="118" r="3"/>

@@ -27,7 +27,7 @@
 .pca-svg .pca-song { fill: var(--pca-main); stroke: var(--background, #0a0f0a); stroke-width: 2; }
 .pca-svg .pca-projection-line { stroke: var(--pca-accent); stroke-width: 1.35; stroke-dasharray: 4 4; opacity: .9; }
 .pca-svg .pca-foot { fill: var(--pca-accent); stroke: var(--background, #0a0f0a); stroke-width: 1.5; }
-.pca-svg .pca-residual-label, .pca-svg .pca-target-label { fill: var(--pca-accent); }
+.pca-svg .pca-residual-label, .pca-svg .pca-target-label { fill: var(--pca-accent); paint-order: stroke fill; stroke: var(--background, #0a0f0a); stroke-width: 3px; stroke-linejoin: round; }
 .pca-svg .pca-step { paint-order: stroke fill; stroke: var(--background, #0a0f0a); stroke-width: 4px; stroke-linejoin: round; }
 .pca-svg .pca-grid { stroke: var(--border, rgba(0, 255, 65, .15)); stroke-width: 1; }
 .pca-svg .pca-bar, .pca-svg .pca-bar-swatch { fill: color-mix(in srgb, var(--pca-main) 27%, var(--background, #0a0f0a)); stroke: var(--pca-main); stroke-opacity: .72; stroke-width: 1; }

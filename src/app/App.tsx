@@ -2655,23 +2655,6 @@ export default function App() {
                     <span className="hidden sm:inline">{THEMES[id].label}</span>
                   </button>
                 ))}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    triggerHaptic("light");
-                    const next = !sfxEnabled;
-                    setSfxEnabled(next);
-                    keyboardSound.setEnabled(next);
-                    if (next) keyboardSound.playNavClick();
-                  }}
-                  title={sfxEnabled ? "Mute mechanical keyboard sounds" : "Enable mechanical keyboard sounds"}
-                  aria-label={sfxEnabled ? "Mute keyboard sounds" : "Enable keyboard sounds"}
-                  aria-pressed={sfxEnabled}
-                  className="flex items-center gap-1 text-xs transition-colors px-1.5 py-0.5 border border-border hover:border-primary ml-1"
-                  style={{ color: sfxEnabled ? "var(--primary)" : "var(--muted-foreground)" }}
-                >
-                  <span className="text-[11px]">{sfxEnabled ? "⌨ 🔊" : "⌨ 🔇"}</span>
-                </button>
               </div>
             </div>
           </div>

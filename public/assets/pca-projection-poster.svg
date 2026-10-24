@@ -1,14 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 440" width="720" height="440" role="img" aria-label="Eight centered song ratings cluster along component 1, a blend of energy and loudness. Dashed perpendicular paths project each song onto the line. Component 1 captures 3.6 of 3.9 total variance, about 92 percent.">
 <style>
 svg{--main:#00ff41;--accent:#ffcc00;--fg:#d1d5db;--muted:#9ca3af;--bg:#0a0f0a;background:var(--bg);font-family:'JetBrains Mono',monospace}
-text{fill:var(--fg);font-size:13px}.small{fill:var(--muted);font-size:11px}.axis{stroke:var(--muted);stroke-width:1.15;opacity:.72}.direction{stroke:var(--main);stroke-width:2}.projection{stroke:var(--accent);stroke-width:1.35;stroke-dasharray:4 4;opacity:.9}.song{fill:var(--main);stroke:var(--bg);stroke-width:2}.foot{fill:var(--accent);stroke:var(--bg);stroke-width:1.5}.result{fill:var(--main);font-weight:600}
+text{fill:var(--fg);font-size:13px}.small{fill:var(--muted);font-size:11px}.axis{stroke:var(--muted);stroke-width:1.15;opacity:.72}.direction{stroke:var(--main);stroke-width:2}.projection{stroke:var(--accent);stroke-width:1.35;stroke-dasharray:4 4;opacity:.9}.song{fill:var(--main);stroke:var(--bg);stroke-width:2}.foot{fill:var(--accent);stroke:var(--bg);stroke-width:1.5}.result{fill:var(--main);font-weight:600;paint-order:stroke;stroke:var(--bg);stroke-width:3px;stroke-linejoin:round}.scaled .projection{stroke-width:.0178;stroke-dasharray:.0526 .0526}.scaled .foot{stroke-width:.0197}.scaled .song{stroke-width:.0263}
 </style>
 <text x="360" y="30" text-anchor="middle" font-weight="600">8 songs · centered ratings</text>
 <line class="axis" x1="143" x2="577" y1="205" y2="205"/><line class="axis" x1="360" x2="360" y1="57" y2="353"/>
-<text class="small" x="577" y="223" text-anchor="end">energy</text><text class="small" x="368" y="65">loudness</text>
+<text class="small" x="577" y="223" text-anchor="end">energy</text><text class="small" x="352" y="65" text-anchor="end">loudness</text>
 <line class="direction" x1="163" y1="319" x2="557" y2="91"/>
 <text class="small result" x="545" y="79" text-anchor="end">component 1</text>
-<g transform="translate(360 205) scale(76 -76)">
+<line class="projection" x1="580" x2="598" y1="54" y2="54"/>
+<text class="small accent" x="604" y="57">PC2 · perpendicular</text>
+<g class="scaled" transform="translate(360 205) scale(76 -76)">
   <line class="projection" x1="-2.384" y1="-1.282" x2="-2.342" y2="-1.353"/><line class="projection" x1="-1.422" y1="-1.301" x2="-1.630" y2="-0.941"/>
   <line class="projection" x1="-1.416" y1="-0.018" x2="-1.069" y2="-0.618"/><line class="projection" x1="-0.095" y1="-0.776" x2="-0.407" y2="-0.235"/>
   <line class="projection" x1="0.095" y1="0.776" x2="0.407" y2="0.235"/><line class="projection" x1="1.416" y1="0.018" x2="1.069" y2="0.618"/>
@@ -22,6 +24,7 @@ text{fill:var(--fg);font-size:13px}.small{fill:var(--muted);font-size:11px}.axis
   <circle class="song" cx="0.095" cy="0.776" r="0.08"/><circle class="song" cx="1.416" cy="0.018" r="0.08"/>
   <circle class="song" cx="1.421" cy="1.301" r="0.08"/><circle class="song" cx="2.384" cy="1.283" r="0.08"/>
 </g>
-<text class="small" x="360" y="385" text-anchor="middle">PC1 = 0.87 energy + 0.50 loudness · dashed paths meet it at 90°</text>
-<text class="result" x="360" y="412" text-anchor="middle">3.6 / 3.9 total variance · 92%</text>
+<text class="small" x="360" y="376" text-anchor="middle">PC1 = 0.87 energy + 0.50 loudness · dashed paths meet it at 90°</text>
+<text class="result" x="360" y="402" text-anchor="middle">3.6 / 3.9 total variance · 92%</text>
+<text class="small" x="360" y="424" text-anchor="middle">PC2 keeps the remaining 0.3 · 8%</text>
 </svg>

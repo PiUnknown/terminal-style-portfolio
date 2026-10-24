@@ -147,14 +147,15 @@ export function ProjectionAnimation() {
         <line className="pca-axis" x1={cx - 2.85 * scale} x2={cx + 2.85 * scale} y1={cy} y2={cy} />
         <line className="pca-axis" x1={cx} x2={cx} y1={cy - 1.95 * scale} y2={cy + 1.95 * scale} />
         <text className="pca-small" x={cx + 2.42 * scale} y={cy + 18} textAnchor="end">energy</text>
-        <text className="pca-small" x={cx + 8} y={cy - 1.85 * scale}>loudness</text>
+        <text className="pca-small" x={cx - 8} y={cy - 1.85 * scale} textAnchor="end">loudness</text>
 
         <line
           className={`pca-direction${rotate < 0.98 ? " pca-direction-search" : ""}`}
           x1={startX} y1={startY} x2={endX} y2={endY}
           markerEnd={`url(#${arrowId})`}
+          opacity={tail(p)}
         />
-        <text className="pca-direction-label" x={endX - 3} y={endY - 10} textAnchor="end">
+        <text className="pca-direction-label" x={endX - 3} y={endY - 10} textAnchor="end" opacity={tail(p)}>
           {rotate < 0.98 ? "trial direction" : "component 1"}
         </text>
 
@@ -172,9 +173,16 @@ export function ProjectionAnimation() {
           <circle key={`song-${index}`} className="pca-song" cx={point.x} cy={point.y} r={compact ? 5 : 6} />
         ))}
 
-        <text className="pca-small pca-residual-label" x={W - 20} y={compact ? 84 : 57} textAnchor="end" opacity={summary}>
-          PC2 · perpendicular
-        </text>
+        <g opacity={summary}>
+          <line
+            className="pca-projection-line"
+            x1={W - (compact ? 146 : 150)} x2={W - (compact ? 128 : 132)}
+            y1={compact ? 81 : 54} y2={compact ? 81 : 54}
+          />
+          <text className="pca-small pca-residual-label" x={W - (compact ? 122 : 126)} y={compact ? 84 : 57} textAnchor="start">
+            PC2 · perpendicular
+          </text>
+        </g>
         <text className="pca-small pca-step" x={cx} y={H - 74} textAnchor="middle" opacity={fade(p, 0.04, 0.04)}>
           {rotate < 0.98 ? "turn the trial axis toward the widest spread" : "drop each song along a perpendicular"}
         </text>
@@ -259,7 +267,7 @@ export function VarianceCurveAnimation() {
         })}
 
         <line className="pca-target" x1={left} x2={W - right} y1={targetY} y2={targetY} opacity={targetOpacity} />
-        <text className="pca-target-label" x={W - right} y={targetY - 7} textAnchor="end" opacity={targetOpacity}>95% target</text>
+        <text className="pca-target-label" x={W - right} y={targetY + 16} textAnchor="end" opacity={targetOpacity}>95% target</text>
         <line className="pca-cross-guide" x1={crossingX} x2={crossingX} y1={top} y2={bottom} opacity={targetOpacity} />
         <path
           className="pca-cumulative"
