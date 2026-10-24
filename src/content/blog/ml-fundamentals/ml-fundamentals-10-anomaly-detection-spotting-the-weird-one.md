@@ -1,7 +1,7 @@
 ---
 title: "ML Fundamentals #10: Anomaly Detection - Spotting the Weird One"
 date: "2026-10-24"
-published: false
+published: true
 series: "ML Fundamentals"
 order: 10
 tags: "ml, fundamentals, notes"

@@ -1,7 +1,7 @@
 ---
 title: "ML Fundamentals #9: Dimensionality Reduction - Squeezing Data Into Fewer Numbers"
 date: "2026-10-24"
-published: false
+published: true
 series: "ML Fundamentals"
 order: 9
 tags: "ml, fundamentals, notes"
