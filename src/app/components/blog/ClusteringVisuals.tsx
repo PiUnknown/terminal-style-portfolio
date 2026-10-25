@@ -40,7 +40,7 @@ export function KMeansAnimation() {
   const displayed=c.map((v,i)=>previous[i]+(v-previous[i])*progress);
   const assign=phase===1?centres[0]:phase===2?centres[0]:centres[1];
   const groups=values.map(v=> Math.abs(v-assign[0])<=Math.abs(v-assign[1])?0:1);
-  return <figure ref={clock.ref} className="cl-figure" data-running={clock.running} data-phase={phase}>
+  return <figure ref={clock.ref} className="cl-figure cl-kmeans" data-running={clock.running} data-phase={phase}>
     <div className="cl-top"><div className="cl-heading">k-means: assign, move, repeat</div><Toggle clock={clock} name="k-means"/></div>
     <div className="cl-meta">made-up data: 1, 2, 4, 9, 10, 12 / k = 2</div>
     <ol className="cl-loop">{["Choose k","Place centres","Assign points","Move centres"].map((s,i)=><li className={(phase===0?i<2:phase===1||phase===4?i===2:i===3)?"cl-active":""} key={s}><span>0{i+1}</span>{s}</li>)}</ol>
@@ -62,7 +62,7 @@ const clusters=dbPoints.map(()=>-1);const visitOrder:number[]=[];let cluster=0;
 for(let i=0;i<dbPoints.length;i++){if(!core[i]||clusters[i]>=0)continue;const queue=[i];clusters[i]=cluster;while(queue.length){const j=queue.shift()!;visitOrder.push(j);for(const n of neighbours[j]){if(clusters[n]===-1){clusters[n]=cluster;if(core[n])queue.push(n);}}}cluster++;}
 export function DBSCANAnimation(){
   const clock=useClock(20), id=useId(); const phase=Math.min(visitOrder.length,Math.floor(clock.time/1.6));const visited=visitOrder.slice(0,phase);const current=visitOrder[Math.min(phase,visitOrder.length-1)];const seen=new Set(visited.flatMap(i=>neighbours[i]));const done=phase===visitOrder.length;
-  return <figure ref={clock.ref} className="cl-figure" data-running={clock.running} data-phase={phase}><div className="cl-top"><div className="cl-heading">DBSCAN: grow dense regions</div><Toggle clock={clock} name="DBSCAN"/></div><div className="cl-meta">illustrative / ε = 30 diagram units / minPts = 4, including the point</div>
+  return <figure ref={clock.ref} className="cl-figure cl-dbscan" data-running={clock.running} data-phase={phase}><div className="cl-top"><div className="cl-heading">DBSCAN: grow dense regions</div><Toggle clock={clock} name="DBSCAN"/></div><div className="cl-meta">illustrative / ε = 30 diagram units / minPts = 4, including the point</div>
     <svg className="cl-diagram" viewBox="0 0 312 205" role="img" aria-labelledby={id}><title id={id}>DBSCAN expands through core points with at least four points in their radius. Border points join but do not expand. Two isolated points remain noise.</title>
       {!done&&<circle className="cl-neighbourhood" cx={dbPoints[current][0]} cy={dbPoints[current][1]} r={epsilon}/>}
       {dbPoints.map(([x,y],i)=><g key={i} className={seen.has(i)||done?clusters[i]===-1?"cl-noise":`cl-group-${clusters[i]}`:"cl-unassigned"}>
@@ -75,7 +75,7 @@ export function DBSCANAnimation(){
 const merges=[{a:0,b:1,height:1},{a:3,b:4,height:1},{a:6,b:2,height:2},{a:7,b:5,height:2},{a:8,b:9,height:5}];
 const treeNodes=[{x:42,y:174},{x:82,y:174},{x:122,y:174},{x:196,y:174},{x:236,y:174},{x:276,y:174},{x:62,y:146},{x:216,y:146},{x:92,y:118},{x:246,y:118},{x:169,y:34}];
 export function HierarchicalAnimation(){const clock=useClock(12),id=useId();const phase=clock.time<3?0:clock.time<6?1:clock.time<9?2:3;
-  return <figure ref={clock.ref} className="cl-figure" data-running={clock.running} data-phase={phase}><div className="cl-top"><div className="cl-heading">hierarchical: merge the closest groups</div><Toggle clock={clock} name="hierarchical clustering"/></div><div className="cl-meta">made-up values: 1, 2, 4, 9, 10, 12 / single linkage</div>
+  return <figure ref={clock.ref} className="cl-figure cl-hierarchical" data-running={clock.running} data-phase={phase}><div className="cl-top"><div className="cl-heading">hierarchical: merge the closest groups</div><Toggle clock={clock} name="hierarchical clustering"/></div><div className="cl-meta">made-up values: 1, 2, 4, 9, 10, 12 / single linkage</div>
     <svg className="cl-diagram" viewBox="0 0 312 214" role="img" aria-labelledby={id}><title id={id}>Single-linkage dendrogram: 1 and 2, and 9 and 10 merge at distance 1; 4 and 12 join at distance 2; both groups merge at distance 5. Height is distance, not time.</title>
       <path className="cl-rule" d="M18 174V34"/>{[0,1,2,5].map(h=><text className="cl-axis" x="12" y={178-h*28} textAnchor="end" key={h}>{h}</text>)}
       {merges.map((m,i)=>{const a=treeNodes[m.a],b=treeNodes[m.b],y=174-m.height*28;const show=phase>=(i<2?1:i<4?2:3);return <path key={i} className={show?"cl-merge cl-shown":"cl-merge"} d={`M${a.x} ${a.y}V${y}H${b.x}V${b.y}`}/>;})}

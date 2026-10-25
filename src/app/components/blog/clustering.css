@@ -8,6 +8,7 @@
 .cl-toggle:focus-visible {outline:2px solid var(--primary);outline-offset:3px;}
 .cl-toggle svg {width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.5;}
 .cl-figure .cl-diagram {display:block;width:100%;height:auto;margin:1rem 0;overflow:visible;}
+.cl-figure.cl-kmeans .cl-diagram,.cl-figure.cl-dbscan .cl-diagram,.cl-figure.cl-hierarchical .cl-diagram {max-width:500px;margin-left:auto;margin-right:auto;}
 .cl-diagram text {fill:var(--foreground);font-size:12px;font-family:inherit;}
 .cl-diagram .cl-axis {fill:var(--muted-foreground);font-size:11px;}
 .cl-rule {stroke:var(--border);fill:none;stroke-width:1;}

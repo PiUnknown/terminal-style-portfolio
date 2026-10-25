@@ -13,7 +13,7 @@ excerpt: "Every model so far needed answers to learn from. Clustering has none. 
 
 `Clustering` is **grouping data points by how similar they are, with no answers given in advance.**
 
-This is lesson 5 of the Machine Learning Fundamentals series. Terms like labels and training examples used here were explained in [lesson 1](/blog/ml-fundamentals-1-what-machine-learning-actually-is). Check it out if you haven't.
+This is lesson 5 of the Machine Learning Fundamentals series. Terms like labels and training examples used here were explained in [lesson 1](https://www.piunknown.dev/blog/ml-fundamentals-1-what-machine-learning-actually-is). Check it out if you haven't.
 
 Picture the first day at a new school. Nobody assigns lunch tables.
 
@@ -123,7 +123,7 @@ For our six numbers, the final groups give: `1.78 + 0.11 + 2.78` for the first g
 This is the hard part, and the algorithm cannot help you directly.
 
 - You might think: just pick the `k` with the lowest inertia.
-- That does not work. Inertia almost always falls as `k` grows, and the best possible inertia never rises.
+- That does not work. Adding a group can never raise the best achievable inertia; it only falls or stays the same as `k` grows.
 - At the extreme, give every point its own group and inertia is zero. Useless.
 
 ### What is the elbow method?
@@ -261,7 +261,7 @@ score = kmeans.inertia_
 
 ### Why can't you just pick the k with the lowest inertia?
 
-- Inertia always shrinks as `k` grows.
+- The best achievable inertia can only fall or stay the same as `k` grows - it never rises.
 - With one group per point it hits zero, but the groups say nothing.
 - So you look for the elbow, where extra groups stop paying off.
 

@@ -47,8 +47,8 @@ Here are ten runners (made-up numbers, for illustration) with the best straight 
 
 ![Ten runners with a fitted line and vertical error bars](/assets/regression-fit.png)
 
-- Blue dots are the runners.
-- The green line is the model's guess for any height.
+- Green dots are the runners.
+- The white line is the model's guess for any height.
 - Each orange bar is one runner's **error**: the gap between the line's guess and the real shoe size.
 
 You pick the line that keeps those orange bars as short as possible, taken together. That line is linear regression.
@@ -192,7 +192,7 @@ It only works well when the real relationship is roughly straight.
 
 ### What if the data curves?
 
-A straight line will **systematically miss the curve**. Fixes like polynomial terms, ridge, and lasso exist for curved data and noisy inputs. Later lessons cover them.
+A straight line will **systematically miss the curve**. Fixes like polynomial terms and regularization exist for curved data and noisy inputs. Later lessons touch on some of these.
 
 ### Other common mistakes
 

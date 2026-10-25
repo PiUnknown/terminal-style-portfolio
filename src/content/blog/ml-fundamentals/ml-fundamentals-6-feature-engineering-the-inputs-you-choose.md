@@ -186,10 +186,15 @@ That is why practitioners ask "what fact would help here?" before they touch the
 
 ## What does it look like in code?
 
-Run: import pandas as pd
-Run: df["floor_area"] = df["length_m"] * df["width_m"]
-Run: df["house_age"] = 2026 - df["year_built"]
-Run: X = pd.get_dummies(df[["floor_area", "house_age", "neighbourhood"]])
+```python
+import pandas as pd
+
+df["floor_area"] = df["length_m"] * df["width_m"]
+df["house_age"] = 2026 - df["year_built"]
+X = pd.get_dummies(df[["floor_area", "house_age", "neighbourhood"]])
+```
+
+This assumes you supply df, the raw table as a pandas DataFrame.
 
 Line by line:
 
