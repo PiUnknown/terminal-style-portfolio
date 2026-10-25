@@ -112,9 +112,9 @@ Take it in steps:
 
 - Squaring makes every error positive, so misses above and below the line cannot cancel out.
 - Squaring punishes big misses far more than small ones. A miss of 4 costs 16, not 4.
-- So the line does not swing wildly to please one stubborn point.
+- So the line works hard to avoid any one big miss. That is also why one stubborn point gets a lot of say.
 
-A truly extreme outlier can still drag the line noticeably. Squaring reduces that, it does not remove it.
+That makes the line sensitive to outliers: one extreme point can drag it noticeably, more than it would if you added up raw distances instead.
 
 ## How does the model find the best line?
 
@@ -181,7 +181,7 @@ This is the fit-then-predict loop. The data variables need to be prepared first.
 
 Two checks.
 
-- **R-squared** is a score from 0 to 1 for how much of the variation in the output the line explains. An R-squared of 0.8 on the runner data would mean height explains about 80% of why shoe sizes differ, and the other 20% comes from things the line does not know about.
+- **R-squared** is a score of at most 1 for how much of the variation in the output the line explains. Closer to 1 is better, 0 means the line does no better than always guessing the average, and a negative score means it does worse than that. An R-squared of 0.8 on the runner data would mean height explains about 80% of why shoe sizes differ, and the other 20% comes from things the line does not know about.
 - **Performance on new data**. A low error on the training points does not prove the line will work on points it has never seen.
 
 Always check on held-out examples. A line can fit the points it was trained on and still miss on new ones.
@@ -208,7 +208,7 @@ On that fourth one: say you tracked how many days in a row people kept a workout
 
 Try answering these before moving on:
 
-- **Why minimize squared error instead of raw distance?** Squaring stops misses above and below the line from cancelling, and punishes big misses far more than small ones, so one point cannot pull the line wildly.
+- **Why minimize squared error instead of raw distance?** Squaring stops misses above and below the line from cancelling, and punishes big misses far more than small ones, which also means outliers pull on the line hard.
 - **What is a key limitation of linear regression?** It only fits straight lines, so it systematically misses curved relationships.
 - **What does a coefficient tell you?** How much the output changes for a one-unit change in that input, holding the others fixed.
 - **What does gradient descent do?** It repeatedly nudges the slope and intercept in the direction that shrinks the error, until nudging stops helping.

@@ -58,6 +58,8 @@ Raw columns in our table:
 
 The model could try these as they come. It will do better if we reshape them first.
 
+area_sqft and the floor_area we build below measure similar things. A real table would keep one of them. We keep both here only to show what combining columns does.
+
 ## How do you change one column?
 
 Some columns hide their meaning in their raw form.
@@ -127,6 +129,8 @@ The fix is **scaling**: put columns on a comparable range.
 - Bedrooms 1, 3, 5 become 0, 0.5, 1.
 
 Both do one job: stop units from deciding the winner.
+
+One safety rule: fit the scaler on the training data only, then use that same fitted scaler to transform the held-out test data. If you use cross-validation, do the fit inside each fold, for example with a scikit-learn Pipeline. Fitting on all the data lets the test set leak into training.
 
 ## How do you choose the prep for a column?
 

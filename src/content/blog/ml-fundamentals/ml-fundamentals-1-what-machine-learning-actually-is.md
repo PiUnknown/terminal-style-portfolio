@@ -123,7 +123,7 @@ The internal numbers adjusted during learning are called **parameters** (or weig
 
 1. **Prepare Labeled Data**: Assemble features paired with target labels.
 2. **Train Model**: Run a learning algorithm over training examples.
-3. **Persist Parameters**: Store the trained model with tuned weights.
+3. **Persist Parameters**: Save the fitted model and any preprocessing so you can load them later and make predictions without retraining.
 4. **Generate Predictions**: Pass unlabelled inputs to infer outputs.
 
 
@@ -149,6 +149,7 @@ predictions = model.predict(X_test)
 - `fit()` executes the training algorithm to tune internal parameters.
 - `X_test` supplies evaluation features omitted from training.
 - `predict()` outputs target predictions for new data.
+- The data variables need to be prepared first.
 
 
 > **Key Takeaway:** This `fit()` and `predict()` sequence forms the foundational workflow across almost all `scikit-learn` models.

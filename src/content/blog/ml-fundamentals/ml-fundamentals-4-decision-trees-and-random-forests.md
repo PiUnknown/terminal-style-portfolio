@@ -218,7 +218,7 @@ Read it line by line:
 
 - `X_train` holds the inputs and `y_train` holds their correct class labels. `X_test` contains inputs reserved for checking predictions.
 - `RandomForestClassifier(...)` creates a forest for category predictions.
-- `n_estimators=100` asks it to build 100 trees, matching the lesson's example.
+- `n_estimators=100` asks it to build 100 trees. The twenty friends in the analogy were just a small stand-in; a real forest often uses a hundred or more.
 - `random_state=42` fixes the random seed so the same setup can be repeated.
 - `fit(...)` trains the trees using the training examples.
 - `predict(...)` combines their predictions for the test inputs.

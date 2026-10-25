@@ -123,7 +123,7 @@ For our six numbers, the final groups give: `1.78 + 0.11 + 2.78` for the first g
 This is the hard part, and the algorithm cannot help you directly.
 
 - You might think: just pick the `k` with the lowest inertia.
-- That does not work. Inertia always falls as `k` grows.
+- That does not work. Inertia almost always falls as `k` grows, and the best possible inertia never rises.
 - At the extreme, give every point its own group and inertia is zero. Useless.
 
 ### What is the elbow method?
@@ -136,7 +136,7 @@ The `elbow method` is **running k-means for many values of k and plotting inerti
 - Past a certain point, extra groups only slice up clumps that were already tight, and the curve flattens.
 - The bend where it flattens looks like an elbow. That `k` is a good candidate.
 
-The elbow is a hint, not a rule. A silhouette score is another tool that helps you decide.
+The elbow is a hint, not a rule. A silhouette score is another tool that helps you decide. For each point it compares how close the point is to its own group with how close it is to the nearest other group. A score near 1 means well separated, near 0 means overlapping, and below 0 usually means the point sits in the wrong group.
 
 ## When does k-means fail?
 
@@ -160,7 +160,7 @@ K-means is one idea: **a group is whatever surrounds a center.** Two other popul
 Think of a map of houses. A town is a place where houses are packed close together. A lone farmhouse miles away is not part of any town.
 
 - Start at any point and look at its neighbors within a small radius.
-- If there are enough neighbors, it is part of a crowded region, so the region spreads to each neighbor and keeps growing.
+- If there are enough neighbors, it is a core point, so the region spreads to each of its neighbors. A neighbor that is itself a core point keeps the region growing. A neighbor with too few neighbors of its own joins as a border point but does not spread the region further.
 - Where the crowd thins out, the group ends.
 - Points that never join a crowded region are left alone as `noise`.
 
@@ -178,9 +178,9 @@ The trade-off: you now choose the radius and the "how crowded is crowded" thresh
 
 ### What is hierarchical clustering?
 
-`Hierarchical clustering` is **an algorithm that builds a family tree of groups, from every point alone up to everything together.**
+`Hierarchical clustering` is **an algorithm that builds a family tree of groups, from every point alone up to everything together.** This bottom-up version is called agglomerative clustering.
 
-Try it on our six numbers: `1, 2, 4, 9, 10, 12`. Here "distance between groups" means the distance between their closest two members.
+Try it on our six numbers: `1, 2, 4, 9, 10, 12`. Here "distance between groups" means the distance between their closest two members. This rule is called single linkage.
 
 1. Every number starts as its own group.
 2. Merge the closest pair. `1` and `2` are 1 apart, and so are `9` and `10`. Merge both.
@@ -246,7 +246,7 @@ score = kmeans.inertia_
 - Treating the group numbers as meaning something. Group 2 is not "better" than group 0. You have to look inside each group and name it yourself.
 - Skipping feature scaling.
 - Trusting one run. Different starts can give different groups.
-- Using k-means on crescent-shaped or very uneven data, when DBSCAN or hierarchical clustering would fit better.
+- Using k-means on crescent-shaped or other non-round groups, where a density-based method like DBSCAN may fit better.
 
 ## What are the key takeaways?
 

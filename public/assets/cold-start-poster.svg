@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="rv-diagram" viewBox="0 0 720 314" role="img" aria-labelledby="cold-t cold-d"><style>svg{--rv-main:#00ff41;--rv-hot:#ffcc00;--rv-fg:#d1d5db;--rv-muted:#9ca3af;--background:#0a0f0a;background:#0a0f0a;font-family:monospace}
+.rv-diagram { display: block; width: 100%; height: auto; overflow: visible; }
+.rv-diagram text { fill: var(--rv-fg); font-size: 13px; font-family: inherit; }
+.rv-diagram .rv-small { fill: var(--rv-muted); font-size: 11.5px; }
+.rv-diagram .rv-hot { fill: var(--rv-hot); }
+.rv-diagram .rv-label { font-size: 13px; }
+.rv-diagram .rv-label-hot { fill: var(--rv-hot); }
+.rv-diagram .rv-label-main { fill: var(--rv-main); }
+.rv-diagram .rv-step { font-size: 13px; }
+.rv-diagram .rv-stat { font-size: 14px; }
+.rv-diagram .rv-stat-hot { fill: var(--rv-hot); }
+.rv-diagram .rv-num { fill: var(--rv-muted); font-size: 13px; }
+.rv-diagram .rv-num-like { fill: var(--rv-main); }
+.rv-diagram .rv-num-hot { fill: var(--rv-hot); font-size: 15px; }
+.rv-diagram .rv-cell { fill: none; stroke: var(--rv-muted); stroke-opacity: .25; stroke-width: 1; }
+.rv-diagram .rv-cell-like { fill: color-mix(in srgb, var(--rv-main) 14%, var(--background, #0a0f0a)); stroke: var(--rv-main); stroke-opacity: .5; }
+.rv-diagram .rv-cell-focus { stroke: var(--rv-hot); stroke-opacity: 1; stroke-width: 2; }
+.rv-diagram .rv-cell-rec { fill: color-mix(in srgb, var(--rv-hot) 18%, var(--background, #0a0f0a)); stroke: var(--rv-hot); stroke-width: 2; }
+.rv-diagram .rv-row { fill: var(--rv-hot); opacity: .08; }
+.rv-diagram .rv-plot { fill: none; stroke: var(--rv-muted); stroke-opacity: .35; stroke-width: 1; }
+.rv-diagram .rv-axis { stroke: var(--rv-muted); stroke-width: 1; opacity: .35; }
+.rv-diagram .rv-factor-axis { stroke: var(--rv-hot); stroke-width: 1.4; stroke-dasharray: 5 4; opacity: .85; }
+.rv-diagram .rv-user { stroke: var(--rv-main); stroke-width: 1.6; }
+.rv-diagram .rv-user-tip { fill: var(--rv-main); }
+.rv-diagram .rv-user-hot { stroke: var(--rv-hot); stroke-width: 2.4; }
+.rv-diagram circle.rv-user-hot { fill: var(--rv-hot); stroke: none; }
+.rv-diagram .rv-dish { fill: var(--rv-fg); }
+.rv-diagram .rv-dish-hot { fill: var(--rv-hot); }
+.rv-diagram .rv-chip { fill: none; stroke-width: 1.2; }
+.rv-diagram .rv-chip-ok { stroke: var(--rv-main); stroke-opacity: .6; fill: color-mix(in srgb, var(--rv-main) 10%, var(--background, #0a0f0a)); }
+.rv-diagram .rv-chip-no { stroke: var(--rv-hot); stroke-opacity: .7; fill: color-mix(in srgb, var(--rv-hot) 10%, var(--background, #0a0f0a)); }
+.rv-diagram .rv-chip-mark { font-size: 16px; }
+.rv-diagram .rv-ok { fill: var(--rv-main); }
+.rv-diagram .rv-no { fill: var(--rv-hot); }
+.rv-diagram .rv-chiptext { fill: var(--rv-fg); }</style><title id="cold-t">Which signal each approach has for a new dish and a new user</title><desc id="cold-d">A schematic table, not measured results. For an established dish and user, collaborative and content-based both have signal. For a brand-new dish, collaborative filtering has no ratings but content-based has attributes. For a brand-new user, both lack a signal: collaborative has no ratings and content-based has no liked dishes to build a profile.</desc><g opacity="1"><text class="rv-label rv-label-main" x="212" y="38">collaborative filtering</text><text class="rv-label rv-label-hot" x="463" y="38">content-based filtering</text><g opacity="1"><text class="rv-step" x="10" y="99">Known dish, known user</text><g><rect class="rv-chip rv-chip-ok" x="210" y="68" width="235" height="54"></rect><text class="rv-chip-mark rv-ok" x="222" y="100">✓</text><text class="rv-small rv-chiptext" x="242" y="99">many ratings to compare</text></g><g><rect class="rv-chip rv-chip-ok" x="461" y="68" width="235" height="54"></rect><text class="rv-chip-mark rv-ok" x="473" y="100">✓</text><text class="rv-small rv-chiptext" x="493" y="99">attributes; repeats taste</text></g></g><g opacity="1"><text class="rv-step" x="10" y="165">Brand-new dish</text><g><rect class="rv-chip rv-chip-no" x="210" y="134" width="235" height="54"></rect><text class="rv-chip-mark rv-no" x="222" y="166">✗</text><text class="rv-small rv-chiptext" x="242" y="165">nobody has rated it yet</text></g><g><rect class="rv-chip rv-chip-ok" x="461" y="134" width="235" height="54"></rect><text class="rv-chip-mark rv-ok" x="473" y="166">✓</text><text class="rv-small rv-chiptext" x="493" y="165">attributes exist on day one</text></g></g><g opacity="1"><text class="rv-step" x="10" y="231">Brand-new user</text><g><rect class="rv-chip rv-chip-no" x="210" y="200" width="235" height="54"></rect><text class="rv-chip-mark rv-no" x="222" y="232">✗</text><text class="rv-small rv-chiptext" x="242" y="231">no ratings from them yet</text></g><g><rect class="rv-chip rv-chip-no" x="461" y="200" width="235" height="54"></rect><text class="rv-chip-mark rv-no" x="473" y="232">✗</text><text class="rv-small rv-chiptext" x="493" y="231">no liked dishes yet</text></g></g><g opacity="1"><text class="rv-small" x="10" y="282">Usual fallbacks: show popular items, ask a few</text><text class="rv-small" x="10" y="300">taste questions, use item attributes, explore on purpose.</text></g></g></svg>

@@ -81,7 +81,7 @@ Because each model sees a different slice of the data, each overfits to slightly
 You already know the most famous bagging model:
 
 - The **random forest** from lesson 4 is bagged decision trees, plus one extra twist: at each split, each tree only considers a **random subset of features**.
-- That extra randomness matters. Without it, every tree latches onto the same strongest feature and the forest collapses into copies of one tree.
+- That extra randomness matters. Without it, the trees can become more correlated, because the same strong features tend to win the splits. The bootstrap samples still differ, so the trees are not identical, but averaging them cancels less of the error.
 - Random feature subsets force the trees to make **different** mistakes, which is exactly what averaging needs.
 
 <div data-blog-animation="ensemble-vote"><img src="/assets/ensemble-vote-poster.svg" alt="Five small trees, each trained on a different bootstrap sample, predict the fest footfall: 820, 940, 710, 1010 and 880. Their predictions flow into an averaging step that outputs 872. The actual turnout is 890, so the ensemble misses by 18, while the average single-model miss is 86."></div>

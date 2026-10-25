@@ -6,6 +6,7 @@ import { KMeansAnimation, DBSCANAnimation, HierarchicalAnimation, ElbowChart, Cr
 import { VotingFlowAnimation, BoostingRoundsAnimation } from "./EnsembleVisuals";
 import { ProjectionAnimation, VarianceCurveAnimation } from "./PCAVisuals";
 import { IsolationAnimation, ReconstructionAnimation, ThresholdAnimation } from "./AnomalyVisuals";
+import { ItemCfAnimation, LatentAnimation, ColdStartAnimation } from "./RecommenderVisuals";
 
 class AnimationFallback extends Component<{ children: ReactNode; poster: string }, { failed: boolean }> {
   state = { failed: false };
@@ -33,6 +34,9 @@ const animations = {
   "isolation-cuts": IsolationAnimation,
   "reconstruction-error": ReconstructionAnimation,
   "threshold-tradeoff": ThresholdAnimation,
+  "item-cf-steps": ItemCfAnimation,
+  "latent-rotation": LatentAnimation,
+  "cold-start": ColdStartAnimation,
 };
 
 /** Replace only registered, block-level placeholders after Markdown rendering.

@@ -58,7 +58,7 @@ export function FeaturePrepAnimation() {
       {compact ? (
         <svg className="fp-diagram fp-diagram-compact" viewBox="0 0 360 596" role="img" aria-labelledby={`${titleId} ${descId}`}>
           <title id={titleId}>Preparing three features for a model</title>
-          <desc id={descId}>A country category is one-hot encoded, area and bedrooms are scaled to 0 to 1, and an already binary garage flag is left unchanged.</desc>
+          <desc id={descId}>A neighbourhood category is one-hot encoded, area and bedrooms are scaled to 0 to 1, and an already binary garage flag is left unchanged.</desc>
           <defs>
             <marker id={`${titleId}-arrow`} viewBox="0 0 8 8" refX="4" refY="4" markerWidth="5" markerHeight="5" orient="auto">
               <path d="M1 1 7 4 1 7" />
@@ -66,16 +66,16 @@ export function FeaturePrepAnimation() {
           </defs>
           <g className="fp-run">
             <text className="fp-section" x="12" y="18">01 / CATEGORY</text>
-            <g className="fp-source fp-delay-1"><rect className="fp-box" x="12" y="30" width="336" height="38" rx="4" /><text x="26" y="54">country: India</text></g>
+            <g className="fp-source fp-delay-1"><rect className="fp-box" x="12" y="30" width="336" height="38" rx="4" /><text x="26" y="54">neighbourhood: Dwarka</text></g>
             <line className="fp-arrow" x1="180" y1="70" x2="180" y2="79" markerEnd={`url(#${titleId}-arrow)`} />
             <rect className="fp-box fp-gate fp-delay-1" x="12" y="84" width="336" height="38" rx="4" />
             <text x="26" y="108">one-hot encode</text>
             <line className="fp-arrow" x1="180" y1="124" x2="180" y2="133" markerEnd={`url(#${titleId}-arrow)`} />
             <g className="fp-ready fp-mobile-ready fp-delay-1">
-              {["India  1", "USA  0", "Russia  0"].map((label, index) => (
+              {["Rohini 0", "Dwarka 1", "Saket 0"].map((label, index) => (
                 <g key={label}>
-                  <rect className={index === 0 ? "fp-on" : "fp-off"} x={12 + index * 112} y="140" width="104" height="38" rx="4" />
-                  <text className={index === 0 ? "fp-on-text" : ""} x={64 + index * 112} y="164" textAnchor="middle">{label}</text>
+                  <rect className={index === 1 ? "fp-on" : "fp-off"} x={12 + index * 112} y="140" width="104" height="38" rx="4" />
+                  <text className={index === 1 ? "fp-on-text" : ""} x={64 + index * 112} y="164" textAnchor="middle">{label}</text>
                 </g>
               ))}
             </g>
@@ -88,12 +88,12 @@ export function FeaturePrepAnimation() {
             <text x="26" y="312">scale to a comparable range</text>
             <line className="fp-arrow" x1="180" y1="330" x2="180" y2="337" markerEnd={`url(#${titleId}-arrow)`} />
             <g className="fp-ready fp-mobile-ready fp-delay-2">
-              <text className="fp-small" x="12" y="354">area_sqft 0.6</text>
-              <text className="fp-small" x="186" y="354">bedrooms 0.4</text>
+              <text className="fp-small" x="12" y="354">area_sqft 0.25</text>
+              <text className="fp-small" x="186" y="354">bedrooms 0.5</text>
               <rect className="fp-track" x="12" y="362" width="156" height="10" rx="2" />
               <rect className="fp-track" x="186" y="362" width="162" height="10" rx="2" />
-              <rect className="fp-bar fp-mobile-bar" x="12" y="362" width="94" height="10" rx="2" />
-              <rect className="fp-bar fp-mobile-bar" x="186" y="362" width="65" height="10" rx="2" />
+              <rect className="fp-bar fp-mobile-bar" x="12" y="362" width="39" height="10" rx="2" />
+              <rect className="fp-bar fp-mobile-bar" x="186" y="362" width="81" height="10" rx="2" />
             </g>
             <line className="fp-divider" x1="12" y1="394" x2="348" y2="394" />
 
@@ -112,21 +112,21 @@ export function FeaturePrepAnimation() {
       ) : (
         <svg className="fp-diagram" viewBox="0 0 760 300" role="img" aria-labelledby={`${titleId} ${descId}`}>
           <title id={titleId}>Preparing three features for a model</title>
-          <desc id={descId}>A country category is one-hot encoded, area and bedrooms are scaled to 0 to 1, and an already binary garage flag is left unchanged.</desc>
+          <desc id={descId}>A neighbourhood category is one-hot encoded, area and bedrooms are scaled to 0 to 1, and an already binary garage flag is left unchanged.</desc>
           <g className="fp-run">
             <text className="fp-small" x="10" y="22">raw column</text>
             <text className="fp-small" x="330" y="22">prep</text>
             <text className="fp-small" x="560" y="22">ready for the model</text>
 
             <line className="fp-lane" x1="10" y1="70" x2="750" y2="70" />
-            <g className="fp-token fp-delay-1"><rect className="fp-box" x="10" y="52" width="130" height="36" rx="4" /><text x="22" y="75">country: India</text></g>
+            <g className="fp-token fp-delay-1"><rect className="fp-box" x="10" y="52" width="130" height="36" rx="4" /><text x="22" y="66"><tspan x="22">neighbourhood:</tspan><tspan x="22" dy="12">Dwarka</tspan></text></g>
             <rect className="fp-box fp-gate fp-delay-1" x="330" y="48" width="110" height="44" rx="4" />
             <text x="345" y="75">one-hot</text>
             <g className="fp-ready fp-delay-1">
-              {["India", "USA", "Russia"].map((country, index) => (
+              {["Rohini", "Dwarka", "Saket"].map((country, index) => (
                 <g key={country}>
-                  <rect className={index === 0 ? "fp-on" : "fp-off"} x={560 + index * 62} y="52" width="52" height="36" rx="4" />
-                  <text className={index === 0 ? "fp-on-text" : ""} x={586 + index * 62} y="75" textAnchor="middle">{index === 0 ? 1 : 0}</text>
+                  <rect className={index === 1 ? "fp-on" : "fp-off"} x={560 + index * 62} y="52" width="52" height="36" rx="4" />
+                  <text className={index === 1 ? "fp-on-text" : ""} x={586 + index * 62} y="75" textAnchor="middle">{index === 1 ? 1 : 0}</text>
                   <text className="fp-small" x={586 + index * 62} y="104" textAnchor="middle">{country}</text>
                 </g>
               ))}
@@ -144,10 +144,10 @@ export function FeaturePrepAnimation() {
             <g className="fp-ready fp-delay-2">
               <rect className="fp-track" x="560" y="160" width="180" height="12" />
               <rect className="fp-track" x="560" y="182" width="180" height="12" />
-              <rect className="fp-bar fp-bar-output" x="560" y="160" width="108" height="12" />
-              <rect className="fp-bar fp-bar-output" x="560" y="182" width="72" height="12" />
-              <text className="fp-small" x="560" y="212">area_sqft 0.6</text>
-              <text className="fp-small" x="650" y="212">bedrooms 0.4</text>
+              <rect className="fp-bar fp-bar-output" x="560" y="160" width="45" height="12" />
+              <rect className="fp-bar fp-bar-output" x="560" y="182" width="90" height="12" />
+              <text className="fp-small" x="560" y="212">area_sqft 0.25</text>
+              <text className="fp-small" x="560" y="228">bedrooms 0.5</text>
             </g>
 
             <line className="fp-lane" x1="10" y1="262" x2="750" y2="262" />
